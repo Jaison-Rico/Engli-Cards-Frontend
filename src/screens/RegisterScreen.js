@@ -24,11 +24,13 @@ export default function RegisterScreen() {
             return;
         }
 
+        if (!name || !email || !password) {
+            alert("Please fill all fields");
+            return;
+        }
         setLoading(true);
 
         try {
-            
-            console.log("Registering user with: - RegisterScreen.js:31", { name, email, password });
             const response = await axios.post(`${config.BASE_URL}/auth/register`, {
                 name,
                 email,
@@ -48,7 +50,7 @@ export default function RegisterScreen() {
             );
         } catch (error) {
             alert('Registration failed. Please try again.');
-            console.error("Error during registration: - RegisterScreen.js:51", error);
+            console.error("Error during registration: - RegisterScreen.js:53", error);
         } finally {
             setLoading(false);
         }

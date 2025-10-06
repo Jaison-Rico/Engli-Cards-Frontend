@@ -1,5 +1,5 @@
 const dev = {
-  BASE_URL: "https://c80ec44c7d90.ngrok-free.app"
+  BASE_URL: "https://d6e15d595af7.ngrok-free.app"
 };
 
 const prod = {
