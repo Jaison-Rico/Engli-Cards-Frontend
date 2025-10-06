@@ -1,0 +1,11 @@
+1. Para navegar entre páginas se necesita instalar React Navigation.
+npm install @react-navigation/native
+
+dependencias ->
+npx expo install react-native-screens react-native-safe-area-context
+
+stack navigator -> El Stack Navigator sirve para ir de una pantalla a otra (como páginas)
+npm install @react-navigation/native-stack
+
+Dentro de la carpeta src, se debe crear una carpeta navigation:
+Dentro de la carpeta navigation crear AppNavigator.js
