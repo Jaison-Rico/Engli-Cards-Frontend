@@ -31,12 +31,12 @@ Una aplicación móvil de React Native desarrollada con Expo para el aprendizaje
 
 1. Clona el repositorio:
    ```bash
-   git clone https://github.com/tu-usuario/engli-cards.git
+   git clone https://github.com/Jaison-Rico/Engli-Cards-Frontend.git
    ```
 
 2. Navega al directorio del proyecto:
    ```bash
-   cd engli-cards
+   cd Engli-Cards-Frontend
    ```
 
 3. Instala las dependencias:
@@ -100,6 +100,6 @@ Este proyecto está bajo la Licencia MIT.
 
 ## 👤 Autor
 
-Tu nombre - [tu-email@ejemplo.com](mailto:tu-email@ejemplo.com)
+Jaison Rico - [jaison.rico@ejemplo.com](mailto:jaison.rico@ejemplo.com)
 
-Enlace del proyecto: [https://github.com/tu-usuario/engli-cards](https://github.com/tu-usuario/engli-cards)
+Enlace del proyecto: [https://github.com/Jaison-Rico/Engli-Cards-Frontend](https://github.com/Jaison-Rico/Engli-Cards-Frontend)
