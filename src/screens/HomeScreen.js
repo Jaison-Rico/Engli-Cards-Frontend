@@ -8,7 +8,7 @@ export default function HomeScreen({ navigation }) {
   useEffect(() => {
     animation.current?.play?.();
     const timer = setTimeout(() => {
-      navigation.replace('Login'); // 👈 pasa al login luego de 4 segundos
+      navigation.replace('Login'); 
     }, 4000);
     return () => clearTimeout(timer);
   }, [navigation]);
@@ -17,7 +17,7 @@ export default function HomeScreen({ navigation }) {
     <View style={styles.container}>
       <LottieView
         ref={animation}
-        source={require('../assets/animations/engliCardsAnimation.json')}
+        source={require('../assets/animations/logoApp.json')}
         autoPlay
         loop={false}
         style={{ width: 300, height: 300 }}
