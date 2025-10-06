@@ -24,15 +24,38 @@ textButton:{
     marginBottom:5,
     marginTop: 5,
     color:'black',
+    marginBottom: 15,
 },
-textLogin:{
+textButtonLogin:{
     fontSize:15,
     fontWeight:'bold',
     textAlign:'center',
     marginTop:0,
     marginBottom:5,
-    marginTop: 5,
+    marginTop: -15,
     color:'black',
+    marginBottom: 15,
+},
+textButtonResetPassword:{
+    fontSize:15,
+    fontWeight:'bold',
+    textAlign:'center',
+    marginTop:0,
+    marginBottom:5,
+    color:'white',
+},
+textLogin:{
+    fontSize:15,
+    fontWeight:'bold',
+    textAlign:'center',
+    color:'white',
+    borderColor:'red',
+},
+textRegister:{
+    fontSize:15,
+    fontWeight:'bold',
+    textAlign:'center',
+    color:'white',
     borderColor:'red',
 },
 inputs:{
@@ -42,6 +65,33 @@ inputs:{
     borderColor: 'blue',
     textAlign:'left',
     height: 50,
+},
+inputsLogin:{
+    padding:10,
+    borderWidth: 2,
+    borderRadius:10,
+    borderColor: 'blue',
+    textAlign:'left',
+    height: 50,
+    marginBottom: 20,
+},
+inputsRegister:{
+    padding:10,
+    borderWidth: 2,
+    borderRadius:10,
+    borderColor: 'blue',
+    textAlign:'left',
+    height: 50,
+    marginBottom: 35,
+},
+inputsResetPassword:{
+    padding:10,
+    borderWidth: 2,
+    borderRadius:10,
+    borderColor: 'blue',
+    textAlign:'left',
+    height: 50,
+    width: 300,
 },
 titles:{
     fontSize: 30,
@@ -58,12 +108,13 @@ buttons:{
     marginTop: 20,
     width: 150,
     height: 45,
+    backgroundColor: 'black',
 },
 labelFloating: {
     position: 'absolute',
     top: -8, // Posición sobre el borde
     left: 15,
-    backgroundColor: 'white', // Mismo color que el fondo
+    backgroundColor: 'white',
     paddingHorizontal: 3,
     fontSize: 13,
     color: '#000000ff',
@@ -81,7 +132,14 @@ containerLogin:{
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center'
-}
+},
+containerRegister:{
+    width: 300,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+},
 })
 
 export default style1;
