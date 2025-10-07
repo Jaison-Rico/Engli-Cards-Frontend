@@ -3,9 +3,11 @@ import { StyleSheet } from "react-native";
 const stylesMS = StyleSheet.create({
 containerMCTop: {
     paddingTop: 60,
-    paddingLeft: 20, 
+    paddingLeft: 20,
+    paddingRight: 20,
     backgroundColor: 'white',
-    flex: 0, //rellena toda la pantalla
+    height: 130,
+
 },
 textsMC:{
     fontSize:15,
@@ -26,17 +28,19 @@ textButtonMC:{
     color:'black',
     marginBottom: 15,
 },
+buttonStats:{
+    flexDirection: 'row',
+    borderColor:'black',
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 8,
+    gap: 5,
+},
 textButtonMCStats:{
-    fontSize:15,
+    fontSize:16,
     fontWeight:'bold',
-    marginTop: -20,
     color:'black',
-    marginBottom: 18,
-    marginEnd: 10,
-    borderRadius: 2,
-    borderColor: 'black',
-    borderWidth: 2,
-    padding: 5, //espacion dentro del borde
+    padding: 0, //espacion dentro del borde
 },
 inputs:{
     padding:10,
