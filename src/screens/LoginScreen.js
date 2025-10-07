@@ -1,12 +1,12 @@
-import { useNavigation } from '@react-navigation/native';
+
 import style1 from '../styles/styles1';
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator } from "react-native";
 import { Image } from "react-native";
 import { config } from '../config/api';
 import axios from 'axios';
 import { useState } from 'react';
-import { CommonActions } from '@react-navigation/native';
-import * as SecureStore from 'expo-secure-store'; 
+import { CommonActions, useNavigation } from '@react-navigation/native';
+import * as SecureStore from 'expo-secure-store';
 
 
 export default function LoginScreen() {
@@ -17,6 +17,18 @@ export default function LoginScreen() {
     const [loading, setLoading] = useState(false);
 
     const handleLogin = async () => {
+
+        // test login solo para entorno de desarrollo sin api
+        if (email === "" && password === "") {
+            navigation.dispatch(
+                CommonActions.reset({
+                    index: 0,
+                    routes: [{ name: 'MainScreen', params: { user: { name: "Test User", email: "test@example.com" } } }],
+                })
+            )
+            await SecureStore.setItemAsync('token', 'test-token');
+            await SecureStore.setItemAsync('userInfo', JSON.stringify({ name: "Test User", email: "test@example.com" }));
+        }
         // validacion basica
         if (!email || !password) {
             alert('Please enter both email and password');
@@ -24,22 +36,22 @@ export default function LoginScreen() {
         }
 
         setLoading(true);
-
         try {
             const response = await axios.post(`${config.BASE_URL}/auth/login`, {
                 email,
                 password
             });
             const { token, user } = response.data;
-            
+
             if (token) {
                 // Guarda el token de manera segura
                 await SecureStore.setItemAsync('token', token);
+                await SecureStore.setItemAsync('userInfo', JSON.stringify(user));
             }
             navigation.dispatch(
                 CommonActions.reset({
                     index: 0,
-                    routes: [{ name: 'HomeScreen', params: { user } }],
+                    routes: [{ name: 'MainScreen', params: { user, token } }],
                 })
             )
         } catch (error) {
@@ -54,7 +66,7 @@ export default function LoginScreen() {
                 alert(serverMessage || 'Credenciales incorrectas. Usuario no encontrado (404).');
             } else if (status >= 500) {
                 alert('Error del servidor. Intenta más tarde. xd');
-                console.error('API error - LoginScreen.js:57', status, error.response.data);
+                console.error('API error - LoginScreen.js:69', status, error.response.data);
             } else {
                 alert(serverMessage || `Error ${status}`);
             }
@@ -105,7 +117,7 @@ export default function LoginScreen() {
 
             <View>
                 <TouchableOpacity onPress={handleLogin} style={style1.buttons} disabled={loading}>
-                    {loading ? <ActivityIndicator color="#fff" /> :<Text style={style1.textLogin}>Login</Text>}
+                    {loading ? <ActivityIndicator color="#fff" /> : <Text style={style1.textLogin}>Login</Text>}
                 </TouchableOpacity>
             </View>
         </View>
