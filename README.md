@@ -56,13 +56,24 @@ Una aplicación móvil de React Native desarrollada con Expo para el aprendizaje
 - `npm run ios`: Ejecuta la aplicación en iOS
 - `npm run web`: Ejecuta la aplicación en el navegador web
 
+## ✅ Funcionalidades Implementadas
+
+- ✅ **Sistema de navegación** completo con React Navigation
+- ✅ **Splash Screen** con animación Lottie
+- ✅ **Pantallas de autenticación** (Login, Register, Reset Password)
+- ✅ **Pantalla principal** (MainScreen) con interfaz moderna
+- ✅ **Creación de tarjetas** (NewFlashCard) con formularios
+- ✅ **Componentes UI** con React Native Elements
+- ✅ **Estilos organizados** por pantallas
+
 ## 🔧 Próximas Funcionalidades
 
-- Implementación de React Navigation para navegación entre pantallas
-- Sistema de autenticación
-- Base de datos de tarjetas de estudio
-- Progreso del usuario
-- Configuraciones personalizables
+- 🔲 Base de datos local para tarjetas de estudio
+- 🔲 Sistema de mazos y categorías
+- 🔲 Progreso del usuario y estadísticas
+- 🔲 Modo de estudio con flashcards interactivas
+- 🔲 Configuraciones personalizables
+- 🔲 Exportar/Importar mazos de tarjetas
 
 ## 📁 Estructura del Proyecto
 
@@ -71,11 +82,20 @@ engli-cards/
 ├── src/
 │   ├── components/
 │   ├── screens/
-│   │   ├── HomeScreen.js
+│   │   ├── HomeScreen.js (Splash Screen)
 │   │   ├── LoginScreen.js
-│   │   └── RegisterScreen.js
+│   │   ├── RegisterScreen.js
+│   │   ├── RenewPassword.js
+│   │   ├── MainScreen.js
+│   │   └── NewFlashCard.js
 │   ├── styles/
-│   │   └── styles1.js
+│   │   ├── styles1.js
+│   │   ├── stylesMS.js
+│   │   └── styleNFC.js
+│   ├── navigation/
+│   │   └── AppNavigator.js
+│   ├── assets/
+│   │   └── animations/
 │   └── images/
 ├── assets/
 ├── App.js
@@ -98,8 +118,22 @@ Las contribuciones son bienvenidas. Por favor:
 
 Este proyecto está bajo la Licencia MIT.
 
-## 👤 Autor
+## � Contribuidores
 
-Tu nombre - [tu-email@ejemplo.com](mailto:tu-email@ejemplo.com)
+### 👤 Autor Principal
+**Jaison Rico** - Desarrollador Principal  
+📧 [jaison.rico@ejemplo.com](mailto:jaison.rico@ejemplo.com)  
+🐱 GitHub: [@Jaison-Rico](https://github.com/Jaison-Rico)
 
-Enlace del proyecto: [https://github.com/tu-usuario/engli-cards](https://github.com/tu-usuario/engli-cards)
+### 🤖 Colaboradores de Desarrollo
+**GitHub Copilot** - Asistente de IA  
+🔧 Desarrollo de funcionalidades, navegación, estilos y arquitectura del proyecto
+
+---
+
+### 🙏 Agradecimientos Especiales
+- Comunidad de React Native por la documentación y recursos
+- Expo team por las herramientas de desarrollo
+- React Navigation team por el sistema de navegación
+
+📎 **Enlace del proyecto**: [https://github.com/Jaison-Rico/Engli-Cards-Frontend](https://github.com/Jaison-Rico/Engli-Cards-Frontend)
