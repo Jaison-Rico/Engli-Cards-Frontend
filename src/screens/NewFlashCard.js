@@ -1,15 +1,16 @@
 import { View, Text, TextInput, TouchableOpacity } from "react-native";
 import stylesNFC from "../styles/styleNFC";
 import { Picker } from '@react-native-picker/picker'; //componente para crear listas desplegables
+import { Camera, Save } from 'lucide-react-native'; //import de icons
 
 export default function NewFlashCard() {
     return (
         <View >
             <View style={stylesNFC.container}>
-                <Text>NewFlashCard Screen</Text>
+                <Text style={stylesNFC.titlesNFC}>NewFlashCard</Text>
             </View>
             <View style={stylesNFC.containerCreateFC}>
-                <Text style={stylesNFC.titlesNFC}>Crear nueva tarjeta</Text>
+                <Text style={stylesNFC.subtitlesNFC}>Crear nueva tarjeta</Text>
                 
                 <View>
                     <Text style={stylesNFC.textsNFC}>Palabra en Inglés *</Text>
@@ -40,6 +41,7 @@ export default function NewFlashCard() {
                         <Text style={stylesNFC.textsNFC}>Contenido Adicional</Text>
                         <View style={stylesNFC.containerNFCButtons}>
                             <TouchableOpacity style={stylesNFC.containerNFCButtonsContent}>
+                                <Camera/>
                                 <Text style={stylesNFC.textsNFC}>Añadir Imagen</Text>
                             </TouchableOpacity>
                         </View>
@@ -48,6 +50,7 @@ export default function NewFlashCard() {
 
                     <View style={stylesNFC.containerNFCButtons}>
                         <TouchableOpacity style={stylesNFC.buttonSaveNFC}>
+                            <Save />
                             <Text style={stylesNFC.textsNFC}>Guardar Tarjeta</Text>
                         </TouchableOpacity>
                     </View>

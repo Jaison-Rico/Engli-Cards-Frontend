@@ -122,7 +122,7 @@ Este proyecto está bajo la Licencia MIT.
 
 ### 👤 Autor Principal
 **Jaison Rico** - Desarrollador Principal  
-📧 [jaison.rico@ejemplo.com](mailto:jaison.rico@ejemplo.com)  
+📧 [jaison.rico@correo.tdea.edu.co](mailto:jaison.rico@correo.tdea.edu.co)  
 🐱 GitHub: [@Jaison-Rico](https://github.com/Jaison-Rico)
 
 ### 🤖 Colaboradores de Desarrollo

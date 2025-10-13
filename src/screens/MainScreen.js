@@ -142,7 +142,7 @@ export default function MainScreen({route}) {
                     <Plus />
                     <Text>Crear Deck</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={stylesMS.buttonCFlashcard}>
+                <TouchableOpacity style={stylesMS.buttonCFlashcard} onPress={() => navigation.push("NewFlashCard")}>
                     <BookOpen />
                     <Text>Crear Flashcard</Text>
                 </TouchableOpacity>
