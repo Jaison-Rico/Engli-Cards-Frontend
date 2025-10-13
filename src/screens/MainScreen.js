@@ -116,7 +116,7 @@ export default function MainScreen({route}) {
                             <Text style={stylesMS.subtitlesMC}>¡Hola! {userData?.name} Continúa aprendiendo</Text>
                         </View>
 
-                        <TouchableOpacity style={stylesMS.buttonStats}>
+                        <TouchableOpacity onPress={()=> navigation.push("StatsScreen")} style={stylesMS.buttonStats}>
                             <ChartLine />
                             <Text style={stylesMS.textButtonMCStats}>
                                 Stats
