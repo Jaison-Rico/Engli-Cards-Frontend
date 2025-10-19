@@ -7,11 +7,12 @@ import axios from 'axios';
 import { useState } from 'react';
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import * as SecureStore from 'expo-secure-store';
+import { useSafeAreaInsets  } from 'react-native-safe-area-context';
 
 
 export default function LoginScreen() {
     const navigation = useNavigation(); //obtiene la función de navegación
-
+    const insets = useSafeAreaInsets();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
@@ -66,7 +67,7 @@ export default function LoginScreen() {
                 alert(serverMessage || 'Credenciales incorrectas. Usuario no encontrado (404).');
             } else if (status >= 500) {
                 alert('Error del servidor. Intenta más tarde. xd');
-                console.error('API error - LoginScreen.js:69', status, error.response.data);
+                console.error('API error - LoginScreen.js:70', status, error.response.data);
             } else {
                 alert(serverMessage || `Error ${status}`);
             }
@@ -77,49 +78,49 @@ export default function LoginScreen() {
     }
 
 
-    return (
-        <View style={style1.container}>
-            <Image source={require('../images/logo.png')}
-                style={{ width: 150, height: 150, marginBottom: 2, marginTop: 0 }}
-            />
+    return (    
+            <View style={{ ...style1.container, marginTop: insets.top, marginBottom: insets.bottom  }}>
+                <Image source={require('../images/logo.png')}
+                    style={{ width: 150, height: 150, marginBottom: 2, marginTop: 0 }}
+                />
 
-            <Text style={style1.titles}>Login</Text>
+                <Text style={style1.titles}>Login</Text>
 
-            <View style={style1.containerLogin}>
+                <View style={style1.containerLogin}>
 
-                <View style={{ position: 'relative', marginVertical: 10, width: '100%' }}>
-                    <Text style={style1.labelFloating}>Email Address</Text>
-                    <TextInput style={style1.inputsLogin}
-                        value={email}
-                        onChangeText={setEmail}
-                        placeholder="abc@example.com" keyboardType="email-address" />
+                    <View style={{ position: 'relative', marginVertical: 10, width: '100%' }}>
+                        <Text style={style1.labelFloating}>Email Address</Text>
+                        <TextInput style={style1.inputsLogin}
+                            value={email}
+                            onChangeText={setEmail}
+                            placeholder="abc@example.com" keyboardType="email-address" />
+                    </View>
+
+                    <View style={{ position: 'relative', marginVertical: 10, width: '100%' }}>
+                        <Text style={style1.labelFloating}>Password</Text>
+                        <TextInput style={style1.inputsLogin}
+                            value={password}
+                            onChangeText={setPassword}
+                            placeholder="*******"
+                            secureTextEntry />
+                    </View>
+
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 10, width: '100%' }}>
+                        <TouchableOpacity onPress={() => navigation.navigate("ResetPassword")} style={style1.textButton}>
+                            <Text style={style1.textButtonLogin}>Forgot password?</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => navigation.navigate("Register")} style={style1.textButton}>
+                            <Text style={style1.textButtonLogin}>Create an account</Text>
+                        </TouchableOpacity>
+                    </View>
+
                 </View>
 
-                <View style={{ position: 'relative', marginVertical: 10, width: '100%' }}>
-                    <Text style={style1.labelFloating}>Password</Text>
-                    <TextInput style={style1.inputsLogin}
-                        value={password}
-                        onChangeText={setPassword}
-                        placeholder="*******"
-                        secureTextEntry />
-                </View>
-
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 10, width: '100%' }}>
-                    <TouchableOpacity onPress={() => navigation.navigate("ResetPassword")} style={style1.textButton}>
-                        <Text style={style1.textButtonLogin}>Forgot password?</Text>
+                <View>
+                    <TouchableOpacity onPress={handleLogin} style={style1.buttons} disabled={loading}>
+                        {loading ? <ActivityIndicator color="#fff" /> : <Text style={style1.textLogin}>Login</Text>}
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => navigation.navigate("Register")} style={style1.textButton}>
-                        <Text style={style1.textButtonLogin}>Create an account</Text>
-                    </TouchableOpacity>
                 </View>
-
             </View>
-
-            <View>
-                <TouchableOpacity onPress={handleLogin} style={style1.buttons} disabled={loading}>
-                    {loading ? <ActivityIndicator color="#fff" /> : <Text style={style1.textLogin}>Login</Text>}
-                </TouchableOpacity>
-            </View>
-        </View>
     )
 }

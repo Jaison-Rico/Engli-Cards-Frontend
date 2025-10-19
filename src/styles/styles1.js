@@ -1,9 +1,9 @@
 import { StyleSheet } from "react-native";
 
+
 const style1 = StyleSheet.create({
 container: {
     flex: 1,
-    backgroundColor: 'white',
     alignItems: 'center',
     justifyContent: 'center',
 },
@@ -114,7 +114,7 @@ labelFloating: {
     position: 'absolute',
     top: -8, // Posición sobre el borde
     left: 15,
-    backgroundColor: 'white',
+    backgroundColor: '#f5f5f5',
     paddingHorizontal: 3,
     fontSize: 13,
     color: '#000000ff',
