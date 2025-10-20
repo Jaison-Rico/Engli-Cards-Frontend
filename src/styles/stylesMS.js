@@ -2,7 +2,6 @@ import { StyleSheet } from "react-native";
 
 const stylesMS = StyleSheet.create({
 containerMCTop: {
-    paddingTop: 60,
     paddingLeft: 20,
     paddingRight: 20,
     backgroundColor: 'white',
@@ -98,9 +97,10 @@ buttonCFlashcard:{
 ,
 // Styles for deck cards list
 deckListContainer: {
+    flex: 1,
     marginTop: 12,
     paddingHorizontal: 12,
-    paddingBottom: 40,
+    paddingBottom: 16,
 },
 deckCard: {
     backgroundColor: '#fff',
