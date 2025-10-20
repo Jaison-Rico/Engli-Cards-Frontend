@@ -9,3 +9,13 @@ npm install @react-navigation/native-stack
 
 Dentro de la carpeta src, se debe crear una carpeta navigation:
 Dentro de la carpeta navigation crear AppNavigator.js
+
+
+
+import { AntDesign, Feather, Ionicons, FontAwesome, MaterialIcons } from '@expo/vector-icons';
+son todas las fuentes disponibles de iconos que podemos usar.
+
+ejemplo:
+<View style={{ marginTop: 0, marginBottom: 40 }}>
+    <FontAwesome name="google" size={40} color="#DB4437" />
+</View>

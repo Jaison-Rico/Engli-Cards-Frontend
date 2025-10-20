@@ -8,6 +8,8 @@ import { useState } from 'react';
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import * as SecureStore from 'expo-secure-store';
 import { useSafeAreaInsets  } from 'react-native-safe-area-context';
+import { User } from 'lucide-react-native';
+import { FontAwesome } from '@expo/vector-icons';
 
 
 export default function LoginScreen() {
@@ -117,9 +119,24 @@ export default function LoginScreen() {
                 </View>
 
                 <View>
-                    <TouchableOpacity onPress={handleLogin} style={style1.buttons} disabled={loading}>
+                    <TouchableOpacity onPress={handleLogin} style={[style1.buttons , {flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}]} disabled={loading}>
+                        <User color="#ffffffff" size={24} style={{ marginRight: 8 }} />
                         {loading ? <ActivityIndicator color="#fff" /> : <Text style={style1.textLogin}>Login</Text>}
                     </TouchableOpacity>
+                </View>
+
+                <View style={style1.dividerContainer}>
+                    <View style={style1.dividerLine} />
+                    <Text style={style1.dividerText}>Or</Text>
+                    <View style={style1.dividerLine} />
+                </View> 
+
+                <View style={{ marginTop: 0, marginBottom: 40 }}>
+                    <FontAwesome name="google" size={40} color="#584fd6ff" />
+                </View>
+                    
+                <View>
+                    <Text style={style1.footerText}>© 2025 Engli Cards. All rights reserved.</Text>
                 </View>
             </View>
     )

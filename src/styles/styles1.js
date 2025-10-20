@@ -140,6 +140,29 @@ containerRegister:{
     alignItems: 'center',
     justifyContent: 'center',
 },
+// Estilos para el sign in with
+dividerContainer: {
+    flexDirection: 'row', 
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    marginVertical: 30,
+},
+dividerLine: {
+    flex: 0.3, //este es nuestro largor de linea
+    height: 2,
+    backgroundColor: '#ccc',
+    
+},
+dividerText: {
+    marginHorizontal: 10, // esta es la separación entre texto y línea
+    color: '#666',
+    fontSize: 16,
+    textAlign: 'center',
+},
+footerText: {
+    color: '#888',
+    fontSize: 12,
+}
 })
-
 export default style1;
