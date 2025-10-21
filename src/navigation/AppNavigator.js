@@ -8,6 +8,7 @@ import MainScreen from "../screens/MainScreen";
 import App from "../screens/testSecureStoreExpo";
 import NewFlashCard from "../screens/NewFlashCard";
 import StatsScreen from "../screens/StatsScreen";
+import BottomTabs from "../screens/BottomTabs";
 const Stack = createNativeStackNavigator();
 
 export default function AppNavigator(){
@@ -23,6 +24,7 @@ export default function AppNavigator(){
                 <Stack.Screen name="App" component={App} options={{ headerShown: false }} />
                 <Stack.Screen name="NewFlashCard" component={NewFlashCard} options={{ headerShown: false }} />
                 <Stack.Screen name="StatsScreen" component={StatsScreen} options={{ headerShown: false }} />
+                <Stack.Screen name="BottomTabs" component={BottomTabs} options={{ headerShown: false }} />
             </Stack.Navigator>
         </NavigationContainer>
     )

@@ -8,12 +8,11 @@ import * as Device from 'expo-device';
 import * as SecureStore from 'expo-secure-store';
 import axios from 'axios';
 import { config } from '../config/api';
-
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Modo datos planos (sin peticiones a la API)
 const USE_STATIC_DATA = true;
-// Datos planos de ejemplo: sólo para desarrollo/offline
+//Datos planos de ejemplo: sólo para desarrollo/offline
 const STATIC_DECKS = [
     {
         deck_id: 37,
@@ -464,7 +463,7 @@ export default function MainScreen({ route }) {
 
 
     return (
-        <View style={{ borderColor: 'red', borderWidth: 3, flex: 1, marginBottom: insets.bottom }}>
+        <View style={{flex: 1, marginBottom: insets.bottom }}>
             <View style={{...stylesMS.containerMCTop, paddingTop: insets.top}}>
                 <View style={{ flexDirection: 'column', justifyContent: 'space-between', gap: 10 }}>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>

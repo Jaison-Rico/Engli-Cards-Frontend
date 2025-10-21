@@ -26,7 +26,7 @@ export default function LoginScreen() {
             navigation.dispatch(
                 CommonActions.reset({
                     index: 0,
-                    routes: [{ name: 'MainScreen', params: { user: { name: "Test User", email: "test@example.com" } } }],
+                    routes: [{ name: 'BottomTabs', params: { user: { name: "Test User", email: "test@example.com" } } }],
                 })
             )
             await SecureStore.setItemAsync('token', 'test-token');
