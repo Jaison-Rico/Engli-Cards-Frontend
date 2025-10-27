@@ -9,6 +9,7 @@ import App from "../screens/testSecureStoreExpo";
 import NewFlashCard from "../screens/NewFlashCard";
 import StatsScreen from "../screens/StatsScreen";
 import BottomTabs from "../screens/BottomTabs";
+import ProfileScreen from "../screens/ProfileScreen";
 const Stack = createNativeStackNavigator();
 
 export default function AppNavigator(){
@@ -19,6 +20,7 @@ export default function AppNavigator(){
                 <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
                 <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />
                 <Stack.Screen name="ResetPassword" component={RenewPassword} options={{ headerShown: false }} />
+                <Stack.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false }} />
                 <Stack.Screen name="HomeScreen" component={HomeScreen} options={{ headerShown: false }} />
                 <Stack.Screen name="MainScreen" component={MainScreen} options={{ headerShown: false }} />
                 <Stack.Screen name="App" component={App} options={{ headerShown: false }} />
