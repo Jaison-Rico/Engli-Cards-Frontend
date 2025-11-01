@@ -54,7 +54,7 @@ export default function LoginScreen() {
             navigation.dispatch(
                 CommonActions.reset({
                     index: 0,
-                    routes: [{ name: 'MainScreen', params: { user, token } }],
+                    routes: [{ name: 'BottomTabs', params: { user, token } }],
                 })
             )
         } catch (error) {
@@ -69,7 +69,7 @@ export default function LoginScreen() {
                 alert(serverMessage || 'Credenciales incorrectas. Usuario no encontrado (404).');
             } else if (status >= 500) {
                 alert('Error del servidor. Intenta más tarde. xd');
-                console.error('API error - LoginScreen.js:70', status, error.response.data);
+                console.error('API error - LoginScreen.js:72', status, error.response.data);
             } else {
                 alert(serverMessage || `Error ${status}`);
             }

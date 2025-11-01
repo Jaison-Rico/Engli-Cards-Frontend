@@ -495,7 +495,7 @@ export default function MainScreen({ route }) {
                 </View>
             </View>
             <View style={stylesMS.containerMCBottonsMain}>
-                <TouchableOpacity onPress={() => navigation.push("MainScreen")} style={stylesMS.buttonCDeck} >
+                <TouchableOpacity onPress={() => navigation.push("BottomTabs")} style={stylesMS.buttonCDeck} >
                     <Plus />
                     <Text>Crear Deck</Text>
                 </TouchableOpacity>
