@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, Text, Image } from 'react-native';
 import * as Speech from 'expo-speech';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, interpolate } from 'react-native-reanimated';
+import styles from '../../styles/stylesFrutas';
+import fruitsData from './images.json';
 
 // Componente de carta giratoria (interno a esta pantalla)
 function FlipCard({ card, containerStyle }) {
@@ -10,6 +12,7 @@ function FlipCard({ card, containerStyle }) {
 
   const flip = useSharedValue(0);
   const [isFlipped, setIsFlipped] = useState(false);
+  // Usar exclusivamente la imagen definida en el JSON por cada fruta
 
   const frontAnimatedStyle = useAnimatedStyle(() => {
     const rotateY = interpolate(flip.value, [0, 1], [0, 180]);
@@ -38,16 +41,22 @@ function FlipCard({ card, containerStyle }) {
   };
 
   return (
-    <View style={{ alignItems: 'center' }}>
+    <View style={styles.centerAligned}>
       <TouchableOpacity onPress={handleFlip} style={[styles.cardContainer, containerStyle]}>
         <Animated.View style={[styles.card, styles.cardFront, frontAnimatedStyle]}>
           <Text style={styles.cardSubtitle}>English</Text>
           <Text style={styles.cardText}>{card.english}</Text>
+          {card.image ? (
+            <Image source={{ uri: card.image }} style={styles.cardImage} />
+          ) : null}
           <Text style={styles.cardHint}>Toca para ver traducción</Text>
         </Animated.View>
         <Animated.View style={[styles.card, styles.cardBack, backAnimatedStyle]}>
           <Text style={styles.cardSubtitle}>Español</Text>
           <Text style={styles.cardText}>{card.spanish}</Text>
+          {card.image ? (
+            <Image source={{ uri: card.image }} style={styles.cardImage} />
+          ) : null}
           <Text style={styles.cardHint}>Toca para volver</Text>
         </Animated.View>
       </TouchableOpacity>
@@ -60,19 +69,8 @@ function FlipCard({ card, containerStyle }) {
   );
 }
 
-// Datos de ejemplo
-const sampleCards = [
-  { english: 'Apple', spanish: 'Manzana' },
-  { english: 'Banana', spanish: 'Cambur' },
-  { english: 'Orange', spanish: 'Naranja' },
-  { english: 'Grapes', spanish: 'Uvas' },
-  { english: 'Pineapple', spanish: 'Piña' },
-  { english: 'Strawberry', spanish: 'Fresa' },
-  { english: 'Watermelon', spanish: 'Patilla' },
-  { english: 'Mango', spanish: 'Mango' },
-  { english: 'Peach', spanish: 'Durazno' },
-  { english: 'Cherry', spanish: 'Cereza' },
-];
+// Datos extraídos desde JSON para separación de contenido
+const sampleCards = fruitsData;
 
 // Pantalla exportada por defecto (usada por el Navigator)
 export default function Frutas() {
@@ -106,47 +104,4 @@ export default function Frutas() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', paddingVertical: 24 },
-  counter: { color: '#111827', marginBottom: 12, fontWeight: '600' },
-  dotsRow: { flexDirection: 'row', alignItems: 'center', marginTop: 12, marginBottom: 16 },
-  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#cbd5e1', marginHorizontal: 4 },
-  dotActive: { backgroundColor: '#3b82f6', width: 16 },
-  controls: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  btn: { backgroundColor: '#3b82f6', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8 },
-  btnDisabled: { backgroundColor: '#93c5fd' },
-  btnText: { color: '#fff', fontWeight: '600' },
-  audioBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#2563eb', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 999, marginTop: 12 },
-  audioText: { color: '#fff', fontWeight: '600' },
-  cardContainer: {
-    width: 300,
-    height: 200,
-    marginVertical: 12,
-  },
-  card: {
-    width: '100%',
-    height: '100%',
-    position: 'absolute',
-    backfaceVisibility: 'hidden',
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  cardFront: {
-    backgroundColor: '#3b82f6',
-  },
-  cardBack: {
-    backgroundColor: '#10b981',
-  },
-  cardSubtitle: { position: 'absolute', top: 12, left: 12, color: 'rgba(255,255,255,0.9)', zIndex: 2 },
-  cardText: {
-    color: 'white',
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  cardHint: {
-    color: 'rgba(255,255,255,0.7)',
-    marginTop: 10,
-  },
-});
+ 

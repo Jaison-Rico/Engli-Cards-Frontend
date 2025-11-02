@@ -1,6 +1,7 @@
 import React from "react";
-import { View, Text, FlatList, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, FlatList, TouchableOpacity } from "react-native";
 import Svg, { Path } from "react-native-svg";
+import styles from "../styles/stylesLearningPath";
 
 const lessons = [
   { id: 1, title: "Saludos", status: "available" },
@@ -88,40 +89,3 @@ export default function LearningPath({ navigation }) {
     
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f5f5f5",
-  },
-  listContent: {
-    paddingVertical: 40,
-    paddingHorizontal: 100, // Mover el padding aquí en lugar del container
-  },
-  itemContainer: {
-    marginVertical: 15,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  node: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 5,
-  },
-  completed: { backgroundColor: "#4CAF50" },
-  available: { backgroundColor: "#FFC107" },
-  locked: { backgroundColor: "#E0E0E0" },
-  text: {
-    color: "#fff",
-    fontWeight: "bold",
-    textAlign: "center",
-  },
-});
