@@ -19,3 +19,7 @@ ejemplo:
 <View style={{ marginTop: 0, marginBottom: 40 }}>
     <FontAwesome name="google" size={40} color="#DB4437" />
 </View>
+
+Para crear ueva rama, y trabajar por separado.
+$ git checkout -b flashcard-images
+Switched to a new branch 'flashcard-images'
