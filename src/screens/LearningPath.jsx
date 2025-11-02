@@ -1,0 +1,127 @@
+import React from "react";
+import { View, Text, FlatList, TouchableOpacity, StyleSheet } from "react-native";
+import Svg, { Path } from "react-native-svg";
+
+const lessons = [
+  { id: 1, title: "Saludos", status: "available" },
+  { id: 2, title: "Frutas", status: "available" },
+  { id: 3, title: "Familia", status: "locked" },
+  { id: 4, title: "Trabajo", status: "locked" },
+  { id: 5, title: "Escuela", status: "locked" },
+  { id: 6, title: "Viajes", status: "locked" },
+  { id: 7, title: "Colores", status: "locked" },
+  { id: 8, title: "Animales", status: "locked" },
+];
+
+
+
+export default function LearningPath({ navigation }) {
+
+    const handleLessonPress = (lesson) => {
+      if (lesson.status === "locked") return;
+      
+      // Navegar a la pantalla correspondiente
+      // IMPORTANT: Never pass React elements or functions in navigation params
+      // because they are non-serializable and will trigger warnings.
+      // Instead, navigate by screen name or pass primitive identifiers.
+      navigation.navigate(lesson.title);
+    };
+
+  return (
+    <View style={styles.container}>
+      <FlatList
+        data={lessons}
+        keyExtractor={(item) => item.id.toString()}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false} // Elimina la barra de desplazamiento
+        renderItem={({ item, index }) => {
+          const isLeft = index % 2 === 0;
+
+          return (
+            <View style={styles.itemContainer}>
+                
+              {/* Curva de conexión con SVG */}
+              {index > 0 && (
+                <Svg
+                  height="60"
+                  width="100%"
+                  style={{
+                    transform: [{ scaleX: isLeft ? 1 : -1 }],
+                  }}
+                >
+                  <Path
+                    d="M20 0 Q50 60 80 0"
+                    stroke="#ccc"
+                    strokeWidth="4"
+                    fill="none"
+                  />
+                </Svg>
+              )}
+
+              {/* Nodo */}
+              <View
+                style={[
+                  styles.row,
+                  { justifyContent: isLeft ? "flex-start" : "flex-end" },
+                ]}
+              >
+                <TouchableOpacity 
+                 onPress={() => handleLessonPress(item)}
+                  disabled={item.status === "locked"}
+                  style={[
+                    styles.node,
+                    item.status === "completed"
+                      ? styles.completed
+                      : item.status === "available"
+                      ? styles.available
+                      : styles.locked,
+                  ]}
+                >
+                  <Text style={styles.text}>{item.title}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          );
+        }}
+      />
+    </View>
+    
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#f5f5f5",
+  },
+  listContent: {
+    paddingVertical: 40,
+    paddingHorizontal: 100, // Mover el padding aquí en lugar del container
+  },
+  itemContainer: {
+    marginVertical: 15,
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  node: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 5,
+  },
+  completed: { backgroundColor: "#4CAF50" },
+  available: { backgroundColor: "#FFC107" },
+  locked: { backgroundColor: "#E0E0E0" },
+  text: {
+    color: "#fff",
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+});
