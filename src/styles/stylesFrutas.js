@@ -16,8 +16,8 @@ const stylesFrutas = StyleSheet.create({
 	audioBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#2563eb', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 999, marginTop: 12 },
 	audioText: { color: '#fff', fontWeight: '600' },
 	cardContainer: {
-		width: 300,
-		height: 200,
+		width: 400,
+		height: 300,
 		marginVertical: 12,
 	},
 	card: {
@@ -41,16 +41,17 @@ const stylesFrutas = StyleSheet.create({
 		color: 'white',
 		fontSize: 24,
 		fontWeight: 'bold',
+		marginBottom: 15,
 	},
 	cardHint: {
 		color: 'rgba(255,255,255,0.7)',
 		marginTop: 10,
 	},
     cardImage: { 
-        width: 96, 
-        height: 96, 
-        marginVertical: 8, 
-        resizeMode: 'contain' 
+        width: 200, 
+        height: 150, 
+        //marginVertical: -4, 
+        resizeMode: 'contain',
     },
 });
 
