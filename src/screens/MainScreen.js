@@ -109,7 +109,7 @@ export default function MainScreen({ route }) {
                         <View style={{ flexDirection: 'column', justifyContent: 'space-between', paddingRight: 20, marginTop: 10 }}>
 
                             <Text style={stylesMS.titlesMC}>Engli cards</Text>
-                            <Text style={stylesMS.subtitlesMC}>¡Hola! {userData?.name} Continúa aprendiendo</Text>
+                            <Text style={stylesMS.subtitlesMC}>¡Hola! {userData?.name.split(' ')[0] || 'Usuario'} Continúa aprendiendo</Text>
                         </View>
 
                         <TouchableOpacity onPress={() => navigation.push("StatsScreen")} style={stylesMS.buttonStats}>
