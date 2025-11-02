@@ -288,7 +288,7 @@ export default function NewFlashCard() {
                                 ) : (
                                     <Save />
                                 )}
-                                <Text style={stylesNFC.textsNFC}>
+                                <Text style={stylesNFC.textsButtomSaveCard}>
                                     {creatingFlashcard ? 'Guardando...' : 'Guardar Tarjeta'}
                                 </Text>
                             </TouchableOpacity>

@@ -21,6 +21,7 @@
     "engli-cards": "file:",
     "expo": "~54.0.12",
     "expo-device": "~8.0.9",
+    "expo-image-picker": "~17.0.8",
     "expo-secure-store": "~15.0.7",
     "expo-speech": "~14.0.7",
     "expo-status-bar": "~3.0.8",

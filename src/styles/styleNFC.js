@@ -256,6 +256,13 @@ successModalMessage: {
     textAlign: 'center',
     lineHeight: 22,
 },
+textsButtomSaveCard:{
+    fontSize:15,
+    fontWeight:'bold',
+    marginTop:14,
+    marginBottom:13,
+    color:'black',
+},
 })
 export default stylesNFC;
 
