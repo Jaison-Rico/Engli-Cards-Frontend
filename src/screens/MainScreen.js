@@ -9,6 +9,7 @@ import * as SecureStore from 'expo-secure-store';
 import axios from 'axios';
 import { config } from '../config/api';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import CreateDeck from './CreateDeck';
 
 
 export default function MainScreen({ route }) {
@@ -23,8 +24,17 @@ export default function MainScreen({ route }) {
     const [userData, setUserData] = useState(null);
     // eliminado tokenData: no se usa en la UI ni en lógica
 
+    // Estado para el modal de crear deck
+    const [modalVisible, setModalVisible] = useState(false);
+    const [refreshKey, setRefreshKey] = useState(0);
+
     const updateSearch = (searchText) => {
         setSearch(searchText);
+    };
+
+    // Función para recargar los decks
+    const handleDeckCreated = () => {
+        setRefreshKey(prev => prev + 1);
     };
 
     // Normaliza posibles respuestas del backend a un modelo consistente para la UI
@@ -96,14 +106,14 @@ export default function MainScreen({ route }) {
             return () => {
                 isActive = false;
             };
-        }, [route])
+        }, [route, refreshKey])
     );
 
-    
+
 
     return (
-        <View style={{flex: 1, marginBottom: insets.bottom }}>
-            <View style={{...stylesMS.containerMCTop, paddingTop: insets.top}}>
+        <View style={{ flex: 1, marginBottom: insets.bottom }}>
+            <View style={{ ...stylesMS.containerMCTop, paddingTop: insets.top }}>
                 <View style={{ flexDirection: 'column', justifyContent: 'space-between', gap: 10 }}>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                         <View style={{ flexDirection: 'column', justifyContent: 'space-between', paddingRight: 20, marginTop: 10 }}>
@@ -134,7 +144,7 @@ export default function MainScreen({ route }) {
                 </View>
             </View>
             <View style={stylesMS.containerMCBottonsMain}>
-                <TouchableOpacity onPress={() => navigation.push("BottomTabs")} style={stylesMS.buttonCDeck} >
+                <TouchableOpacity onPress={() => setModalVisible(true)} style={stylesMS.buttonCDeck} >
                     <Plus />
                     <Text>Crear Deck</Text>
                 </TouchableOpacity>
@@ -176,6 +186,13 @@ export default function MainScreen({ route }) {
                     />
                 )}
             </View>
+
+            {/* Modal para crear deck */}
+            <CreateDeck
+                visible={modalVisible}
+                onClose={() => setModalVisible(false)}
+                onCreateDeck={handleDeckCreated}
+            />
         </View>
 
     )
