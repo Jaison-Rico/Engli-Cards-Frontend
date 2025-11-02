@@ -10,345 +10,6 @@ import axios from 'axios';
 import { config } from '../config/api';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-// Modo datos planos (sin peticiones a la API)
-const USE_STATIC_DATA = true;
-//Datos planos de ejemplo: sólo para desarrollo/offline
-const STATIC_DECKS = [
-    {
-        deck_id: 37,
-        deck_name: 'Animales',
-        flashcards: [
-            {
-                deck_flashcards_id: 15,
-                deck_id: 37,
-                user_flashcard_id: 23,
-                word_id: 29,
-                word: 'dog',
-                translation: 'Perro',
-                image_url: null,
-                created_at: '2025-10-07T04:13:37.137515',
-                updated_at: '2025-10-07T04:13:37.137515'
-            }
-        ]
-    },
-    {
-        deck_id: 38,
-        deck_name: 'Animales',
-        flashcards: [
-            {
-                deck_flashcards_id: 15,
-                deck_id: 37,
-                user_flashcard_id: 23,
-                word_id: 29,
-                word: 'dog',
-                translation: 'Perro',
-                image_url: null,
-                created_at: '2025-10-07T04:13:37.137515',
-                updated_at: '2025-10-07T04:13:37.137515'
-            }
-        ]
-    },
-    {
-        deck_id: 39,
-        deck_name: 'Animales',
-        flashcards: [
-            {
-                deck_flashcards_id: 15,
-                deck_id: 37,
-                user_flashcard_id: 23,
-                word_id: 29,
-                word: 'dog',
-                translation: 'Perro',
-                image_url: null,
-                created_at: '2025-10-07T04:13:37.137515',
-                updated_at: '2025-10-07T04:13:37.137515'
-            }
-        ]
-    },
-    {
-        deck_id: 49,
-        deck_name: 'Animales',
-        flashcards: [
-            {
-                deck_flashcards_id: 15,
-                deck_id: 37,
-                user_flashcard_id: 23,
-                word_id: 29,
-                word: 'dog',
-                translation: 'Perro',
-                image_url: null,
-                created_at: '2025-10-07T04:13:37.137515',
-                updated_at: '2025-10-07T04:13:37.137515'
-            }
-        ]
-    },
-    {
-        deck_id: 55,
-        deck_name: 'Animales',
-        flashcards: [
-            {
-                deck_flashcards_id: 15,
-                deck_id: 37,
-                user_flashcard_id: 23,
-                word_id: 29,
-                word: 'dog',
-                translation: 'Perro',
-                image_url: null,
-                created_at: '2025-10-07T04:13:37.137515',
-                updated_at: '2025-10-07T04:13:37.137515'
-            }
-        ]
-    },
-    {
-        deck_id: 77,
-        deck_name: 'Animales',
-        flashcards: [
-            {
-                deck_flashcards_id: 15,
-                deck_id: 37,
-                user_flashcard_id: 23,
-                word_id: 29,
-                word: 'dog',
-                translation: 'Perro',
-                image_url: null,
-                created_at: '2025-10-07T04:13:37.137515',
-                updated_at: '2025-10-07T04:13:37.137515'
-            }
-        ]
-    },
-    {
-        deck_id: 78,
-        deck_name: 'Animales',
-        flashcards: [
-            {
-                deck_flashcards_id: 15,
-                deck_id: 37,
-                user_flashcard_id: 23,
-                word_id: 29,
-                word: 'dog',
-                translation: 'Perro',
-                image_url: null,
-                created_at: '2025-10-07T04:13:37.137515',
-                updated_at: '2025-10-07T04:13:37.137515'
-            }
-        ]
-    },
-    {
-        deck_id: 878,
-        deck_name: 'Animales',
-        flashcards: [
-            {
-                deck_flashcards_id: 15,
-                deck_id: 37,
-                user_flashcard_id: 23,
-                word_id: 29,
-                word: 'dog',
-                translation: 'Perro',
-                image_url: null,
-                created_at: '2025-10-07T04:13:37.137515',
-                updated_at: '2025-10-07T04:13:37.137515'
-            }
-        ]
-    },
-    {
-        deck_id: 999,
-        deck_name: 'Pedro',
-        flashcards: [
-            {
-                deck_flashcards_id: 15,
-                deck_id: 37,
-                user_flashcard_id: 23,
-                word_id: 29,
-                word: 'dog',
-                translation: 'Perro',
-                image_url: null,
-                created_at: '2025-10-07T04:13:37.137515',
-                updated_at: '2025-10-07T04:13:37.137515'
-            }
-        ]
-    },
-    {
-        deck_id: 9931319,
-        deck_name: 'Pedro',
-        flashcards: [
-            {
-                deck_flashcards_id: 15,
-                deck_id: 37,
-                user_flashcard_id: 23,
-                word_id: 29,
-                word: 'dog',
-                translation: 'Perro',
-                image_url: null,
-                created_at: '2025-10-07T04:13:37.137515',
-                updated_at: '2025-10-07T04:13:37.137515'
-            }
-        ]
-    },
-     {
-        deck_id: 452,
-        deck_name: 'Animales',
-        flashcards: [
-            {
-                deck_flashcards_id: 15,
-                deck_id: 37,
-                user_flashcard_id: 23,
-                word_id: 29,
-                word: 'dog',
-                translation: 'Perro',
-                image_url: null,
-                created_at: '2025-10-07T04:13:37.137515',
-                updated_at: '2025-10-07T04:13:37.137515'
-            }
-        ]
-    },
-    {
-        deck_id: 4545,
-        deck_name: 'Animales',
-        flashcards: [
-            {
-                deck_flashcards_id: 15,
-                deck_id: 37,
-                user_flashcard_id: 23,
-                word_id: 29,
-                word: 'dog',
-                translation: 'Perro',
-                image_url: null,
-                created_at: '2025-10-07T04:13:37.137515',
-                updated_at: '2025-10-07T04:13:37.137515'
-            }
-        ]
-    },
-    {
-        deck_id: 754548,
-        deck_name: 'Animales',
-        flashcards: [
-            {
-                deck_flashcards_id: 15,
-                deck_id: 37,
-                user_flashcard_id: 23,
-                word_id: 29,
-                word: 'dog',
-                translation: 'Perro',
-                image_url: null,
-                created_at: '2025-10-07T04:13:37.137515',
-                updated_at: '2025-10-07T04:13:37.137515'
-            }
-        ]
-    },
-    {
-        deck_id: 58282,
-        deck_name: 'Animales',
-        flashcards: [
-            {
-                deck_flashcards_id: 15,
-                deck_id: 37,
-                user_flashcard_id: 23,
-                word_id: 29,
-                word: 'dog',
-                translation: 'Perro',
-                image_url: null,
-                created_at: '2025-10-07T04:13:37.137515',
-                updated_at: '2025-10-07T04:13:37.137515'
-            }
-        ]
-    },
-    {
-        deck_id: 979745,
-        deck_name: 'Animales',
-        flashcards: [
-            {
-                deck_flashcards_id: 15,
-                deck_id: 37,
-                user_flashcard_id: 23,
-                word_id: 29,
-                word: 'dog',
-                translation: 'Perro',
-                image_url: null,
-                created_at: '2025-10-07T04:13:37.137515',
-                updated_at: '2025-10-07T04:13:37.137515'
-            }
-        ]
-    },
-    {
-        deck_id: 7872,
-        deck_name: 'Animales',
-        flashcards: [
-            {
-                deck_flashcards_id: 15,
-                deck_id: 37,
-                user_flashcard_id: 23,
-                word_id: 29,
-                word: 'dog',
-                translation: 'Perro',
-                image_url: null,
-                created_at: '2025-10-07T04:13:37.137515',
-                updated_at: '2025-10-07T04:13:37.137515'
-            }
-        ]
-    },
-    {
-        deck_id: 9785227,
-        deck_name: 'Pedro',
-        flashcards: [
-            {
-                deck_flashcards_id: 15,
-                deck_id: 37,
-                user_flashcard_id: 23,
-                word_id: 29,
-                word: 'dog',
-                translation: 'Perro',
-                image_url: null,
-                created_at: '2025-10-07T04:13:37.137515',
-                updated_at: '2025-10-07T04:13:37.137515'
-            }
-        ]
-    },
-    {
-        deck_id: 333,
-        deck_name: 'Pedro',
-        flashcards: [
-            {
-                deck_flashcards_id: 15,
-                deck_id: 37,
-                user_flashcard_id: 23,
-                word_id: 29,
-                word: 'dog',
-                translation: 'Perro',
-                image_url: null,
-                created_at: '2025-10-07T04:13:37.137515',
-                updated_at: '2025-10-07T04:13:37.137515'
-            }
-        ]
-    },
-    // puedes añadir más mazos planos aquí si lo necesitas
-];
-
-// Normalizador de decks a metadata mínima
-const normalizeDecks = (list) => {
-    if (!Array.isArray(list)) return [];
-    return list.map((d) => {
-        const cardCount = Array.isArray(d.flashcards)
-            ? d.flashcards.length
-            : d.card_count ?? d.count ?? 0;
-        return {
-            deck_id: d.deck_id ?? d.id,
-            deck_name: d.deck_name ?? d.name ?? 'Sin nombre',
-            cardCount,
-        };
-    });
-};
-
-
-async function getToken() {
-    const storedToken = await SecureStore.getItemAsync('token');
-    const userInfo = await SecureStore.getItemAsync('userInfo');
-
-    if (!storedToken) {
-        alert('No token found');
-    } else {
-        return { token: storedToken, user: JSON.parse(userInfo) };
-    }
-}
 
 export default function MainScreen({ route }) {
     const navigation = useNavigation(); //obtiene la función de navegación
@@ -366,101 +27,79 @@ export default function MainScreen({ route }) {
         setSearch(searchText);
     };
 
-    // esto solo para entonro de desarrollo (params se leen directo de route?.params)
+    // Normaliza posibles respuestas del backend a un modelo consistente para la UI
+    const normalizeDecks = (arr) => {
+        if (!Array.isArray(arr)) return [];
+        return arr.map((d) => ({
+            // el backend actual usa deck_id y deck_name; cubrimos alias por si cambian
+            deck_id: d.deck_id ?? d.id ?? d._id ?? d.deckId ?? String(Math.random()),
+            deck_name: d.deck_name ?? d.name ?? d.title ?? 'Deck',
+            // contar flashcards si vienen, o cards/cardsCount
+            cardCount: d.cardCount ?? d.cardsCount ?? (Array.isArray(d.flashcards) ? d.flashcards.length : (Array.isArray(d.cards) ? d.cards.length : 0))
+        }));
+    };
 
-    // Cargar token/usuario al enfocar la pantalla (al entrar y al volver)
+    // Carga el usuario desde params o SecureStore y obtiene sus mazos
     useFocusEffect(
         React.useCallback(() => {
             let isActive = true;
 
-            const prime = async () => {
-                // Si estamos en modo datos planos, cargar metadata desde STATIC_DECKS y salir
-                if (USE_STATIC_DATA && isActive) {
-                    const normalized = normalizeDecks(STATIC_DECKS);
-                    setDecks(normalized);
-                    setIsOffline(true);
-                    setLoading(false);
-                    return;
-                }
-
+            const fetchDecks = async () => {
+                setLoading(true);
+                setError(null);
                 try {
-                    // Preferir params si existen
-                    const rUser = route?.params?.user;
-                    const rToken = route?.params?.token;
+                    // 1) Obtener usuario
+                    let user = route?.params?.user || null;
+                    if (!user) {
+                        const storedUser = await SecureStore.getItemAsync('userInfo');
+                        if (storedUser) user = JSON.parse(storedUser);
+                    }
+                    if (isActive) setUserData(user || null);
 
-                    if (rUser && rToken) {
+                    // 2) Resolver userId (cubrimos posibles nombres de campo)
+                    const userId = user?.user_id ?? user?._id ?? user?.id ?? user?.userId;
+                    if (!userId) {
                         if (isActive) {
-                            setUserData(rUser);
+                            setDecks([]);
+                            setError('No se encontró el ID de usuario. Inicia sesión nuevamente.');
                         }
-                        // Persistir por si aún no está guardado
-                        try {
-                            await SecureStore.setItemAsync('token', rToken);
-                            await SecureStore.setItemAsync('userInfo', JSON.stringify(rUser));
-                        } catch { }
-                        // Cargar decks con axios
-                        const uid = rUser?.id ?? rUser?.user_id;
-                        if (uid && isActive) await fetchDecksAxios(uid, rToken);
                         return;
                     }
 
-                    // Fallback a SecureStore
-                    const stored = await getToken();
-                    if (stored && isActive) {
-                        setUserData(stored.user);
-                        const uid = stored.user?.id ?? stored.user?.user_id;
-                        if (uid) await fetchDecksAxios(uid, stored.token);
+                    // 3) Token (si existe)
+                    const token = (await SecureStore.getItemAsync('token')) || route?.params?.token || null;
+                    const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
+
+                    // 4) Llamada al backend
+                    const url = `${config.BASE_URL}/decks/${userId}`;
+                    const resp = await axios.get(url, { headers });
+                    const data = Array.isArray(resp.data) ? resp.data : (resp.data?.decks ?? []);
+
+                    if (isActive) {
+                        setDecks(normalizeDecks(data));
+                        setIsOffline(false);
                     }
-                } catch (e) {
-                    // log opcional
+                } catch (err) {
+                    const serverMessage = err?.response?.data?.message || err?.message || 'Error inesperado';
+                    if (isActive) {
+                        setError(serverMessage);
+                        setIsOffline(true);
+                        setDecks([]);
+                    }
+                } finally {
+                    if (isActive) setLoading(false);
                 }
             };
 
-            prime();
+            fetchDecks();
 
-            return () => { isActive = false; };
-        }, [route?.params])
+            return () => {
+                isActive = false;
+            };
+        }, [route])
     );
 
-
-    // Helper para cargar decks con axios
-    const fetchDecksAxios = async (uid, token) => {
-        setLoading(true);
-        setError(null);
-        setIsOffline(false);
-        // En modo datos planos, no hacer peticiones
-        if (USE_STATIC_DATA) {
-            const normalized = normalizeDecks(STATIC_DECKS);
-            setDecks(normalized);
-            setIsOffline(true);
-            setLoading(false);
-            return;
-        }
-        try {
-            const url = `${config.BASE_URL}/decks/${uid}`;
-            const res = await axios.get(url, {
-                headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-            });
-            const data = res.data;
-            const normalized = normalizeDecks(data);
-            setDecks(normalized);
-        } catch (err) {
-            // Si ocurre un error, comprobar si es por falta de conexión o por respuesta del servidor
-            const msg = err?.response?.data?.message || err?.message || 'Error fetching decks';
-            setError(msg);
-            // Si el error no tiene response (network error) usar los datos locales
-            if (!err?.response) {
-                const normalizedFallback = normalizeDecks(STATIC_DECKS);
-                setDecks(normalizedFallback);
-                setIsOffline(true);
-            } else {
-                // Si hay respuesta del servidor, dejar la lista vacía
-                setDecks([]);
-            }
-        } finally {
-            setLoading(false);
-        }
-    };
-
+    
 
     return (
         <View style={{flex: 1, marginBottom: insets.bottom }}>
@@ -518,7 +157,7 @@ export default function MainScreen({ route }) {
                 ) : (
                     <FlatList
                         style={{ flex: 1 }}
-                        data={decks}
+                        data={decks.filter((d) => d.deck_name?.toLowerCase().includes(search.toLowerCase()))}
                         keyExtractor={(item, index) => (item.deck_id ? String(item.deck_id) : `${item.deck_name || 'deck'}-${index}`)}
                         renderItem={({ item }) => (
                             <View style={stylesMS.deckCard}>
