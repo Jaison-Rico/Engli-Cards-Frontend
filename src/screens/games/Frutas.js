@@ -1,73 +1,8 @@
 import React, { useState } from 'react';
-import { View, TouchableOpacity, Text, Image } from 'react-native';
-import * as Speech from 'expo-speech';
-import { Ionicons } from '@expo/vector-icons';
-import Animated, { useSharedValue, useAnimatedStyle, withSpring, interpolate } from 'react-native-reanimated';
+import { View, TouchableOpacity, Text } from 'react-native';
 import styles from '../../styles/stylesFrutas';
 import fruitsData from './images.json';
-
-// Componente de carta giratoria (interno a esta pantalla)
-function FlipCard({ card, containerStyle }) {
-  if (!card) return null; // Evita errores si no se pasa la carta
-
-  const flip = useSharedValue(0);
-  const [isFlipped, setIsFlipped] = useState(false);
-  // Usar exclusivamente la imagen definida en el JSON por cada fruta
-
-  const frontAnimatedStyle = useAnimatedStyle(() => {
-    const rotateY = interpolate(flip.value, [0, 1], [0, 180]);
-    return { transform: [{ rotateY: `${rotateY}deg` }] };
-  });
-
-  const backAnimatedStyle = useAnimatedStyle(() => {
-    const rotateY = interpolate(flip.value, [0, 1], [180, 360]);
-    return { transform: [{ rotateY: `${rotateY}deg` }] };
-  });
-
-  const handleFlip = () => {
-    flip.value = withSpring(isFlipped ? 0 : 1, { damping: 10, stiffness: 100 });
-    setIsFlipped(!isFlipped);
-  };
-
-  const handleSpeak = () => {
-    const text = isFlipped ? card.spanish : card.english;
-    const language = isFlipped ? 'es-ES' : 'en-US';
-    try {
-      Speech.stop();
-      Speech.speak(text, { language, pitch: 1.0, rate: 1.0 });
-    } catch (e) {
-      // noop: evita romper UI si no hay motor TTS
-    }
-  };
-
-  return (
-    <View style={styles.centerAligned}>
-      <TouchableOpacity onPress={handleFlip} style={[styles.cardContainer, containerStyle]}>
-        <Animated.View style={[styles.card, styles.cardFront, frontAnimatedStyle]}>
-          <Text style={styles.cardSubtitle}>English</Text>
-          <Text style={styles.cardText}>{card.english}</Text>
-          {card.image ? (
-            <Image source={{ uri: card.image }} style={styles.cardImage} />
-          ) : null}
-          <Text style={styles.cardHint}>Toca para ver traducción</Text>
-        </Animated.View>
-        <Animated.View style={[styles.card, styles.cardBack, backAnimatedStyle]}>
-          <Text style={styles.cardSubtitle}>Español</Text>
-          <Text style={styles.cardText}>{card.spanish}</Text>
-          {card.image ? (
-            <Image source={{ uri: card.image }} style={styles.cardImage} />
-          ) : null}
-          <Text style={styles.cardHint}>Toca para volver</Text>
-        </Animated.View>
-      </TouchableOpacity>
-
-      <TouchableOpacity onPress={handleSpeak} style={styles.audioBtn}>
-        <Ionicons name="volume-high" size={20} color="#fff" />
-        <Text style={styles.audioText}>Escuchar</Text>
-      </TouchableOpacity>
-    </View>
-  );
-}
+import FlashCard from '../../components/FlashCard';
 
 // Datos extraídos desde JSON para separación de contenido
 const sampleCards = fruitsData;
@@ -84,7 +19,7 @@ export default function Frutas() {
   return (
     <View style={styles.screen}>
       <Text style={styles.counter}>Tarjeta {index + 1} de {total}</Text>
-      <FlipCard key={index} card={current} />
+      <FlashCard key={index} item={current} styles={styles} frontLabel="English" backLabel="Español" />
 
       <View style={styles.dotsRow}>
       {sampleCards.map((_, i) => (
