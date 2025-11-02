@@ -7,6 +7,7 @@ import { CommonActions, useNavigation, useFocusEffect } from '@react-navigation/
 import * as SecureStore from 'expo-secure-store';
 import axios from 'axios';
 import { config } from '../config/api';
+import * as ImagePicker from 'expo-image-picker';
 
 export default function NewFlashCard() {
     const navigation = useNavigation();
@@ -16,6 +17,24 @@ export default function NewFlashCard() {
     const [tempMazo, setTempMazo] = useState("");
     const [englishWord, setEnglishWord] = useState("");
     const [spanishTranslation, setSpanishTranslation] = useState("");
+
+    // Imagen Picker
+    const [image, setImage] = useState(null);
+    const pickImage = async () => {
+    // No permissions request is necessary for launching the image library
+    let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images', 'videos'],
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
+    });
+
+    console.log(result);
+
+    if (!result.canceled) {
+      setImage(result.assets[0].uri);
+    }
+  };
 
     // Estados para los mazos dinámicos del backend
     const [decks, setDecks] = useState([]);
@@ -269,7 +288,7 @@ export default function NewFlashCard() {
                         <View>
                             <Text style={stylesNFC.textsNFC}>Contenido Adicional</Text>
                             <View style={stylesNFC.containerNFCButtons}>
-                                <TouchableOpacity style={stylesNFC.containerNFCButtonsContent}>
+                                <TouchableOpacity style={stylesNFC.containerNFCButtonsContent} onPress={pickImage}>
                                     <Camera />
                                     <Text style={stylesNFC.textsNFC}>Añadir Imagen</Text>
                                 </TouchableOpacity>
