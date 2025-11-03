@@ -1,19 +1,20 @@
 import { StyleSheet } from 'react-native';
+import theme, { tokens } from './theme';
 
 // Estilos de la pantalla del juego Frutas
 // Mantén estos estilos como fuente única para esta pantalla
 const stylesFrutas = StyleSheet.create({
 	centerAligned: { alignItems: 'center' },
-	screen: { flex: 1, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', paddingVertical: 24 },
-	counter: { color: '#111827', marginBottom: 12, fontWeight: '600' },
+	screen: { flex: 1, backgroundColor: theme.colors.background, alignItems: 'center', justifyContent: 'center', paddingVertical: 24 },
+	counter: { color: theme.colors.foreground, marginBottom: 12, fontWeight: '600' },
 	dotsRow: { flexDirection: 'row', alignItems: 'center', marginTop: 12, marginBottom: 16 },
-	dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#cbd5e1', marginHorizontal: 4 },
-	dotActive: { backgroundColor: '#3b82f6', width: 16 },
+	dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: theme.colors.muted, marginHorizontal: 4 },
+	dotActive: { backgroundColor: theme.colors.accent, width: 16 },
 	controls: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-	btn: { backgroundColor: '#3b82f6', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8 },
-	btnDisabled: { backgroundColor: '#93c5fd' },
+	btn: { backgroundColor: theme.colors.accent, paddingHorizontal: 16, paddingVertical: 10, borderRadius: tokens.radius.md },
+	btnDisabled: { backgroundColor: theme.colors.secondary },
 	btnText: { color: '#fff', fontWeight: '600' },
-	audioBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#2563eb', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 999, marginTop: 12 },
+	audioBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: theme.colors.primary, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 999, marginTop: 12 },
 	audioText: { color: '#fff', fontWeight: '600' },
 	cardContainer: {
 		width: 400,
@@ -31,10 +32,10 @@ const stylesFrutas = StyleSheet.create({
 		padding: 20,
 	},
 	cardFront: {
-		backgroundColor: '#3b82f6',
+		backgroundColor: theme.colors.primary,
 	},
 	cardBack: {
-		backgroundColor: '#10b981',
+		backgroundColor: theme.colors.accent,
 	},
 	cardSubtitle: { position: 'absolute', top: 12, left: 12, color: 'rgba(255,255,255,0.9)', zIndex: 2 },
 	cardText: {

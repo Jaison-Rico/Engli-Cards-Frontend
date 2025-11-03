@@ -1,12 +1,14 @@
 import { StyleSheet } from "react-native";
+import theme, { tokens, shadows } from './theme';
 
 const stylesMS = StyleSheet.create({
 containerMCTop: {
-    paddingLeft: 20,
-    paddingRight: 20,
-    backgroundColor: 'white',
-    height: 225,
-
+		paddingLeft: 20,
+		paddingRight: 20,
+		backgroundColor: theme.colors.background,
+		height: 225,
+		borderBottomLeftRadius: tokens.radius.lg,
+		borderBottomRightRadius: tokens.radius.lg,
 },
 textsMC:{
     fontSize:15,
@@ -14,8 +16,7 @@ textsMC:{
     textAlign:'center',
     marginTop:15,
     marginBottom:0,
-    color:'black',
-    borderColor:'red',
+    color: theme.colors.foreground,
 },
 textButtonMC:{
     fontSize:15,
@@ -24,47 +25,50 @@ textButtonMC:{
     marginTop:0,
     marginBottom:0,
     marginTop: 5,
-    color:'black',
+    color: theme.colors.mutedForeground,
     marginBottom: 15,
 },
 buttonStats:{
     flexDirection: 'row',
-    borderColor:'black',
+    borderColor: theme.colors.border,
     borderWidth: 1,
-    borderRadius: 10,
+    borderRadius: tokens.radius.sm,
     padding: 8,
     gap: 5,
 },
 textButtonMCStats:{
     fontSize:16,
     fontWeight:'bold',
-    color:'black',
+    color: theme.colors.foreground,
     padding: 0, //espacion dentro del borde
 },
 inputs:{
     padding:10,
     borderWidth: 2,
-    borderRadius:10,
-    borderColor: 'blue',
+    borderRadius: tokens.radius.lg,
+    borderColor: theme.colors.border,
     textAlign:'left',
     height: 50,
+    backgroundColor: theme.colors.card,
 },
 titlesMC:{
     fontSize: 24,
     fontWeight: 900,
+    color: theme.colors.foreground,
 },
 subtitlesMC:{
     fontSize: 13,
     fontWeight: 0,
     marginTop: 2,
+    color: theme.colors.mutedForeground,
 },
 searchContainer: {
     backgroundColor: 'transparent',
     marginTop: -4
 },
 searchInputContainer: {
-    backgroundColor: '#f0f0f0',
-    borderRadius: 10,
+    backgroundColor: theme.colors.muted,
+    borderRadius: tokens.radius.md,
 },
 containerMCBottonsMain:{
     flexDirection: 'row',
@@ -78,10 +82,11 @@ buttonCDeck: {
     gap: 15,
     width: "40%",
     height: 100,
-    borderColor:'black',
+    borderColor: theme.colors.border,
     borderWidth: 1,
-    borderRadius: 10,
-    backgroundColor: 'gray',
+    borderRadius: tokens.radius.lg,
+    backgroundColor: theme.colors.card,
+    ...shadows.card,
 },
 buttonCFlashcard:{
     flexDirection: 'column',
@@ -90,9 +95,11 @@ buttonCFlashcard:{
     gap: 15,
     width: "40%",
     height: 100,
-    borderColor:'black',
+    borderColor: theme.colors.border,
     borderWidth: 1,
-    borderRadius: 10
+    borderRadius: tokens.radius.lg,
+    backgroundColor: theme.colors.card,
+    ...shadows.card
 }
 ,
 // Styles for deck cards list
@@ -103,15 +110,11 @@ deckListContainer: {
     paddingBottom: 16,
 },
 deckCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    backgroundColor: theme.colors.card,
+    borderRadius: tokens.radius.md,
     padding: 14,
     marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 3,
+    ...shadows.card,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -122,11 +125,11 @@ deckCardLeft: {
 deckTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#0b2545'
+    color: theme.colors.foreground
 },
 deckCount: {
     fontSize: 13,
-    color: '#62748a',
+    color: theme.colors.mutedForeground,
     marginTop: 6
 },
 // Modal styles
@@ -137,15 +140,11 @@ modalOverlay: {
     alignItems: 'center',
 },
 modalContainer: {
-    backgroundColor: 'white',
-    borderRadius: 20,
+    backgroundColor: theme.colors.card,
+    borderRadius: tokens.radius.lg,
     width: '85%',
     maxWidth: 400,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 10,
+    ...shadows.card,
 },
 modalHeader: {
     flexDirection: 'row',
@@ -155,12 +154,12 @@ modalHeader: {
     paddingTop: 20,
     paddingBottom: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: theme.colors.border,
 },
 modalTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#0b2545',
+    color: theme.colors.foreground,
 },
 closeButton: {
     padding: 5,
@@ -171,30 +170,30 @@ modalContent: {
 },
 modalSubtitle: {
     fontSize: 14,
-    color: '#62748a',
+    color: theme.colors.mutedForeground,
     marginBottom: 20,
     lineHeight: 20,
 },
 modalLabel: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#0b2545',
+    color: theme.colors.foreground,
     marginBottom: 8,
 },
 modalInput: {
     borderWidth: 1,
-    borderColor: '#d0d0d0',
-    borderRadius: 10,
+    borderColor: theme.colors.border,
+    borderRadius: tokens.radius.md,
     padding: 12,
     fontSize: 15,
-    color: '#000',
-    backgroundColor: '#f9f9f9',
+    color: theme.colors.foreground,
+    backgroundColor: theme.colors.card,
 },
 tipContainer: {
     flexDirection: 'row',
-    backgroundColor: '#e8f4ff',
+    backgroundColor: theme.colors.secondary,
     borderLeftWidth: 4,
-    borderLeftColor: '#2196F3',
+    borderLeftColor: theme.colors.primary,
     borderRadius: 8,
     padding: 12,
     marginTop: 20,
@@ -206,7 +205,7 @@ tipIcon: {
 tipText: {
     flex: 1,
     fontSize: 13,
-    color: '#0b2545',
+    color: theme.colors.foreground,
     lineHeight: 18,
 },
 tipBold: {
@@ -218,34 +217,34 @@ modalButtons: {
     paddingHorizontal: 20,
     paddingVertical: 20,
     borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
+    borderTopColor: theme.colors.border,
     gap: 10,
 },
 modalButtonCancel: {
     flex: 1,
     paddingVertical: 12,
-    borderRadius: 10,
+    borderRadius: tokens.radius.md,
     borderWidth: 1,
-    borderColor: '#d0d0d0',
-    backgroundColor: 'white',
+    borderColor: theme.colors.border,
+    backgroundColor: theme.colors.card,
     alignItems: 'center',
 },
 modalButtonTextCancel: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#62748a',
+    color: theme.colors.mutedForeground,
 },
 modalButtonCreate: {
     flex: 1,
     paddingVertical: 12,
-    borderRadius: 10,
-    backgroundColor: '#2196F3',
+    borderRadius: tokens.radius.md,
+    backgroundColor: theme.colors.accent,
     alignItems: 'center',
 },
 modalButtonTextCreate: {
     fontSize: 15,
     fontWeight: '600',
-    color: 'white',
+    color: '#fff',
 },
 // Toast styles
 toastContainer: {
@@ -253,12 +252,8 @@ toastContainer: {
     top: 0,
     left: 20,
     right: 20,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 10,
+    borderRadius: tokens.radius.md,
+    ...shadows.card,
     zIndex: 9999,
 },
 toastContent: {
@@ -271,7 +266,7 @@ toastText: {
     flex: 1,
     fontSize: 15,
     fontWeight: '600',
-    color: 'white',
+    color: '#fff',
     lineHeight: 20,
 }
 })

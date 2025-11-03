@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native";
+import theme, { tokens, shadows } from './theme';
 
 // Estilos para la pantalla LearningPath
 // Nota: Mantén este archivo como única fuente de estilos para esta pantalla.
@@ -6,7 +7,7 @@ import { StyleSheet } from "react-native";
 const stylesLearningPath = StyleSheet.create({
 	container: {
 		flex: 1,
-		backgroundColor: "#f5f5f5",
+		backgroundColor: theme.colors.background,
 	},
 	listContent: {
 		paddingVertical: 40,
@@ -25,14 +26,11 @@ const stylesLearningPath = StyleSheet.create({
 		borderRadius: 50,
 		justifyContent: "center",
 		alignItems: "center",
-		shadowColor: "#000",
-		shadowOpacity: 0.2,
-		shadowRadius: 5,
-		elevation: 5,
+		...shadows.card,
 	},
-	completed: { backgroundColor: "#4CAF50" },
-	available: { backgroundColor: "#FFC107" },
-	locked: { backgroundColor: "#E0E0E0" },
+	completed: { backgroundColor: '#4CAF50' },
+	available: { backgroundColor: theme.colors.accent },
+	locked: { backgroundColor: theme.colors.muted },
 	text: {
 		color: "#fff",
 		fontWeight: "bold",
