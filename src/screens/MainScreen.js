@@ -170,12 +170,22 @@ export default function MainScreen({ route }) {
                         data={decks.filter((d) => d.deck_name?.toLowerCase().includes(search.toLowerCase()))}
                         keyExtractor={(item, index) => (item.deck_id ? String(item.deck_id) : `${item.deck_name || 'deck'}-${index}`)}
                         renderItem={({ item }) => (
-                            <View style={stylesMS.deckCard}>
+                            <TouchableOpacity 
+                                style={stylesMS.deckCard}
+                                activeOpacity={0.7}
+                                onPress={() => {
+                                    // Aquí puedes navegar a la vista de detalle del deck
+                                    // navigation.navigate('DeckDetail', { deckId: item.deck_id });
+                                }}
+                            >
                                 <View style={stylesMS.deckCardLeft}>
                                     <Text style={stylesMS.deckTitle}>{item.deck_name}</Text>
                                     <Text style={stylesMS.deckCount}>{(item.cardCount != null ? item.cardCount : 0)} tarjetas</Text>
                                 </View>
-                            </View>
+                                <View style={stylesMS.deckCardRight}>
+                                    <BookOpen size={24} color="#fff" />
+                                </View>
+                            </TouchableOpacity>
                         )}
                         ListEmptyComponent={() => (
                             <Text style={{ margin: 20, textAlign: 'center' }}>

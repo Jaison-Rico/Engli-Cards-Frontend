@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native";
+import theme, { tokens, shadows } from './theme';
 
 // Estilos para la pantalla LearningPath
 // Nota: Mantén este archivo como única fuente de estilos para esta pantalla.
@@ -6,11 +7,11 @@ import { StyleSheet } from "react-native";
 const stylesLearningPath = StyleSheet.create({
 	container: {
 		flex: 1,
-		backgroundColor: "#f5f5f5",
+		backgroundColor: theme.colors.background,
 	},
 	listContent: {
 		paddingVertical: 40,
-		paddingHorizontal: 100, // Mover el padding aquí en lugar del container
+		paddingHorizontal: 100,
 	},
 	itemContainer: {
 		marginVertical: 15,
@@ -25,18 +26,37 @@ const stylesLearningPath = StyleSheet.create({
 		borderRadius: 50,
 		justifyContent: "center",
 		alignItems: "center",
-		shadowColor: "#000",
-		shadowOpacity: 0.2,
-		shadowRadius: 5,
-		elevation: 5,
+		borderWidth: 3,
+		// Sombras más pronunciadas
+		shadowColor: '#000',
+		shadowOpacity: 0.25,
+		shadowRadius: 8,
+		shadowOffset: { width: 0, height: 4 },
+		elevation: 8,
 	},
-	completed: { backgroundColor: "#4CAF50" },
-	available: { backgroundColor: "#FFC107" },
-	locked: { backgroundColor: "#E0E0E0" },
+	completed: {
+		backgroundColor: '#4CAF50',
+		borderColor: '#45a049',
+	},
+	available: {
+		backgroundColor: theme.colors.accent,
+		borderColor: theme.colors.primary,
+	},
+	locked: {
+		backgroundColor: '#d4d4d8',
+		borderColor: '#a1a1aa',
+	},
 	text: {
 		color: "#fff",
 		fontWeight: "bold",
+		fontSize: 13,
 		textAlign: "center",
+		textShadowColor: 'rgba(0, 0, 0, 0.3)',
+		textShadowOffset: { width: 0, height: 1 },
+		textShadowRadius: 2,
+	},
+	textLocked: {
+		color: "#52525b",
 	},
 });
 

@@ -1,34 +1,36 @@
 import { StyleSheet } from 'react-native';
+import theme, { tokens, shadows } from './theme';
 
 const stylesProfile = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f7f9fc',
+    backgroundColor: theme.colors.background,
   },
   header: {
-    backgroundColor: '#007bff',
+    backgroundColor: theme.colors.primary,
     alignItems: 'center',
     paddingVertical: 30,
-    borderBottomLeftRadius: 25,
-    borderBottomRightRadius: 25,
+    borderBottomLeftRadius: tokens.radius.lg,
+    borderBottomRightRadius: tokens.radius.lg,
   },
   avatarContainer: {
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
     borderRadius: 50,
     padding: 10,
     marginBottom: 10,
+    ...shadows.card,
   },
   avatarEmoji: {
     fontSize: 40,
   },
   profileTitle: {
-    color: 'white',
+    color: '#fff',
     fontSize: 20,
     fontWeight: 'bold',
   },
   points: {
     marginTop: 10,
-    color: 'white',
+    color: '#fff',
     fontSize: 16,
   },
   statsContainer: {
@@ -39,26 +41,22 @@ const stylesProfile = StyleSheet.create({
     marginHorizontal: 10,
   },
   statBox: {
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
     width: '40%',
-    borderRadius: 12,
+    borderRadius: tokens.radius.md,
     padding: 12,
     alignItems: 'center',
     marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
+    ...shadows.card,
   },
   statLabel: {
     fontSize: 14,
-    color: '#555',
+    color: theme.colors.mutedForeground,
   },
   statValue: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#0b2545',
+    color: theme.colors.foreground,
     marginTop: 4,
   },
   section: {
@@ -68,7 +66,7 @@ const stylesProfile = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#0b2545',
+    color: theme.colors.foreground,
     marginBottom: 12,
   },
   achievementsContainer: {
@@ -77,17 +75,13 @@ const stylesProfile = StyleSheet.create({
     justifyContent: 'space-between',
   },
   achievementCard: {
-    backgroundColor: 'white',
+    backgroundColor: theme.colors.card,
     width: '47%',
-    borderRadius: 12,
+    borderRadius: tokens.radius.md,
     padding: 12,
     marginBottom: 12,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
+    ...shadows.card,
   },
   achievementLocked: {
     opacity: 0.5,
@@ -98,13 +92,13 @@ const stylesProfile = StyleSheet.create({
   achievementTitle: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#0b2545',
+    color: theme.colors.foreground,
     textAlign: 'center',
     marginTop: 6,
   },
   achievementText: {
     fontSize: 12,
-    color: '#6c757d',
+    color: theme.colors.mutedForeground,
     textAlign: 'center',
     marginTop: 4,
   },
@@ -119,13 +113,9 @@ const stylesProfile = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 15,
-    borderRadius: 12,
+    borderRadius: tokens.radius.md,
     gap: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
+    ...shadows.card,
   },
   logoutButtonText: {
     color: '#fff',

@@ -1,11 +1,12 @@
 import { StyleSheet } from "react-native";
+import theme, { globalStyles, tokens } from './theme';
 
 
 const style1 = StyleSheet.create({
 container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+		...globalStyles.container,
+		alignItems: 'center',
+		justifyContent: 'center',
 },
 texts:{
     fontSize:15,
@@ -13,8 +14,7 @@ texts:{
     textAlign:'center',
     marginTop:15,
     marginBottom:0,
-    color:'black',
-    borderColor:'red',
+    color: theme.colors.foreground,
 },
 textButton:{
     fontSize:15,
@@ -23,7 +23,7 @@ textButton:{
     marginTop:0,
     marginBottom:5,
     marginTop: 5,
-    color:'black',
+    color: theme.colors.mutedForeground,
     marginBottom: 15,
 },
 textButtonLogin:{
@@ -33,7 +33,7 @@ textButtonLogin:{
     marginTop:0,
     marginBottom:5,
     marginTop: -15,
-    color:'black',
+    color: theme.colors.mutedForeground,
     marginBottom: 15,
 },
 textButtonResetPassword:{
@@ -42,82 +42,61 @@ textButtonResetPassword:{
     textAlign:'center',
     marginTop:0,
     marginBottom:5,
-    color:'white',
+    color:'#fff',
 },
 textLogin:{
     fontSize:15,
     fontWeight:'bold',
     textAlign:'center',
-    color:'white',
-    borderColor:'red',
+    color:'#fff',
 },
 textRegister:{
     fontSize:15,
     fontWeight:'bold',
     textAlign:'center',
-    color:'white',
-    borderColor:'red',
+    color:'#fff',
 },
 inputs:{
-    padding:10,
-    borderWidth: 2,
-    borderRadius:10,
-    borderColor: 'blue',
-    textAlign:'left',
-    height: 50,
+    ...globalStyles.input,
 },
 inputsLogin:{
-    padding:10,
-    borderWidth: 2,
-    borderRadius:10,
-    borderColor: 'blue',
-    textAlign:'left',
-    height: 50,
+    ...globalStyles.input,
     marginBottom: 20,
 },
 inputsRegister:{
-    padding:10,
-    borderWidth: 2,
-    borderRadius:10,
-    borderColor: 'blue',
-    textAlign:'left',
-    height: 50,
+    ...globalStyles.input,
     marginBottom: 35,
 },
 inputsResetPassword:{
-    padding:10,
-    borderWidth: 2,
-    borderRadius:10,
-    borderColor: 'blue',
-    textAlign:'left',
-    height: 50,
+    ...globalStyles.input,
     width: 300,
 },
 titles:{
     fontSize: 30,
     fontWeight: 900,
     marginBottom: 20,
+    color: theme.colors.foreground,
 },
 buttons:{
-    borderRadius: 10,
-    borderColor: 'black',
-    borderWidth: 2,
+    height: tokens.components.buttonHeight,
+    paddingHorizontal: tokens.components.buttonPaddingX,
+    borderRadius: tokens.radius.lg,
     justifyContent: 'center',
     alignItems: 'center',
     textAlign:'center',
     marginTop: 20,
-    width: 150,
-    height: 45,
-    backgroundColor: 'black',
+    width: 200,
+    backgroundColor: theme.colors.accent,
+    ...theme.shadows.soft,
 },
 labelFloating: {
     position: 'absolute',
     top: -8, // Posición sobre el borde
     left: 15,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: theme.colors.background,
     paddingHorizontal: 3,
     fontSize: 13,
-    color: '#000000ff',
+    color: theme.colors.mutedForeground,
     zIndex: 1
 },
 inputFieldset: {
@@ -151,17 +130,17 @@ dividerContainer: {
 dividerLine: {
     flex: 0.3, //este es nuestro largor de linea
     height: 2,
-    backgroundColor: '#ccc',
+    backgroundColor: theme.colors.border,
     
 },
 dividerText: {
     marginHorizontal: 10, // esta es la separación entre texto y línea
-    color: '#666',
+    color: theme.colors.mutedForeground,
     fontSize: 16,
     textAlign: 'center',
 },
 footerText: {
-    color: '#888',
+    color: theme.colors.mutedForeground,
     fontSize: 12,
 }
 })

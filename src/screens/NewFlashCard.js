@@ -41,13 +41,13 @@ export default function NewFlashCard() {
                 exif: false,
             });
 
-            console.log('ImagePicker result:', result);
+            console.log('ImagePicker result: - NewFlashCard.js:44', result);
 
             if (!result.canceled && result.assets?.length) {
                 setImage(result.assets[0].uri);
             }
         } catch (e) {
-            console.log('ImagePicker error:', e);
+            console.log('ImagePicker error: - NewFlashCard.js:50', e);
             Alert.alert('Error', 'No pudimos abrir tu galería. Intenta nuevamente.');
         }
     };
@@ -149,7 +149,7 @@ export default function NewFlashCard() {
                 deck_id: +selectedMazo
             });
             
-            console.log('Flashcard created successfully: - NewFlashCard.js:117', response.data);
+            console.log('Flashcard created successfully: - NewFlashCard.js:152', response.data);
             
             // Mostrar modal de éxito
             setSuccessModalVisible(true);
@@ -161,7 +161,7 @@ export default function NewFlashCard() {
             }, 2000);
             
         } catch (error) {
-            console.error('Error creating flashcard: - NewFlashCard.js:129', error);
+            console.error('Error creating flashcard: - NewFlashCard.js:164', error);
             setError(error?.response?.data?.message || 'Error al crear la flashcard. Intenta de nuevo.');
         } finally {
             setCreatingFlashcard(false);
@@ -352,4 +352,3 @@ export default function NewFlashCard() {
 
         )
     }
-

@@ -52,9 +52,10 @@ export default function LearningPath({ navigation }) {
                 >
                   <Path
                     d="M20 0 Q50 60 80 0"
-                    stroke="#ccc"
-                    strokeWidth="4"
+                    stroke="#a1a1aa"
+                    strokeWidth="5"
                     fill="none"
+                    strokeLinecap="round"
                   />
                 </Svg>
               )}
@@ -69,6 +70,7 @@ export default function LearningPath({ navigation }) {
                 <TouchableOpacity 
                  onPress={() => handleLessonPress(item)}
                   disabled={item.status === "locked"}
+                  activeOpacity={0.7}
                   style={[
                     styles.node,
                     item.status === "completed"
@@ -78,7 +80,9 @@ export default function LearningPath({ navigation }) {
                       : styles.locked,
                   ]}
                 >
-                  <Text style={styles.text}>{item.title}</Text>
+                  <Text style={[styles.text, item.status === "locked" && styles.textLocked]}>
+                    {item.title}
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
