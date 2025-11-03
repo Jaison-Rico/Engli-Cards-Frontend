@@ -1,4 +1,4 @@
-import { View, Text, TextInput, TouchableOpacity, Modal, Platform, ActivityIndicator, ScrollView } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Modal, Platform, ActivityIndicator, ScrollView, Alert } from "react-native";
 import stylesNFC from "../styles/styleNFC";
 import { Picker } from '@react-native-picker/picker'; //componente para crear listas desplegables
 import { Camera, Save, ArrowLeft, ChevronDown, CheckCircle } from 'lucide-react-native'; //import de icons
@@ -20,21 +20,37 @@ export default function NewFlashCard() {
 
     // Imagen Picker
     const [image, setImage] = useState(null);
+    // Abrir la galería y seleccionar una imagen (maneja permisos en Android)
     const pickImage = async () => {
-    // No permissions request is necessary for launching the image library
-    let result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images', 'videos'],
-        allowsEditing: true,
-        aspect: [4, 3],
-        quality: 1,
-    });
+        try {
+            // En Android, asegúrate de tener permisos en tiempo de ejecución
+            if (Platform.OS === 'android') {
+                const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+                if (!perm.granted) {
+                    Alert.alert('Permiso requerido', 'Debes permitir el acceso a tus fotos para seleccionar una imagen.');
+                    return;
+                }
+            }
 
-    console.log(result);
+            const result = await ImagePicker.launchImageLibraryAsync({
+                // mediaTypes: ImagePicker.MediaType.Images, // SDK 54+: MediaTypeOptions está deprecado
+                // Omitimos mediaTypes para usar el valor por defecto (imágenes)
+                allowsEditing: true,
+                aspect: [4, 3],
+                quality: 1,
+                exif: false,
+            });
 
-    if (!result.canceled) {
-      setImage(result.assets[0].uri);
-    }
-  };
+            console.log('ImagePicker result:', result);
+
+            if (!result.canceled && result.assets?.length) {
+                setImage(result.assets[0].uri);
+            }
+        } catch (e) {
+            console.log('ImagePicker error:', e);
+            Alert.alert('Error', 'No pudimos abrir tu galería. Intenta nuevamente.');
+        }
+    };
 
     // Estados para los mazos dinámicos del backend
     const [decks, setDecks] = useState([]);
