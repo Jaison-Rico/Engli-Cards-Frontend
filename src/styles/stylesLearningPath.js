@@ -11,7 +11,7 @@ const stylesLearningPath = StyleSheet.create({
 	},
 	listContent: {
 		paddingVertical: 40,
-		paddingHorizontal: 100, // Mover el padding aquí en lugar del container
+		paddingHorizontal: 100,
 	},
 	itemContainer: {
 		marginVertical: 15,
@@ -26,15 +26,37 @@ const stylesLearningPath = StyleSheet.create({
 		borderRadius: 50,
 		justifyContent: "center",
 		alignItems: "center",
-		...shadows.card,
+		borderWidth: 3,
+		// Sombras más pronunciadas
+		shadowColor: '#000',
+		shadowOpacity: 0.25,
+		shadowRadius: 8,
+		shadowOffset: { width: 0, height: 4 },
+		elevation: 8,
 	},
-	completed: { backgroundColor: '#4CAF50' },
-	available: { backgroundColor: theme.colors.accent },
-	locked: { backgroundColor: theme.colors.muted },
+	completed: {
+		backgroundColor: '#4CAF50',
+		borderColor: '#45a049',
+	},
+	available: {
+		backgroundColor: theme.colors.accent,
+		borderColor: theme.colors.primary,
+	},
+	locked: {
+		backgroundColor: '#d4d4d8',
+		borderColor: '#a1a1aa',
+	},
 	text: {
 		color: "#fff",
 		fontWeight: "bold",
+		fontSize: 13,
 		textAlign: "center",
+		textShadowColor: 'rgba(0, 0, 0, 0.3)',
+		textShadowOffset: { width: 0, height: 1 },
+		textShadowRadius: 2,
+	},
+	textLocked: {
+		color: "#52525b",
 	},
 });
 

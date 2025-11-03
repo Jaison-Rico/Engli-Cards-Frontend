@@ -6,21 +6,17 @@ import theme, { tokens } from './theme';
 const stylesFrutas = StyleSheet.create({
 	centerAligned: { alignItems: 'center' },
 	screen: { flex: 1, backgroundColor: theme.colors.background, alignItems: 'center', justifyContent: 'center', paddingVertical: 24 },
-	counter: { color: theme.colors.foreground, marginBottom: 12, fontWeight: '600' },
+	counter: { color: theme.colors.foreground, marginBottom: 12, fontWeight: '600', opacity: 0.8, letterSpacing: 0.3 },
 	dotsRow: { flexDirection: 'row', alignItems: 'center', marginTop: 12, marginBottom: 16 },
 	dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: theme.colors.muted, marginHorizontal: 4 },
-	dotActive: { backgroundColor: theme.colors.accent, width: 16 },
+	dotActive: { backgroundColor: theme.colors.accent, width: 10, height: 10 },
 	controls: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-	btn: { backgroundColor: theme.colors.accent, paddingHorizontal: 16, paddingVertical: 10, borderRadius: tokens.radius.md },
-	btnDisabled: { backgroundColor: theme.colors.secondary },
-	btnText: { color: '#fff', fontWeight: '600' },
-	audioBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: theme.colors.primary, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 999, marginTop: 12 },
+	btn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: theme.colors.accent, paddingHorizontal: 16, paddingVertical: 10, borderRadius: tokens.radius.lg, elevation: 2 },
+	btnDisabled: { backgroundColor: theme.colors.secondary, opacity: 0.6 },
+	btnText: { color: '#fff', fontWeight: '700' },
+	audioBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: theme.colors.primary, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 999, marginTop: 12, elevation: 3 },
 	audioText: { color: '#fff', fontWeight: '600' },
-	cardContainer: {
-		width: 400,
-		height: 300,
-		marginVertical: 12,
-	},
+	cardContainer: { width: '88%', aspectRatio: 1.25, maxWidth: 440, marginVertical: 12 },
 	card: {
 		width: '100%',
 		height: '100%',
@@ -30,6 +26,13 @@ const stylesFrutas = StyleSheet.create({
 		justifyContent: 'center',
 		alignItems: 'center',
 		padding: 20,
+		overflow: 'hidden',
+		// Sombras sutiles para ambas plataformas
+		shadowColor: '#000',
+		shadowOpacity: 0.15,
+		shadowRadius: 12,
+		shadowOffset: { width: 0, height: 8 },
+		elevation: 6,
 	},
 	cardFront: {
 		backgroundColor: theme.colors.primary,
@@ -37,23 +40,20 @@ const stylesFrutas = StyleSheet.create({
 	cardBack: {
 		backgroundColor: theme.colors.accent,
 	},
-	cardSubtitle: { position: 'absolute', top: 12, left: 12, color: 'rgba(255,255,255,0.9)', zIndex: 2 },
+	badge: { position: 'absolute', top: 12, left: 12, backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999 },
+	badgeText: { color: 'rgba(255,255,255,0.95)', fontWeight: '700' },
 	cardText: {
 		color: 'white',
-		fontSize: 24,
-		fontWeight: 'bold',
-		marginBottom: 15,
+		fontSize: 28,
+		fontWeight: '800',
+		marginBottom: 10,
 	},
 	cardHint: {
 		color: 'rgba(255,255,255,0.7)',
 		marginTop: 10,
+		fontSize: 12,
 	},
-    cardImage: { 
-        width: 200, 
-        height: 150, 
-        //marginVertical: -4, 
-        resizeMode: 'contain',
-    },
+	cardImage: { width: '78%', height: '50%', resizeMode: 'contain', marginTop: 4 },
 });
 
 export default stylesFrutas;

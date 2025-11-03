@@ -106,31 +106,54 @@ buttonCFlashcard:{
 deckListContainer: {
     flex: 1,
     marginTop: 12,
-    paddingHorizontal: 12,
+    paddingHorizontal: 16,
     paddingBottom: 16,
 },
 deckCard: {
     backgroundColor: theme.colors.card,
-    borderRadius: tokens.radius.md,
-    padding: 14,
-    marginBottom: 12,
-    ...shadows.card,
+    borderRadius: tokens.radius.lg,
+    padding: 18,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    // Sombras mejoradas
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
 },
 deckCardLeft: {
     flexDirection: 'column',
+    flex: 1,
 },
 deckTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: theme.colors.foreground
+    fontSize: 18,
+    fontWeight: '800',
+    color: theme.colors.foreground,
+    letterSpacing: 0.3,
 },
 deckCount: {
-    fontSize: 13,
+    fontSize: 14,
     color: theme.colors.mutedForeground,
-    marginTop: 6
+    marginTop: 6,
+    fontWeight: '500',
+},
+deckCardRight: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: theme.colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+},
+deckCardIcon: {
+    fontSize: 20,
+    color: '#fff',
+    fontWeight: '700',
 },
 // Modal styles
 modalOverlay: {
