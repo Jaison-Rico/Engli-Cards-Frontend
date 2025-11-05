@@ -121,9 +121,9 @@ Este proyecto está bajo la Licencia MIT.
 ## � Contribuidores
 
 ### 👤 Autor Principal
-**Jaison Rico** - Desarrollador Principal  
+**Jaison Rico & Oween Unda** - Desarrolladores Principales  
 📧 [jaison.rico@correo.tdea.edu.co](mailto:jaison.rico@correo.tdea.edu.co)  
 🐱 GitHub: [@Jaison-Rico](https://github.com/Jaison-Rico)
-
+🐱 GitHub: [@owenunda](https://github.com/owenunda)
 
 📎 **Enlace del proyecto**: [https://github.com/Jaison-Rico/Engli-Cards-Frontend](https://github.com/Jaison-Rico/Engli-Cards-Frontend)
