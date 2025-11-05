@@ -6,6 +6,9 @@ import { useState, useEffect } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import { Avatar } from '@rneui/themed';
 import { LogOut } from 'lucide-react-native';
+import * as ImagePicker from 'expo-image-picker';
+import axios from 'axios';
+import { config } from '../config/api';
 
 export default function ProfileScreen() {
   const navigation = useNavigation();
@@ -55,7 +58,7 @@ export default function ProfileScreen() {
           // Obtener token si existe
           const token = await SecureStore.getItemAsync('token');
           const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
-          
+
           // Aquí puedes hacer llamadas al backend si es necesario
         } catch (error) {
           if (isActive) {
@@ -90,7 +93,7 @@ export default function ProfileScreen() {
               // Limpiar todos los datos del SecureStore
               await SecureStore.deleteItemAsync('userInfo');
               await SecureStore.deleteItemAsync('token');
-              
+
               // Navegar a la pantalla de login y resetear el stack
               navigation.dispatch(
                 CommonActions.reset({
@@ -108,17 +111,121 @@ export default function ProfileScreen() {
     );
   };
 
+  const uploadImage = async (asset) => {
+    try {
+      const formData = new FormData();
+
+      // Resolver nombre y tipo de archivo de forma segura en expo-image-picker
+      const uri = asset.uri;
+      const ext = (uri?.split('.')?.pop() || 'jpg').toLowerCase();
+      const mime = asset.mimeType || (ext === 'png' ? 'image/png' : ext === 'heic' ? 'image/heic' : 'image/jpeg');
+      const name = asset.fileName || `avatar.${ext}`;
+
+      formData.append('avatar', {
+        uri,
+        name,
+        type: mime,
+      });
+      if (userId) {
+        formData.append('userId', String(userId));
+      }
+
+      // Token opcional por si el backend requiere autenticación
+      const token = await SecureStore.getItemAsync('token');
+      const response = await axios.post(
+        `${config.BASE_URL}/cloudinary/upload-profile`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        }
+      );
+
+      // Actualizar UI/local storage con la nueva URL del avatar si el backend la devuelve
+      const data = response?.data || {};
+      // La API devuelve { message, imageUrl }
+      const imageUrl = data.imageUrl || data.url || data.secure_url || data.image_url;
+
+      if (imageUrl) {
+        // Actualiza el usuario persistido agregando la nueva URL
+        const current = userData || {};
+        const nextUser = {
+          ...current,
+          avatar_url: imageUrl, // usado por el render
+          avarat_url: imageUrl, // compatibilidad si viene con typo en datos previos
+          avatarUrl: imageUrl,  // alias en front si se usa en otros lados
+        };
+        setUserData(nextUser);
+        try {
+          await SecureStore.setItemAsync('userInfo', JSON.stringify(nextUser));
+        } catch {}
+      } else if (data.user) {
+        // En caso de que el backend devuelva el usuario completo
+        setUserData(data.user);
+        try {
+          await SecureStore.setItemAsync('userInfo', JSON.stringify(data.user));
+        } catch {}
+      }
+
+      Alert.alert('Éxito', 'Foto de perfil actualizada correctamente.');
+    } catch (error) {
+      console.error('Upload avatar error - ProfileScreen:', error?.response?.data || error?.message || error);
+      Alert.alert('Error', 'Hubo un problema al cambiar la foto de perfil. Intenta de nuevo.');
+    }
+  }
+  const handleEditProfile = async () => {
+    Alert.alert('Editar Perfil', 'Quieres cambiar la foto de perfil?', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Aceptar', style: '', onPress: async () => {
+          try {
+            // Solicitar permisos para acceder a la galería
+            const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+            if (status !== 'granted') {
+              Alert.alert('Permiso requerido', 'Se requiere permiso para acceder a la galería.');
+              return;
+            }
+
+            // Abrir la galería para escoger una imagen
+            const result = await ImagePicker.launchImageLibraryAsync({
+              mediaTypes: ImagePicker.MediaTypeOptions.Images,
+              quality: 0.9,
+            });
+
+            if (!result.canceled && result.assets && result.assets.length > 0) {
+              await uploadImage(result.assets[0]);
+            }
+          } catch (error) {
+            Alert.alert('Error', 'Hubo un problema al cambiar la foto de perfil. Intenta de nuevo.');
+          }
+        }
+      }
+    ]);
+  }
+
   return (
     <ScrollView style={stylesProfile.container}>
       {/* Encabezado */}
       <View style={stylesProfile.header}>
         <View style={stylesProfile.avatarContainer}>
-          <Avatar
-            rounded
-            size="large"
-            title={userData?.name ? userData.name.charAt(0).toUpperCase() : 'U'}
-            containerStyle={{ backgroundColor: '#111a2eff' }}
-          />
+          <TouchableOpacity onPress={handleEditProfile} activeOpacity={0.8}>
+            {userData && userData?.avatar_url ? (
+              <Avatar
+                rounded
+                size={96}
+                source={{ uri: userData.avatar_url }}
+              />
+            ) : (
+              <Avatar
+                rounded
+                size={96}
+                title={userData?.name ? userData.name.charAt(0).toUpperCase() : 'U'}
+                containerStyle={{ backgroundColor: '#584fd6ff' }}
+              />
+            )}
+          </TouchableOpacity>
         </View>
         <Text style={stylesProfile.profileTitle}>{userData?.name || 'Usuario Anónimo'}</Text>
         <Text style={stylesProfile.points}>{userDatatemp.puntos.toLocaleString()} puntos totales</Text>
@@ -189,7 +296,7 @@ export default function ProfileScreen() {
 
       {/* Botón de Logout */}
       <View style={stylesProfile.logoutContainer}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={stylesProfile.logoutButton}
           onPress={handleLogout}
         >
