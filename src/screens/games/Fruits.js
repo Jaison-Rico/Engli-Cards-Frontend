@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { View, TouchableOpacity, Text } from 'react-native';
 import styles from '../../styles/stylesFrutas';
-import fruitsData from './images.json';
+import fruitsData from './imagesFruits.json';
 import FlashCard from '../../components/FlashCard';
 import { Ionicons } from '@expo/vector-icons';
 // Datos extraídos desde JSON para separación de contenido
 const sampleCards = fruitsData;
 
 // Pantalla exportada por defecto (usada por el Navigator)
-export default function Frutas() {
+export default function Fruits() {
   const [index, setIndex] = useState(0);
   const total = sampleCards.length;
   const current = sampleCards[index];

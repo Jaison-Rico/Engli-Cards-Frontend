@@ -10,8 +10,9 @@ import NewFlashCard from "../screens/NewFlashCard";
 import StatsScreen from "../screens/StatsScreen";
 import BottomTabs from "../screens/BottomTabs";
 import ProfileScreen from "../screens/ProfileScreen";
-import Saludos from "../screens/games/Saludos";
-import Frutas from "../screens/games/Frutas";
+import Greetings from "../screens/games/Greetings";
+import Fruits from "../screens/games/Fruits";
+import { Grab } from "lucide-react-native";
 
 const Stack = createNativeStackNavigator();
 
@@ -29,8 +30,8 @@ export default function AppNavigator(){
                 <Stack.Screen name="App" component={App} options={{ headerShown: false }} />
                 <Stack.Screen name="NewFlashCard" component={NewFlashCard} options={{ headerShown: false }} />
                 <Stack.Screen name="StatsScreen" component={StatsScreen} options={{ headerShown: false }} />
-                <Stack.Screen name="Saludos" component={Saludos} options={{ headerShown: false }} />
-                <Stack.Screen name="Frutas" component={Frutas} options={{ headerShown: false }} />
+                <Stack.Screen name="Greetings" component={Greetings} options={{ headerShown: false }} />
+                <Stack.Screen name="Fruits" component={Fruits} options={{ headerShown: false }} />
                 <Stack.Screen name="BottomTabs" component={BottomTabs} options={{ headerShown: false }} />
             </Stack.Navigator>
         </NavigationContainer>

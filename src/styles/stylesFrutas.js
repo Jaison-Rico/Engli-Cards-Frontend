@@ -27,12 +27,6 @@ const stylesFrutas = StyleSheet.create({
 		alignItems: 'center',
 		padding: 20,
 		overflow: 'hidden',
-		// Sombras sutiles para ambas plataformas
-		shadowColor: '#000',
-		shadowOpacity: 0.15,
-		shadowRadius: 12,
-		shadowOffset: { width: 0, height: 8 },
-		elevation: 6,
 	},
 	cardFront: {
 		backgroundColor: theme.colors.primary,

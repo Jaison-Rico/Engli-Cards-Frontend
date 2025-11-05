@@ -125,15 +125,5 @@ Este proyecto está bajo la Licencia MIT.
 📧 [jaison.rico@correo.tdea.edu.co](mailto:jaison.rico@correo.tdea.edu.co)  
 🐱 GitHub: [@Jaison-Rico](https://github.com/Jaison-Rico)
 
-### 🤖 Colaboradores de Desarrollo
-**GitHub Copilot** - Asistente de IA  
-🔧 Desarrollo de funcionalidades, navegación, estilos y arquitectura del proyecto
-
----
-
-### 🙏 Agradecimientos Especiales
-- Comunidad de React Native por la documentación y recursos
-- Expo team por las herramientas de desarrollo
-- React Navigation team por el sistema de navegación
 
 📎 **Enlace del proyecto**: [https://github.com/Jaison-Rico/Engli-Cards-Frontend](https://github.com/Jaison-Rico/Engli-Cards-Frontend)

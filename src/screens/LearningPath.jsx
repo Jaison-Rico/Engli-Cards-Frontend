@@ -4,8 +4,8 @@ import Svg, { Path } from "react-native-svg";
 import styles from "../styles/stylesLearningPath";
 
 const lessons = [
-  { id: 1, title: "Saludos", status: "available" },
-  { id: 2, title: "Frutas", status: "available" },
+  { id: 1, title: "Greetings", status: "available" },
+  { id: 2, title: "Fruits", status: "available" },
   { id: 3, title: "Familia", status: "locked" },
   { id: 4, title: "Trabajo", status: "locked" },
   { id: 5, title: "Escuela", status: "locked" },

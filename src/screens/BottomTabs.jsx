@@ -1,5 +1,5 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { Home, BookOpen, BarChart3, User } from "lucide-react-native";
+import { Home, Gamepad2, BarChart3, User } from "lucide-react-native";
 import MainScreen from "../screens/MainScreen";
 import StatsScreen from "../screens/StatsScreen";
 import NewFlashCard from "../screens/NewFlashCard";
@@ -34,10 +34,10 @@ export default function BottomTabs() {
         />
 
         <Tab.Screen
-          name="Flashcards"
+          name="Jugar"
           component={LearningPath}
           options={{
-            tabBarIcon: ({ color }) => <BookOpen color={color} size={22} />,
+            tabBarIcon: ({ color }) => <Gamepad2 color={color} size={22} />,
           }}
         />
 
