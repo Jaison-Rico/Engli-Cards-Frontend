@@ -1,13 +1,42 @@
-import React from 'react'
-import { View, Text } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import React, { useState } from 'react';
+import { View, TouchableOpacity, Text } from 'react-native';
+import styles from '../../styles/stylesGreetings';
+import greetingsData from './imagesGreetings.json';
+import FlashCard from '../../components/FlashCard';
+import { Ionicons } from '@expo/vector-icons';
+// Datos extraídos desde JSON para separación de contenido
+const sampleCards = greetingsData;
 
+// Pantalla exportada por defecto (usada por el Navigator)
 export default function Greetings() {
+  const [index, setIndex] = useState(0);
+  const total = sampleCards.length;
+  const current = sampleCards[index];
+
+  const goPrev = () => setIndex((i) => (i > 0 ? i - 1 : i));
+  const goNext = () => setIndex((i) => (i < total - 1 ? i + 1 : i));
+
   return (
-    <SafeAreaView>
-      <View>
-        <Text>Greetings Game Screen</Text>
+    <View style={styles.screen}>
+      <Text style={styles.counter}>Tarjeta {index + 1} de {total}</Text>
+      <FlashCard key={index} item={current} styles={styles} frontLabel="English" backLabel="Español" />
+
+      <View style={styles.dotsRow}>
+        {sampleCards.map((_, i) => (
+          <View key={i} style={[styles.dot, i === index && styles.dotActive]} />
+        ))}
       </View>
-    </SafeAreaView>
-  )
+
+      <View style={styles.controls}>
+        <TouchableOpacity onPress={goPrev} disabled={index === 0} style={[styles.btn, index===0 && styles.btnDisabled]}>
+          <Ionicons name="chevron-back" size={18} color="#fff" />
+          <Text style={styles.btnText}>Anterior</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={goNext} disabled={index === total - 1} style={[styles.btn, index===total-1 && styles.btnDisabled]}>
+          <Text style={styles.btnText}>Siguiente</Text>
+          <Ionicons name="chevron-forward" size={18} color="#fff" />
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
 }

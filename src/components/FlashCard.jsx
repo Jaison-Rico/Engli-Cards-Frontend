@@ -105,7 +105,7 @@ const defaultStyles = {
 		padding: 20,
 	},
 	cardFront: { backgroundColor: '#3b82f6' },
-	cardBack: { backgroundColor: '#10b981' },
+	cardBack: { backgroundColor: '#3b82f6' },
 	cardSubtitle: { position: 'absolute', top: 12, left: 12, color: 'rgba(255,255,255,0.9)', zIndex: 2 },
 	cardText: { color: 'white', fontSize: 24, fontWeight: 'bold', marginBottom: 15 },
 	cardHint: { color: 'rgba(255,255,255,0.7)', marginTop: 10 },

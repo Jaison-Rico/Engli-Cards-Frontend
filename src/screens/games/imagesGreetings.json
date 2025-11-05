@@ -1,0 +1,62 @@
+[
+  {
+    "id": 1,
+    "english": "Hello",
+    "spanish": "Hola",
+    "image": "https://img2.clipart-library.com/26/hi-clipart-gif/hi-clipart-gif-12.gif"
+  },
+  {
+    "id": 2,
+    "english": "Good morning",
+    "spanish": "Buenos días",
+    "image": "https://i.pinimg.com/originals/13/7f/ce/137fce9aa8cccaffa3b89548c83eb10e.gif"
+  },
+  {
+    "id": 3,
+    "english": "Good afternoon",
+    "spanish": "Buenas tardes",
+    "image": "https://img.pikbest.com/origin/09/27/81/52cpIkbEsTIaf.png!w700wp"
+  },
+  {
+    "id": 4,
+    "english": "Good evening",
+    "spanish": "Buenas noches",
+    "image": "https://media.tenor.com/eYoFaQJWoJgAAAAj/good-evening.gif"
+  },
+  {
+    "id": 5,
+    "english": "Good night",
+    "spanish": "Buenas noches",
+    "image": "https://www.clipartmax.com/png/full/214-2145823_good-night-snoopy-gif.png"
+  },
+  {
+    "id": 6,
+    "english": "How are you?",
+    "spanish": "¿Cómo estás?",
+    "image": "https://media.tenor.com/73N_TkKAJiwAAAAj/penguin-sup.gif"
+  },
+  {
+    "id": 7,
+    "english": "Nice to meet you",
+    "spanish": "Mucho gusto",
+    "image": "https://usagif.com/wp-content/uploads/gifs/handshake-46.gif"
+  },
+  {
+    "id": 8,
+    "english": "See you later",
+    "spanish": "Hasta luego",
+    "image": "https://pa1.aminoapps.com/6471/2c4c042a2b25f37811e185c3763840ce52e4f791_hq.gif"
+  },
+  {
+    "id": 9,
+    "english": "Welcome",
+    "spanish": "Bienvenido",
+    "image": "https://cdn-icons-png.flaticon.com/256/9236/9236781.png"
+  },
+  {
+    "id": 10,
+    "english": "Goodbye",
+    "spanish": "Adiós",
+    "image": "https://pa1.aminoapps.com/6471/2c4c042a2b25f37811e185c3763840ce52e4f791_hq.gif"
+    }
+]
