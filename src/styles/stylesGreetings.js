@@ -16,6 +16,7 @@ const stylesGreetings = StyleSheet.create({
     btnText: { color: '#fff', fontWeight: '700' },
     audioBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: theme.colors.primary, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 999, marginTop: 12, elevation: 3 },
     audioText: { color: '#fff', fontWeight: '600' },
+    quizBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 8, backgroundColor: theme.colors.primary, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 999, marginTop: 12, elevation: 3, left: 100, top: -150 },
     cardContainer: { width: '88%', aspectRatio: 1.25, maxWidth: 440, marginVertical: 12 },
     card: {
         width: '100%',

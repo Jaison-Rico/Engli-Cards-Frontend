@@ -18,6 +18,12 @@ export default function Greetings() {
 
   return (
     <View style={styles.screen}>
+      <View>
+        <TouchableOpacity onPress={() => {{}}} style={styles.quizBtn}>
+          <Ionicons name="play-outline" size={20} color="#fff" />
+          <Text style={styles.btnText}>Comenzar Prueba</Text>
+        </TouchableOpacity>
+      </View>
       <Text style={styles.counter}>Tarjeta {index + 1} de {total}</Text>
       <FlashCard key={index} item={current} styles={styles} frontLabel="English" backLabel="Español" />
 
