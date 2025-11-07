@@ -4,6 +4,7 @@ import styles from '../../styles/stylesFrutas';
 import fruitsData from './imagesFruits.json';
 import FlashCard from '../../components/FlashCard';
 import { Ionicons } from '@expo/vector-icons';
+import QuizStartButton from '../../components/QuizStartButton';
 // Datos extraídos desde JSON para separación de contenido
 const sampleCards = fruitsData;
 
@@ -19,10 +20,13 @@ export default function Fruits() {
   return (
     <View style={styles.screen}>
       <View>
-        <TouchableOpacity onPress={() => {{}}} style={styles.quizBtn}>
-          <Ionicons name="play-outline" size={20} color="#fff" />
-          <Text style={styles.btnText}>Comenzar Prueba</Text>
-        </TouchableOpacity>
+        <QuizStartButton
+          onPress={() => {}}
+          buttonStyle={styles.quizBtn}
+          textStyle={styles.btnText}
+          label="Comenzar Prueba"
+          iconName="play-outline"
+        />
       </View>
       <Text style={styles.counter}>Tarjeta {index + 1} de {total}</Text>
       <FlashCard key={index} item={current} styles={styles} frontLabel="English" backLabel="Español" />
