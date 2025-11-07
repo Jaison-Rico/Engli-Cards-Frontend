@@ -6,7 +6,7 @@ import { Appearance, Platform, StyleSheet } from 'react-native';
 
 // Paletas en HSL (documentadas) y derivadas en strings válidos
 const paletteLight = {
-	primary: 'hsl(183, 45%, 65%)', // #7dcace Turquesa suave
+	primary: 'hsl(185, 65%, 55%)', // #7dcace Turquesa suave
 	background: 'hsl(210, 50%, 98%)',
 	foreground: 'hsl(210, 30%, 20%)',
 	secondary: 'hsl(195, 50%, 90%)',
