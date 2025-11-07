@@ -12,6 +12,7 @@ import BottomTabs from "../screens/BottomTabs";
 import ProfileScreen from "../screens/ProfileScreen";
 import Greetings from "../screens/games/Greetings";
 import Fruits from "../screens/games/Fruits";
+import QuizGreetings from "../screens/tests/QuizGreetings";
 import { Grab } from "lucide-react-native";
 
 const Stack = createNativeStackNavigator();
@@ -33,6 +34,7 @@ export default function AppNavigator(){
                 <Stack.Screen name="Greetings" component={Greetings} options={{ headerShown: false }} />
                 <Stack.Screen name="Fruits" component={Fruits} options={{ headerShown: false }} />
                 <Stack.Screen name="BottomTabs" component={BottomTabs} options={{ headerShown: false }} />
+                <Stack.Screen name="QuizGreetings" component={QuizGreetings} options={{ headerShown: false }} />
             </Stack.Navigator>
         </NavigationContainer>
     )

@@ -5,11 +5,13 @@ import greetingsData from './imagesGreetings.json';
 import FlashCard from '../../components/FlashCard';
 import { Ionicons } from '@expo/vector-icons';
 import QuizStartButton from '../../components/QuizStartButton';
+import QuizGreetings from '../tests/QuizGreetings';
+
 // Datos extraídos desde JSON para separación de contenido
 const sampleCards = greetingsData;
 
 // Pantalla exportada por defecto (usada por el Navigator)
-export default function Greetings() {
+export default function Greetings({navigation}) {
   const [index, setIndex] = useState(0);
   const total = sampleCards.length;
   const current = sampleCards[index];
@@ -21,7 +23,7 @@ export default function Greetings() {
     <View style={styles.screen}>
       <View>
         <QuizStartButton
-          onPress={() => {}}
+          onPress={() => {navigation.navigate('QuizGreetings')}}
           buttonStyle={styles.quizBtn}
           textStyle={styles.btnText}
           label="Comenzar Prueba"
