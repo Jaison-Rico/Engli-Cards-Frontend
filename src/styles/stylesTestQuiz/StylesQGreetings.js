@@ -70,6 +70,39 @@ const stylesQG = StyleSheet.create({
         alignSelf: 'center',
         marginBottom: 25,
     },
+    containerVerifyQG:{
+        width: "80%",
+        height: 60,
+        borderWidth: 1,
+        borderRadius: 20,
+        borderColor: 'black',
+        backgroundColor: '#FFFFFF', 
+        alignSelf: 'center',
+        marginBottom: 25,
+        marginTop: 40,
+    },
+    selectedOption: {
+        backgroundColor: '#e3f2fd',
+        borderColor: '#2196f3',
+    },
+    correctOption: {
+        backgroundColor: '#e8f5e8',
+        borderColor: '#4caf50',
+    },
+    incorrectOption: {
+        backgroundColor: '#ffebee',
+        borderColor: '#f44336',
+    },
+    disabledButton: {
+        backgroundColor: '#f5f5f5',
+        opacity: 0.6,
+    },
+        correctButton: {
+        backgroundColor: '#4caf50',
+    },
+        incorrectButton: {
+        backgroundColor: '#f44336',
+    },
 });
 export default stylesQG;
 
