@@ -103,6 +103,48 @@ const stylesQG = StyleSheet.create({
         incorrectButton: {
         backgroundColor: '#f44336',
     },
+    modalBackdrop: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalCard: {
+        width: '80%',
+        backgroundColor: '#FFFFFF',
+        borderRadius: tokens.radius.lg,
+        padding: tokens.spacing.lg,
+        alignItems: 'center',
+        ...shadows.card,
+    },
+    modalTitle: {
+        fontSize: 22,
+        fontWeight: '800',
+        color: theme.colors.foreground,
+        marginBottom: tokens.spacing.sm,
+        textAlign: 'center'
+    },
+    modalMessage: {
+        fontSize: 16,
+        color: theme.colors.mutedForeground,
+        textAlign: 'center',
+        marginBottom: tokens.spacing.lg
+    },
+    modalOkBtn: {
+        backgroundColor: theme.colors.accent,
+        borderRadius: tokens.radius.md,
+        paddingVertical: 12,
+        paddingHorizontal: 24
+    },
+    modalOkText: {
+        color: '#fff',
+        fontWeight: '700',
+        fontSize: 16
+    }
 });
 export default stylesQG;
 
