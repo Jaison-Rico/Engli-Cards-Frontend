@@ -9,7 +9,7 @@ import QuizStartButton from '../../components/QuizStartButton';
 const sampleCards = fruitsData;
 
 // Pantalla exportada por defecto (usada por el Navigator)
-export default function Fruits() {
+export default function Fruits({navigation}) {
   const [index, setIndex] = useState(0);
   const total = sampleCards.length;
   const current = sampleCards[index];
@@ -21,7 +21,7 @@ export default function Fruits() {
     <View style={styles.screen}>
       <View>
         <QuizStartButton
-          onPress={() => {}}
+          onPress={() => {navigation.navigate('QuizFruits')}}
           buttonStyle={styles.quizBtn}
           textStyle={styles.btnText}
           label="Comenzar Prueba"

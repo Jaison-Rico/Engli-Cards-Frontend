@@ -4,6 +4,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { ProgressBar } from 'react-native-paper';
 import QuizResultModal from './QuizResultModal';
 import { MoveLeft } from 'lucide-react-native';
+import * as Speech from 'expo-speech';
 
 /*
 	Componente reutilizable de Quiz.
@@ -110,7 +111,13 @@ export default function Quiz({
 							isVerified && option.correct && styles.correctOption,
 							isVerified && selectedOption === option.id && !option.correct && styles.incorrectOption
 						]}
-						onPress={() => handleOptionSelect(option.id)}
+						onPress={() => {
+							try {
+								Speech.stop();
+								Speech.speak(option.text, { language: 'en-US', rate: 1.0, pitch: 1.0 });
+							} catch (e) {}
+							handleOptionSelect(option.id);
+						}}
 						disabled={isVerified}
 					>
 						<Text style={styles.textsQG}>{option.text}</Text>

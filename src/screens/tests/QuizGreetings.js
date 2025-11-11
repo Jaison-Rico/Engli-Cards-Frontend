@@ -1,4 +1,3 @@
- 
 import { useNavigation } from '@react-navigation/native';
 import Quiz from '../../components/Quiz';
 
@@ -61,7 +60,7 @@ const navigation = useNavigation();
 return (
   <Quiz
     questions={questions}
-    heading={'Saludos'}
+    heading={'Frutas'}
     onBack={() => navigation.goBack()}
     onFinish={(score, total) => {
       console.log('Quiz terminado. Puntuación:', score, '/', total);

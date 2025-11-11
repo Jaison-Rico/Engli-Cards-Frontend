@@ -13,7 +13,7 @@ import ProfileScreen from "../screens/ProfileScreen";
 import Greetings from "../screens/games/Greetings";
 import Fruits from "../screens/games/Fruits";
 import QuizGreetings from "../screens/tests/QuizGreetings";
-import { Grab } from "lucide-react-native";
+import QuizFruits from "../screens/tests/QuizFruits";
 
 const Stack = createNativeStackNavigator();
 
@@ -35,6 +35,7 @@ export default function AppNavigator(){
                 <Stack.Screen name="Fruits" component={Fruits} options={{ headerShown: false }} />
                 <Stack.Screen name="BottomTabs" component={BottomTabs} options={{ headerShown: false }} />
                 <Stack.Screen name="QuizGreetings" component={QuizGreetings} options={{ headerShown: false }} />
+                <Stack.Screen name="QuizFruits" component={QuizFruits} options={{ headerShown: false }} />
             </Stack.Navigator>
         </NavigationContainer>
     )
