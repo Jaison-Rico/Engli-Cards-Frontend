@@ -23,3 +23,7 @@ ejemplo:
 Para crear ueva rama, y trabajar por separado.
 git checkout -b flashcard-images
 Switched to a new branch 'flashcard-images'
+
+--- actualizar apk (esto solo fucniona con logica de  JS)
+si a;aden assest toca hacer un nuevo build
+eas update --branch preview --message "mensaje"

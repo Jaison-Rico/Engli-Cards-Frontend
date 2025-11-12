@@ -5,6 +5,7 @@ import { ProgressBar } from 'react-native-paper';
 import QuizResultModal from './QuizResultModal';
 import { MoveLeft } from 'lucide-react-native';
 import * as Speech from 'expo-speech';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 /*
 	Componente reutilizable de Quiz.
@@ -25,9 +26,9 @@ import * as Speech from 'expo-speech';
 export default function Quiz({
 	questions = [],
 	heading = '',
-	onBack = () => {},
+	onBack = () => { },
 	instructionText = 'Selecciona la traducción correcta',
-	onFinish = () => {}
+	onFinish = () => { }
 }) {
 	// Validaciones básicas según reglas actuales (no bloquea render, pero informa en consola)
 	if (questions.length !== 5) {
@@ -38,6 +39,9 @@ export default function Quiz({
 			console.warn(`[Quiz] Pregunta ${q.id} no tiene 4 opciones (tiene ${q.options?.length}).`);
 		}
 	});
+
+	const insets = useSafeAreaInsets();
+
 
 	const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 	const [selectedOption, setSelectedOption] = useState(null);
@@ -79,69 +83,71 @@ export default function Quiz({
 	};
 
 	return (
-		<SafeAreaView>
-			{/* Encabezado */}
-			<View style={styles.containerMCTop}>
-				<TouchableOpacity style={styles.backButton} onPress={onBack}>
-					<MoveLeft size={25} color="#6200ee" />
-					<Text style={styles.textButtonBackQG}> {heading}</Text>
-				</TouchableOpacity>
-				<Text style={styles.textsQG}>Pregunta {currentQuestionIndex + 1} de {questions.length}!</Text>
-				<ProgressBar
-					style={{ marginTop: 20 }}
-					progress={questions.length ? (currentQuestionIndex + 1) / questions.length : 0}
-					color={'#6200ee'}
-				/>
-			</View>
-
-			{/* Pregunta */}
-			<View style={styles.containerTitleQG}>
-				<Text style={styles.textTitleQG}>{currentQuestion?.question}</Text>
-				<Text style={styles.textsQG2}>{instructionText}</Text>
-			</View>
-
-			{/* Opciones */}
-			<View>
-				{currentQuestion?.options?.map((option) => (
-					<TouchableOpacity
-						key={option.id}
-						style={[
-							styles.containerOptionsQG,
-							selectedOption === option.id && styles.selectedOption,
-							isVerified && option.correct && styles.correctOption,
-							isVerified && selectedOption === option.id && !option.correct && styles.incorrectOption
-						]}
-						onPress={() => {
-							try {
-								Speech.stop();
-								Speech.speak(option.text, { language: 'en-US', rate: 1.0, pitch: 1.0 });
-							} catch (e) {}
-							handleOptionSelect(option.id);
-						}}
-						disabled={isVerified}
-					>
-						<Text style={styles.textsQG}>{option.text}</Text>
+		<View>
+			{/* Encabezado con fondo blanco extendido */}
+			<View style={{ backgroundColor: '#FFFFFF', paddingTop: insets.top }}>
+				<View style={{ ...styles.containerMCTop }}>
+					<TouchableOpacity style={{...styles.backButton}} onPress={onBack}>
+						<MoveLeft size={25} color="#6200ee" />
+						<Text style={styles.textButtonBackQG}> {heading}</Text>
 					</TouchableOpacity>
-				))}
+					<Text style={styles.textsQG}>Pregunta {currentQuestionIndex + 1} de {questions.length}!</Text>
+					<ProgressBar
+						style={{ marginTop: 20 }}
+						progress={questions.length ? (currentQuestionIndex + 1) / questions.length : 0}
+						color={'#6200ee'}
+					/>
+				</View>
 			</View>
+			{/* contenedor main */}
+			<View style={{paddingBottom: insets.bottom}}>
+				{/* Pregunta */}
+				<View style={styles.containerTitleQG}>
+					<Text style={styles.textTitleQG}>{currentQuestion?.question}</Text>
+					<Text style={styles.textsQG2}>{instructionText}</Text>
+				</View>
 
-			{/* Botón verificar / siguiente */}
-			<View>
-				<TouchableOpacity
-					style={[
-						styles.containerVerifyQG,
-						!selectedOption && styles.disabledButton,
-						isVerified && (isCorrect ? styles.correctButton : styles.incorrectButton)
-					]}
-					onPress={isVerified ? handleNext : handleVerify}
-					disabled={!selectedOption}
-				>
-					<Text style={styles.textsQG}>
-						{isVerified ?
-							(currentQuestionIndex < questions.length - 1 ? 'Siguiente' : 'Ver Resultados')
-							: 'Verificar'}
-					</Text>
-				</TouchableOpacity>
+				<View style={{flexDirection: "colum", gap: 20}}>
+					{/* Opciones */}
+
+						{currentQuestion?.options?.map((option) => (
+							<TouchableOpacity
+								key={option.id}
+								style={[
+									styles.containerOptionsQG,
+									selectedOption === option.id && styles.selectedOption,
+									isVerified && option.correct && styles.correctOption,
+									isVerified && selectedOption === option.id && !option.correct && styles.incorrectOption
+								]}
+								onPress={() => {
+									try {
+										Speech.stop();
+										Speech.speak(option.text, { language: 'en-US', rate: 1.0, pitch: 1.0 });
+									} catch (e) { }
+									handleOptionSelect(option.id);
+								}}
+								disabled={isVerified}
+							>
+								<Text style={styles.optionButton}>{option.text}</Text>
+							</TouchableOpacity>
+						))}
+					{/* Botón verificar / siguiente */}
+						<TouchableOpacity
+							style={[
+								styles.containerVerifyQG,
+								!selectedOption && styles.disabledButton,
+								isVerified && (isCorrect ? styles.correctButton : styles.incorrectButton)
+							]}
+							onPress={isVerified ? handleNext : handleVerify}
+							disabled={!selectedOption}
+						>
+							<Text style={styles.textBottomVerifyQG}>
+								{isVerified ?
+									(currentQuestionIndex < questions.length - 1 ? 'Siguiente' : 'Ver Resultados')
+									: 'Verificar'}
+							</Text>
+						</TouchableOpacity>
+				</View>
 			</View>
 
 			{/* Modal resultados */}
@@ -154,7 +160,7 @@ export default function Quiz({
 					onBack();
 				}}
 			/>
-		</SafeAreaView>
+		</View>
 	);
 }
 
