@@ -22,7 +22,6 @@ export default function FlashCard({
 	langBack = 'es-ES',
 }) {
 	if (!item) return null;
-
 	// Estado/animación de giro
 	const flip = useSharedValue(0);
 	const [isFlipped, setIsFlipped] = useState(false);
@@ -44,7 +43,7 @@ export default function FlashCard({
 
 	const handleSpeak = () => {
 		if (!speakEnabled) return;
-		const text = isFlipped ? item?.[backKey] : item?.[frontKey];
+		const text = isFlipped ? item?.[backKey] || item.translation : item?.[frontKey]  || item.word;
 		const language = isFlipped ? langBack : langFront;
 		if (!text) return;
 		try {
@@ -64,7 +63,7 @@ export default function FlashCard({
 			<TouchableOpacity onPress={handleFlip} style={[base.cardContainer, containerStyle]}>
 				<Animated.View style={[base.card, base.cardFront, frontAnimatedStyle]}>
 					<Text style={base.cardSubtitle}>{frontLabel}</Text>
-					<Text style={base.cardText}>{item?.[frontKey]}</Text>
+					<Text style={base.cardText}>{item?.[frontKey] || item.word }</Text>
 					{imgUri ? (
 						<Image source={{ uri: imgUri }} style={base.cardImage} />
 					) : null}
@@ -72,7 +71,7 @@ export default function FlashCard({
 				</Animated.View>
 				<Animated.View style={[base.card, base.cardBack, backAnimatedStyle]}>
 					<Text style={base.cardSubtitle}>{backLabel}</Text>
-					<Text style={base.cardText}>{item?.[backKey]}</Text>
+					<Text style={base.cardText}>{item?.[backKey] || item.translation}</Text>
 					{imgUri ? (
 						<Image source={{ uri: imgUri }} style={base.cardImage} />
 					) : null}

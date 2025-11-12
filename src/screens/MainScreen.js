@@ -45,7 +45,8 @@ export default function MainScreen({ route }) {
             deck_id: d.deck_id ?? d.id ?? d._id ?? d.deckId ?? String(Math.random()),
             deck_name: d.deck_name ?? d.name ?? d.title ?? 'Deck',
             // contar flashcards si vienen, o cards/cardsCount
-            cardCount: d.cardCount ?? d.cardsCount ?? (Array.isArray(d.flashcards) ? d.flashcards.length : (Array.isArray(d.cards) ? d.cards.length : 0))
+            cardCount: d.cardCount ?? d.cardsCount ?? (Array.isArray(d.flashcards) ? d.flashcards.length : (Array.isArray(d.cards) ? d.cards.length : 0)),
+            flashcards: d.flashcards
         }));
     };
 
@@ -174,8 +175,7 @@ export default function MainScreen({ route }) {
                                 style={stylesMS.deckCard}
                                 activeOpacity={0.7}
                                 onPress={() => {
-                                    // Aquí puedes navegar a la vista de detalle del deck
-                                    // navigation.navigate('DeckDetail', { deckId: item.deck_id });
+                                    navigation.navigate('GameFlashCard', { sampleCards: item.flashcards});
                                 }}
                             >
                                 <View style={stylesMS.deckCardLeft}>

@@ -2,10 +2,11 @@ import React from "react";
 import { View, Text, FlatList, TouchableOpacity } from "react-native";
 import Svg, { Path } from "react-native-svg";
 import styles from "../styles/stylesLearningPath";
-
+import greetingsData from './games/imagesGreetings.json';
+import FruitsData from './games/imagesFruits.json'
 const lessons = [
-  { id: 1, title: "Greetings", status: "available" },
-  { id: 2, title: "Fruits", status: "available" },
+  { id: 1, title: "Greetings" ,status: "available", data: greetingsData, quiz: 'QuizGreetings'},
+  { id: 2, title: "Fruits", status: "available", data: FruitsData, quiz: 'QuizFruits' },
   { id: 3, title: "Familia", status: "locked" },
   { id: 4, title: "Trabajo", status: "locked" },
   { id: 5, title: "Escuela", status: "locked" },
@@ -15,17 +16,18 @@ const lessons = [
 ];
 
 
-
 export default function LearningPath({ navigation }) {
-
     const handleLessonPress = (lesson) => {
       if (lesson.status === "locked") return;
       
       // Navegar a la pantalla correspondiente
       // IMPORTANT: Never pass React elements or functions in navigation params
-      // because they are non-serializable and will trigger warnings.
+      // becauase they are non-serilizable and will trigger warnings.
       // Instead, navigate by screen name or pass primitive identifiers.
-      navigation.navigate(lesson.title);
+      navigation.navigate("GameFlashCard",{
+        sampleCards: lesson.data,
+        quiz: lesson.quiz
+      });
     };
 
   return (
