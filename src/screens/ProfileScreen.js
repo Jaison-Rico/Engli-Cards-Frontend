@@ -9,9 +9,11 @@ import { LogOut } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import axios from 'axios';
 import { config } from '../config/api';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function ProfileScreen() {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const [userData, setUserData] = useState(null);
   const [error, setError] = useState(null);
   const [userId, setUserId] = useState(null);
@@ -102,7 +104,7 @@ export default function ProfileScreen() {
                 })
               );
             } catch (error) {
-              console.error('Error al cerrar sesión: - ProfileScreen.js:102', error);
+              console.error('Error al cerrar sesión: - ProfileScreen.js:107', error);
               Alert.alert('Error', 'Hubo un problema al cerrar sesión. Intenta de nuevo.');
             }
           }
@@ -171,7 +173,7 @@ export default function ProfileScreen() {
 
       Alert.alert('Éxito', 'Foto de perfil actualizada correctamente.');
     } catch (error) {
-      console.error('Upload avatar error - ProfileScreen:', error?.response?.data || error?.message || error);
+      console.error('Upload avatar error  ProfileScreen: - ProfileScreen.js:176', error?.response?.data || error?.message || error);
       Alert.alert('Error', 'Hubo un problema al cambiar la foto de perfil. Intenta de nuevo.');
     }
   }
@@ -206,7 +208,11 @@ export default function ProfileScreen() {
   }
 
   return (
-    <ScrollView style={stylesProfile.container}>
+    <ScrollView 
+      style={stylesProfile.container}
+      contentContainerStyle={{ paddingTop: insets.top, paddingBottom: insets.bottom + 20 }}
+      showsVerticalScrollIndicator={false}
+    >
       {/* Encabezado */}
       <View style={stylesProfile.header}>
         <View style={stylesProfile.avatarContainer}>
