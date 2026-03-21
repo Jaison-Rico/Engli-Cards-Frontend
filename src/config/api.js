@@ -1,5 +1,5 @@
 const dev = {
-  BASE_URL: "https://engli-cards-backend-production.up.railway.app"
+  BASE_URL: "http://localhost:3000"
 };
 
 const prod = {

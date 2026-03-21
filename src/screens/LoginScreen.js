@@ -45,11 +45,11 @@ export default function LoginScreen() {
                 password
             });
             const { token, user } = response.data;
-
             if (token) {
                 // Guarda el token de manera segura
                 await SecureStore.setItemAsync('token', token);
                 await SecureStore.setItemAsync('userInfo', JSON.stringify(user));
+                
             }
             navigation.dispatch(
                 CommonActions.reset({
@@ -58,6 +58,7 @@ export default function LoginScreen() {
                 })
             )
         } catch (error) {
+            console.log(error)
             const status = error.response.status;
             const serverMessage = error.response.data?.message || '';
             if (status === 400) {
