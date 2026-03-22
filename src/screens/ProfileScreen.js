@@ -134,14 +134,16 @@ export default function ProfileScreen() {
 
       // Token opcional por si el backend requiere autenticación
       const token = await SecureStore.getItemAsync('token');
+      const uploadUrl = `${config.BASE_URL}/cloudinary/upload-profile`;
+      console.log('Avatar upload URL:', uploadUrl);
       const response = await axios.post(
-        `${config.BASE_URL}/cloudinary/upload-profile`,
+        uploadUrl,
         formData,
         {
           headers: {
-            'Content-Type': 'multipart/form-data',
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
+          timeout: 20000,
         }
       );
 
@@ -173,7 +175,19 @@ export default function ProfileScreen() {
 
       Alert.alert('Éxito', 'Foto de perfil actualizada correctamente.');
     } catch (error) {
-      console.error('Upload avatar error  ProfileScreen: - ProfileScreen.js:176', error?.response?.data || error?.message || error);
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status;
+        const data = error.response?.data;
+        console.error('Upload avatar axios error:', {
+          url: error.config?.url,
+          method: error.config?.method,
+          status,
+          message: error.message,
+          data,
+        });
+      } else {
+        console.error('Upload avatar unknown error:', error);
+      }
       Alert.alert('Error', 'Hubo un problema al cambiar la foto de perfil. Intenta de nuevo.');
     }
   }

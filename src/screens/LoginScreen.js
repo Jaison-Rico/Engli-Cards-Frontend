@@ -59,8 +59,14 @@ export default function LoginScreen() {
             )
         } catch (error) {
             console.log(error)
-            const status = error.response.status;
-            const serverMessage = error.response.data?.message || '';
+            const status = error.response?.status;
+            const serverMessage = error.response?.data?.message || '';
+
+            if (!error.response) {
+                alert('No se pudo conectar con el servidor. Verifica que el backend esté encendido y que celular y PC estén en la misma red.');
+                return;
+            }
+
             if (status === 400) {
                 alert(serverMessage || 'Solicitud inválida. Revisa los campos.');
             } else if (status === 401) {
