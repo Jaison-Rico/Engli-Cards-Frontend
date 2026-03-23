@@ -21,6 +21,7 @@
     "axios": "^1.12.2",
     "engli-cards": "file:",
     "expo": "~54.0.33",
+    "expo-blur": "~15.0.8",
     "expo-device": "~8.0.10",
     "expo-image-picker": "~17.0.10",
     "expo-secure-store": "~15.0.8",

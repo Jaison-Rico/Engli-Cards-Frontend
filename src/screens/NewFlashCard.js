@@ -1,7 +1,7 @@
 import { View, Text, TextInput, TouchableOpacity, Modal, Platform, ActivityIndicator, ScrollView, Alert } from "react-native";
 import stylesNFC from "../styles/styleNFC";
 import { Picker } from '@react-native-picker/picker'; //componente para crear listas desplegables
-import { Camera, Save, ArrowLeft, ChevronDown, CheckCircle } from 'lucide-react-native'; //import de icons
+import { Camera, Save, ArrowLeft, ChevronDown, CheckCircle, Type, Globe, Lightbulb, Aperture, User } from 'lucide-react-native'; //import de icons
 import React, { useState, useEffect } from 'react';
 import { CommonActions, useNavigation, useFocusEffect } from '@react-navigation/native';
 import * as SecureStore from 'expo-secure-store';
@@ -170,185 +170,219 @@ export default function NewFlashCard() {
 
 
     return (
-            <View >
-                <View style={stylesNFC.container}>
-                    <TouchableOpacity onPress={() => navigation.goBack()}>
-                        <ArrowLeft />
-                    </TouchableOpacity>
-                    <Text style={stylesNFC.titlesNFC}>NewFlashCard</Text>
+        <View style={stylesNFC.screenWrapper}>
+            {/* Header */}
+            <View style={stylesNFC.headerContainer}>
+                <TouchableOpacity onPress={() => navigation.goBack()} style={stylesNFC.headerIconBack}>
+                    <ArrowLeft color="#12B5B0" size={24} />
+                </TouchableOpacity>
+                <Text style={stylesNFC.headerTitle}>Crear Flashcard</Text>
+                <View style={stylesNFC.headerProfileCircle}>
+                    <User color="#08302E" size={20} />
                 </View>
-                <View style={stylesNFC.containerCreateFC}>
-                    <Text style={stylesNFC.subtitlesNFC}>Crear nueva tarjeta</Text>
+            </View>
 
-                    <View>
-                        <Text style={stylesNFC.textsNFC}>Palabra en Inglés *</Text>
+            {/* Main Content Card */}
+            <View style={stylesNFC.containerCreateFC}>
+                <ScrollView showsVerticalScrollIndicator={false}>
+                    
+                    {/* Palabra en Inglés */}
+                    <Text style={stylesNFC.label}>
+                        Palabra en Inglés <Text style={{color: '#12B5B0'}}>*</Text>
+                    </Text>
+                    <View style={stylesNFC.inputContainer}>
                         <TextInput
-                            style={stylesNFC.inputs}
+                            style={stylesNFC.inputField}
                             placeholder="ej. Apple"
+                            placeholderTextColor="#A1CFC9"
                             value={englishWord}
                             onChangeText={setEnglishWord}
                         />
-                        <Text style={stylesNFC.textsNFC}>Traducción en Español *</Text>
+                        <Type color="#A1CFC9" size={20} />
+                    </View>
+
+                    {/* Traducción en Español */}
+                    <Text style={stylesNFC.label}>
+                        Traducción en Español <Text style={{color: '#12B5B0'}}>*</Text>
+                    </Text>
+                    <View style={stylesNFC.inputContainer}>
                         <TextInput
-                            style={stylesNFC.inputs}
+                            style={stylesNFC.inputField}
                             placeholder="ej. Manzana"
+                            placeholderTextColor="#A1CFC9"
                             value={spanishTranslation}
                             onChangeText={setSpanishTranslation}
                         />
-                        <Text style={stylesNFC.textsNFC}>Seleccionar un Mazo *</Text>
-                        {loadingDecks ? (
-                            <View style={stylesNFC.inputs}>
-                                <ActivityIndicator size="small" color="#111a2e" />
-                            </View>
-                        ) : (
-                            <TouchableOpacity
-                                style={stylesNFC.iosPickerTouchable}
-                                onPress={() => {
-                                    if (decks.length > 0) {
-                                        setTempMazo(selectedMazo || String(decks[0].deck_id));
-                                        setIosPickerVisible(true);
+                        <Globe color="#A1CFC9" size={20} />
+                    </View>
+
+                    {/* Seleccionar Mazo */}
+                    <Text style={stylesNFC.label}>
+                        Seleccionar un Mazo <Text style={{color: '#12B5B0'}}>*</Text>
+                    </Text>
+                    {loadingDecks ? (
+                        <View style={[stylesNFC.inputContainer, { justifyContent: 'center' }]}>
+                            <ActivityIndicator size="small" color="#12B5B0" />
+                        </View>
+                    ) : (
+                        <TouchableOpacity
+                            style={stylesNFC.inputContainer}
+                            onPress={() => {
+                                if (decks.length > 0) {
+                                    setTempMazo(selectedMazo || String(decks[0].deck_id));
+                                    setIosPickerVisible(true);
+                                }
+                            }}
+                            disabled={decks.length === 0}
+                        >
+                            <View style={stylesNFC.iosPickerRow}>
+                                <Text style={!selectedMazo ? stylesNFC.iosPlaceholder : stylesNFC.iosPickerText}>
+                                    {selectedMazo
+                                        ? decks.find(d => String(d.deck_id) === selectedMazo)?.deck_name || 'Mazo seleccionado'
+                                        : (decks.length > 0 ? 'Elige un mazo...' : 'No hay mazos')
                                     }
-                                }}
-                                disabled={decks.length === 0}
-                            >
-                                <View style={stylesNFC.iosPickerRow}>
-                                    <Text style={!selectedMazo ? stylesNFC.iosPlaceholder : stylesNFC.iosPickerText}>
-                                        {selectedMazo
-                                            ? decks.find(d => String(d.deck_id) === selectedMazo)?.deck_name || 'Mazo seleccionado'
-                                            : (decks.length > 0 ? 'Elige un mazo...' : 'No hay mazos disponibles')
-                                        }
-                                    </Text>
-                                    <ChevronDown color="#111a2e" size={20} />
+                                </Text>
+                            </View>
+                            <View style={{flex: 1}}/>
+                            <ChevronDown color="#A1CFC9" size={20} />
+                        </TouchableOpacity>
+                    )}
+                    {error && <Text style={{ color: 'red', fontSize: 12, marginTop: 5 }}>{error}</Text>}
+
+                    {/* Modal Picker */}
+                    <Modal visible={iosPickerVisible} transparent animationType="slide" onRequestClose={() => setIosPickerVisible(false)}>
+                        <TouchableOpacity
+                            style={stylesNFC.modalBackdrop}
+                            activeOpacity={1}
+                            onPress={() => setIosPickerVisible(false)}
+                        >
+                            <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
+                                <View style={stylesNFC.modalSheet}>
+                                    <Text style={stylesNFC.modalTitle}>Seleccionar un Mazo</Text>
+                                    {decks.length === 0 ? (
+                                        <Text style={{ textAlign: 'center', padding: 20, color: '#666' }}>
+                                            No tienes mazos disponibles. Crea uno primero.
+                                        </Text>
+                                    ) : Platform.OS === 'ios' ? (
+                                        <Picker
+                                            selectedValue={tempMazo}
+                                            style={stylesNFC.picker}
+                                            itemStyle={stylesNFC.pickerItemStyle}
+                                            onValueChange={(val) => setTempMazo(val)}
+                                        >
+                                            {decks.map((deck) => (
+                                                <Picker.Item
+                                                    key={deck.deck_id}
+                                                    label={deck.deck_name}
+                                                    value={String(deck.deck_id)}
+                                                />
+                                            ))}
+                                        </Picker>
+                                    ) : (
+                                        <ScrollView
+                                            style={{ maxHeight: 300 }}
+                                            showsVerticalScrollIndicator={true}
+                                        >
+                                            <View style={stylesNFC.androidModalList}>
+                                                {decks.map((deck) => (
+                                                    <TouchableOpacity
+                                                        key={deck.deck_id}
+                                                        style={[
+                                                            stylesNFC.androidModalOption,
+                                                            tempMazo === String(deck.deck_id) && stylesNFC.androidModalOptionSelected
+                                                        ]}
+                                                        onPress={() => setTempMazo(String(deck.deck_id))}
+                                                    >
+                                                        <Text style={[
+                                                            stylesNFC.androidModalOptionText,
+                                                            tempMazo === String(deck.deck_id) && stylesNFC.androidModalOptionTextSelected
+                                                        ]}>
+                                                            {deck.deck_name}
+                                                        </Text>
+                                                    </TouchableOpacity>
+                                                ))}
+                                            </View>
+                                        </ScrollView>
+                                    )}
+                                    <View style={stylesNFC.modalActions}>
+                                        <TouchableOpacity
+                                            style={[stylesNFC.modalActionBtn, stylesNFC.modalCancelBtn]}
+                                            onPress={() => setIosPickerVisible(false)}
+                                        >
+                                            <Text style={[stylesNFC.modalBtnText, stylesNFC.modalCancelText]}>Cancelar</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                            style={[stylesNFC.modalActionBtn, stylesNFC.modalConfirmBtn]}
+                                            onPress={() => {
+                                                setSelectedMazo(tempMazo);
+                                                setIosPickerVisible(false);
+                                            }}
+                                            disabled={decks.length === 0}
+                                        >
+                                            <Text style={[stylesNFC.modalBtnText, stylesNFC.modalConfirmText]}>Aceptar</Text>
+                                        </TouchableOpacity>
+                                    </View>
                                 </View>
                             </TouchableOpacity>
+                        </TouchableOpacity>
+                    </Modal>
+
+                    {/* Image Upload */}
+                    <Text style={stylesNFC.label}>Añadir Imagen</Text>
+                    <TouchableOpacity style={stylesNFC.imageUploadBox} onPress={pickImage}>
+                        <View style={stylesNFC.imageUploadCircle}>
+                            <Aperture color="#086B67" size={24} />
+                        </View>
+                        <Text style={stylesNFC.imageUploadTitle}>Subir una referencia visual</Text>
+                        <Text style={stylesNFC.imageUploadSub}>JPG, PNG hasta 5MB</Text>
+                    </TouchableOpacity>
+
+                    {/* Tip Block */}
+                    <View style={stylesNFC.tipBlock}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+                            <Lightbulb color="#086B67" size={18} />
+                            <Text style={stylesNFC.tipTitle}>Tip del Erudito</Text>
+                        </View>
+                        <Text style={stylesNFC.tipText}>
+                            Añadir una imagen relevante ayuda a tu cerebro a crear conexiones neuronales más fuertes y memorizar hasta un 40% más rápido.
+                        </Text>
+                    </View>
+
+                    {/* Submit Button */}
+                    <TouchableOpacity 
+                        onPress={handleCreateFlashCard} 
+                        style={stylesNFC.saveButton}
+                        disabled={creatingFlashcard}
+                    >
+                        {creatingFlashcard ? (
+                            <ActivityIndicator size="small" color="#fff" />
+                        ) : (
+                            <Save color="#fff" size={20} />
                         )}
-                        {error && <Text style={{ color: 'red', fontSize: 12, marginTop: 5 }}>{error}</Text>}
+                        <Text style={stylesNFC.saveButtonText}>
+                            {creatingFlashcard ? 'Guardando...' : 'Guardar Tarjeta'}
+                        </Text>
+                    </TouchableOpacity>
 
-                        <Modal visible={iosPickerVisible} transparent animationType="slide" onRequestClose={() => setIosPickerVisible(false)}>
-                            <TouchableOpacity
-                                style={stylesNFC.modalBackdrop}
-                                activeOpacity={1}
-                                onPress={() => setIosPickerVisible(false)}
-                            >
-                                <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
-                                    <View style={stylesNFC.modalSheet}>
-                                        <Text style={stylesNFC.modalTitle}>Seleccionar un Mazo</Text>
-                                        {decks.length === 0 ? (
-                                            <Text style={{ textAlign: 'center', padding: 20, color: '#666' }}>
-                                                No tienes mazos disponibles. Crea uno primero.
-                                            </Text>
-                                        ) : Platform.OS === 'ios' ? (
-                                            <Picker
-                                                selectedValue={tempMazo}
-                                                style={stylesNFC.picker}
-                                                itemStyle={stylesNFC.pickerItemStyle}
-                                                onValueChange={(val) => setTempMazo(val)}
-                                            >
-                                                {decks.map((deck) => (
-                                                    <Picker.Item
-                                                        key={deck.deck_id}
-                                                        label={deck.deck_name}
-                                                        value={String(deck.deck_id)}
-                                                    />
-                                                ))}
-                                            </Picker>
-                                        ) : (
-                                            <ScrollView
-                                                style={{ maxHeight: 300 }}
-                                                showsVerticalScrollIndicator={true}
-                                            >
-                                                <View style={stylesNFC.androidModalList}>
-                                                    {decks.map((deck) => (
-                                                        <TouchableOpacity
-                                                            key={deck.deck_id}
-                                                            style={[
-                                                                stylesNFC.androidModalOption,
-                                                                tempMazo === String(deck.deck_id) && stylesNFC.androidModalOptionSelected
-                                                            ]}
-                                                            onPress={() => setTempMazo(String(deck.deck_id))}
-                                                        >
-                                                            <Text style={[
-                                                                stylesNFC.androidModalOptionText,
-                                                                tempMazo === String(deck.deck_id) && stylesNFC.androidModalOptionTextSelected
-                                                            ]}>
-                                                                {deck.deck_name}
-                                                            </Text>
-                                                        </TouchableOpacity>
-                                                    ))}
-                                                </View>
-                                            </ScrollView>
-                                        )}
-                                        <View style={stylesNFC.modalActions}>
-                                            <TouchableOpacity
-                                                style={[stylesNFC.modalActionBtn, stylesNFC.modalCancelBtn]}
-                                                onPress={() => setIosPickerVisible(false)}
-                                            >
-                                                <Text style={[stylesNFC.modalBtnText, stylesNFC.modalCancelText]}>Cancelar</Text>
-                                            </TouchableOpacity>
-                                            <TouchableOpacity
-                                                style={[stylesNFC.modalActionBtn, stylesNFC.modalConfirmBtn]}
-                                                onPress={() => {
-                                                    setSelectedMazo(tempMazo);
-                                                    setIosPickerVisible(false);
-                                                }}
-                                                disabled={decks.length === 0}
-                                            >
-                                                <Text style={[stylesNFC.modalBtnText, stylesNFC.modalConfirmText]}>Aceptar</Text>
-                                            </TouchableOpacity>
-                                        </View>
-                                    </View>
-                                </TouchableOpacity>
-                            </TouchableOpacity>
-                        </Modal>
-
-                        <View>
-                            <Text style={stylesNFC.textsNFC}>Contenido Adicional</Text>
-                            <View style={stylesNFC.containerNFCButtons}>
-                                <TouchableOpacity style={stylesNFC.containerNFCButtonsContent} onPress={pickImage}>
-                                    <Camera />
-                                    <Text style={stylesNFC.textsNFC}>Añadir Imagen</Text>
-                                </TouchableOpacity>
-                            </View>
-
-                        </View>
-
-                        <View style={stylesNFC.containerNFCButtons}>
-                            <TouchableOpacity 
-                                onPress={handleCreateFlashCard} 
-                                style={stylesNFC.buttonSaveNFC}
-                                disabled={creatingFlashcard}
-                            >
-                                {creatingFlashcard ? (
-                                    <ActivityIndicator size="small" color="#fff" />
-                                ) : (
-                                    <Save />
-                                )}
-                                <Text style={stylesNFC.textsButtomSaveCard}>
-                                    {creatingFlashcard ? 'Guardando...' : 'Guardar Tarjeta'}
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
-
-                    </View>
-                </View>
-
-                {/* Modal de éxito */}
-                <Modal
-                    visible={successModalVisible}
-                    transparent
-                    animationType="fade"
-                >
-                    <View style={stylesNFC.successModalBackdrop}>
-                        <View style={stylesNFC.successModalContent}>
-                            <CheckCircle size={60} color="#4CAF50" />
-                            <Text style={stylesNFC.successModalTitle}>¡Flashcard creada!</Text>
-                            <Text style={stylesNFC.successModalMessage}>
-                                Tu tarjeta se ha guardado exitosamente
-                            </Text>
-                        </View>
-                    </View>
-                </Modal>
+                </ScrollView>
             </View>
 
-        )
+            {/* Success Modal */}
+            <Modal
+                visible={successModalVisible}
+                transparent
+                animationType="fade"
+            >
+                <View style={stylesNFC.successModalBackdrop}>
+                    <View style={stylesNFC.successModalContent}>
+                        <CheckCircle size={60} color="#12B5B0" />
+                        <Text style={stylesNFC.successModalTitle}>¡Flashcard creada!</Text>
+                        <Text style={stylesNFC.successModalMessage}>
+                            Tu tarjeta se ha guardado exitosamente
+                        </Text>
+                    </View>
+                </View>
+            </Modal>
+        </View>
+    );
     }

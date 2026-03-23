@@ -1,10 +1,8 @@
 import stylesMS from '../styles/stylesMS';
-import { View, Text, TouchableOpacity, FlatList, ActivityIndicator } from "react-native";
+import { View, Text, TouchableOpacity, FlatList, ActivityIndicator, TextInput, StatusBar } from "react-native";
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import React, { useState } from 'react';
-import { BookOpen, ChartLine, Plus } from 'lucide-react-native';
-import { SearchBar } from '@rneui/themed';
-import * as Device from 'expo-device';
+import { BookOpen, Activity, Plus } from 'lucide-react-native';
 import * as SecureStore from 'expo-secure-store';
 import axios from 'axios';
 import { config } from '../config/api';
@@ -113,50 +111,50 @@ export default function MainScreen({ route }) {
 
 
     return (
-        <View style={{ flex: 1, marginBottom: insets.bottom }}>
-            <View style={{ ...stylesMS.containerMCTop, paddingTop: insets.top }}>
-                <View style={{ flexDirection: 'column', justifyContent: 'space-between', gap: 10 }}>
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                        <View style={{ flexDirection: 'column', justifyContent: 'space-between', paddingRight: 20, marginTop: 10 }}>
-
-                            <Text style={stylesMS.titlesMC}>Engli cards</Text>
-                            <Text style={stylesMS.subtitlesMC}>¡Hola! {userData?.name.split(' ')[0] || 'Usuario'} Continúa aprendiendo</Text>
-                        </View>
-
-                        <TouchableOpacity onPress={() => navigation.push("StatsScreen")} style={stylesMS.buttonStats}>
-                            <ChartLine />
-                            <Text style={stylesMS.textButtonMCStats}>
-                                Stats
-                            </Text>
-                        </TouchableOpacity>
+        <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
+            <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+            <View style={{ ...stylesMS.containerMCTop, paddingTop: insets.top + 10 }}>
+                {/* Header Row */}
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <View style={{ flex: 1, paddingRight: 10 }}>
+                        <Text style={stylesMS.titlesMC}>Engli cards</Text>
+                        <Text style={stylesMS.subtitlesMC}>¡Hola! {userData?.name?.split(' ')[0] || 'jaison'} Continúa aprendiendo</Text>
                     </View>
 
-                    <SearchBar
+                    <TouchableOpacity onPress={() => navigation.push("StatsScreen")} style={stylesMS.buttonStats}>
+                        <Activity color="#08302E" size={18} strokeWidth={2.5} />
+                        <Text style={stylesMS.textButtonMCStats}>Stats</Text>
+                    </TouchableOpacity>
+                </View>
+
+                {/* Flat Search Input */}
+                <View style={stylesMS.searchContainerTop}>
+                    <TextInput
+                        style={stylesMS.searchInputTop}
                         placeholder="Nombre del deck"
-                        onChangeText={updateSearch}
+                        placeholderTextColor="#A1CFC9"
                         value={search}
-                        platform={Device.osName === 'Android' ? 'android' : 'ios'}
-                        searchIcon={null}
-                        clearIcon={null}
-                        cancelIcon={null}
-                        containerStyle={stylesMS.searchContainer}
-                        inputContainerStyle={stylesMS.searchInputContainer}
+                        onChangeText={updateSearch}
                     />
                 </View>
             </View>
+
+            {/* Main Action Buttons */}
             <View style={stylesMS.containerMCBottonsMain}>
-                <TouchableOpacity onPress={() => setModalVisible(true)} style={stylesMS.buttonCDeck} >
-                    <Plus />
-                    <Text>Crear Deck</Text>
+                <TouchableOpacity onPress={() => setModalVisible(true)} style={stylesMS.buttonCDeck} activeOpacity={0.8}>
+                    <Plus color="#08302E" size={32} strokeWidth={2} />
+                    <Text style={stylesMS.buttonCardText}>Crear Deck</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={stylesMS.buttonCFlashcard} onPress={() => navigation.push("NewFlashCard")}>
-                    <BookOpen />
-                    <Text>Crear Flashcard</Text>
+                <TouchableOpacity onPress={() => navigation.push("NewFlashCard")} style={stylesMS.buttonCFlashcard} activeOpacity={0.8}>
+                    <BookOpen color="#08302E" size={30} strokeWidth={2} />
+                    <Text style={stylesMS.buttonCardText}>Crear Flashcard</Text>
                 </TouchableOpacity>
             </View>
-            <Text style={{ fontSize: 20, fontWeight: 'bold', marginTop: 30, marginLeft: 20 }}>
-                Mis Mazos
-            </Text>
+
+            {/* Section Title */}
+            <Text style={stylesMS.misMazosTitle}>Mis Mazos</Text>
+
+            {/* Deck List */}
             <View style={stylesMS.deckListContainer}>
                 {isOffline && (
                     <Text style={{ margin: 10, textAlign: 'center', color: 'orange' }}>
@@ -164,12 +162,13 @@ export default function MainScreen({ route }) {
                     </Text>
                 )}
                 {loading ? (
-                    <ActivityIndicator size="large" />
+                    <ActivityIndicator size="large" color="#12B5B0" />
                 ) : (
                     <FlatList
                         style={{ flex: 1 }}
                         data={decks.filter((d) => d.deck_name?.toLowerCase().includes(search.toLowerCase()))}
                         keyExtractor={(item, index) => (item.deck_id ? String(item.deck_id) : `${item.deck_name || 'deck'}-${index}`)}
+                        showsVerticalScrollIndicator={false}
                         renderItem={({ item }) => (
                             <TouchableOpacity 
                                 style={stylesMS.deckCard}
@@ -183,16 +182,16 @@ export default function MainScreen({ route }) {
                                     <Text style={stylesMS.deckCount}>{(item.cardCount != null ? item.cardCount : 0)} tarjetas</Text>
                                 </View>
                                 <View style={stylesMS.deckCardRight}>
-                                    <BookOpen size={24} color="#fff" />
+                                    <BookOpen size={20} color="#ffffff" strokeWidth={2.5} />
                                 </View>
                             </TouchableOpacity>
                         )}
                         ListEmptyComponent={() => (
-                            <Text style={{ margin: 20, textAlign: 'center' }}>
+                            <Text style={{ margin: 20, textAlign: 'center', color: '#527F7C' }}>
                                 {error ? `Error: ${error}` : 'No hay mazos para mostrar'}
                             </Text>
                         )}
-                        contentContainerStyle={decks.length === 0 ? { flexGrow: 1 } : { paddingBottom: 8 }}
+                        contentContainerStyle={decks.length === 0 ? { flexGrow: 1 } : { paddingBottom: 20 }}
                     />
                 )}
             </View>
@@ -204,6 +203,5 @@ export default function MainScreen({ route }) {
                 onCreateDeck={handleDeckCreated}
             />
         </View>
-
-    )
+    );
 }

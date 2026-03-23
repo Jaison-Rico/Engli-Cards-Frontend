@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Modal, TextInput, TouchableOpacity, ActivityIndicator, Animated } from 'react-native';
-import { X, CheckCircle, AlertCircle } from 'lucide-react-native';
+import { View, Text, Modal, TextInput, TouchableOpacity, ActivityIndicator, Animated, Platform } from 'react-native';
+import { CheckCircle, AlertCircle, Layers } from 'lucide-react-native';
+import { BlurView } from 'expo-blur';
 import * as SecureStore from 'expo-secure-store';
 import axios from 'axios';
 import { config } from '../config/api';
@@ -12,7 +13,6 @@ export default function CreateDeck({ visible, onClose, onCreateDeck }) {
 	const [toast, setToast] = useState({ visible: false, message: '', type: '' });
 	const [toastAnim] = useState(new Animated.Value(0));
 
-	// Animación del toast
 	useEffect(() => {
 		if (toast.visible) {
 			Animated.sequence([
@@ -47,7 +47,6 @@ export default function CreateDeck({ visible, onClose, onCreateDeck }) {
 		setLoading(true);
 
 		try {
-			// Obtener el usuario del storage
 			const storedUser = await SecureStore.getItemAsync('userInfo');
 			if (!storedUser) {
 				showToast('No se encontró información del usuario', 'error');
@@ -64,11 +63,9 @@ export default function CreateDeck({ visible, onClose, onCreateDeck }) {
 				return;
 			}
 
-			// Obtener el token si existe
 			const token = await SecureStore.getItemAsync('token');
 			const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
-			// Crear el deck
 			const response = await axios.post(
 				`${config.BASE_URL}/decks`,
 				{
@@ -78,7 +75,6 @@ export default function CreateDeck({ visible, onClose, onCreateDeck }) {
 				{ headers }
 			);
 
-			// Éxito
 			showToast(`¡Mazo "${deckName}" creado exitosamente!`, 'success');
 			
 			setTimeout(() => {
@@ -102,6 +98,8 @@ export default function CreateDeck({ visible, onClose, onCreateDeck }) {
 		onClose();
 	};
 
+	const OverlayComponent = Platform.OS === 'web' ? View : BlurView;
+
 	return (
 		<Modal
 			animationType="fade"
@@ -109,64 +107,64 @@ export default function CreateDeck({ visible, onClose, onCreateDeck }) {
 			visible={visible}
 			onRequestClose={handleClose}
 		>
-			<View style={stylesMS.modalOverlay}>
+			<OverlayComponent
+				intensity={20}
+				tint="dark"
+				style={stylesMS.modalOverlay}
+			>
 				<View style={stylesMS.modalContainer}>
-					{/* Header del modal */}
-					<View style={stylesMS.modalHeader}>
-						<Text style={stylesMS.modalTitle}>Crear Nuevo Mazo</Text>
-						<TouchableOpacity 
-							onPress={handleClose}
-							style={stylesMS.closeButton}
-						>
-							<X size={24} color="#000" />
-						</TouchableOpacity>
+					
+					{/* Modal Header Icon */}
+					<View style={stylesMS.modalHeaderIcon}>
+						<Layers color="#084E4D" size={28} strokeWidth={2.5} />
 					</View>
 
-					{/* Contenido del modal */}
-					<View style={stylesMS.modalContent}>
-						<Text style={stylesMS.modalSubtitle}>
-							Solo se requiere o tu nuevo mazo de vocabulario
-						</Text>
+					{/* Modal Title and Subtitle */}
+					<Text style={stylesMS.modalTitleCenter}>Crear Nuevo Mazo</Text>
+					<Text style={stylesMS.modalSubtitle}>
+						Organiza tus tarjetas de aprendizaje en un mazo personalizado para mejorar tu retención.
+					</Text>
 
-						<Text style={stylesMS.modalLabel}>Nombre del Mazo</Text>
-						<TextInput
-							style={stylesMS.modalInput}
-							placeholder="Ej: Animales, Verbos, Comida..."
-							value={deckName}
-							onChangeText={setDeckName}
-							placeholderTextColor="#999"
-							editable={!loading}
-						/>
-					</View>
+					{/* Input section */}
+					<Text style={stylesMS.modalLabel}>Nombre del Mazo</Text>
+					<TextInput
+						style={stylesMS.modalInput}
+						placeholder="Ej: Negocios Avanzado"
+						value={deckName}
+						onChangeText={setDeckName}
+						placeholderTextColor="#A1CFC9"
+						editable={!loading}
+						autoCapitalize="sentences"
+					/>
 
-					{/* Botones del modal */}
-					<View style={stylesMS.modalButtons}>
-						<TouchableOpacity 
-							style={stylesMS.modalButtonCancel}
-							onPress={handleClose}
-							disabled={loading}
-						>
-							<Text style={stylesMS.modalButtonTextCancel}>Cancelar</Text>
-						</TouchableOpacity>
-						
-						<TouchableOpacity 
-							style={[
-								stylesMS.modalButtonCreate,
-								loading && { opacity: 0.6 }
-							]}
-							onPress={handleCreate}
-							disabled={loading}
-						>
-							{loading ? (
-								<ActivityIndicator color="white" />
-							) : (
-								<Text style={stylesMS.modalButtonTextCreate}>Crear Mazo</Text>
-							)}
-						</TouchableOpacity>
-					</View>
+					{/* Action Buttons */}
+					<TouchableOpacity 
+						style={[
+							stylesMS.modalButtonCreate,
+							loading && { opacity: 0.7 }
+						]}
+						onPress={handleCreate}
+						disabled={loading}
+						activeOpacity={0.85}
+					>
+						{loading ? (
+							<ActivityIndicator color="#ffffff" />
+						) : (
+							<Text style={stylesMS.modalButtonTextCreate}>Crear Mazo</Text>
+						)}
+					</TouchableOpacity>
+
+					<TouchableOpacity 
+						style={stylesMS.modalButtonCancel}
+						onPress={handleClose}
+						disabled={loading}
+					>
+						<Text style={stylesMS.modalButtonTextCancel}>Cancelar</Text>
+					</TouchableOpacity>
+
 				</View>
 
-				{/* Toast personalizado */}
+				{/* Toast Notification */}
 				{toast.visible && (
 					<Animated.View
 						style={[
@@ -201,7 +199,7 @@ export default function CreateDeck({ visible, onClose, onCreateDeck }) {
 						</View>
 					</Animated.View>
 				)}
-			</View>
+			</OverlayComponent>
 		</Modal>
 	);
 }
