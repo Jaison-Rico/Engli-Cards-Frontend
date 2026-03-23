@@ -1,26 +1,24 @@
 
-import style1 from '../styles/styles1';
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator } from "react-native";
-import { Image } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, StatusBar, KeyboardAvoidingView, Platform, ScrollView, Image } from "react-native";
 import { config } from '../config/api';
 import axios from 'axios';
 import { useState } from 'react';
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import * as SecureStore from 'expo-secure-store';
-import { useSafeAreaInsets  } from 'react-native-safe-area-context';
-import { User } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Mail, Lock, Eye, EyeOff, LogIn } from 'lucide-react-native';
 import { FontAwesome } from '@expo/vector-icons';
-
+import { loginStyles as styles } from '../styles/loginStyles';
 
 export default function LoginScreen() {
-    const navigation = useNavigation(); //obtiene la función de navegación
+    const navigation = useNavigation();
     const insets = useSafeAreaInsets();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     const handleLogin = async () => {
-
         // test login solo para entorno de desarrollo sin api
         if (email === "" && password === "") {
             navigation.dispatch(
@@ -46,10 +44,8 @@ export default function LoginScreen() {
             });
             const { token, user } = response.data;
             if (token) {
-                // Guarda el token de manera segura
                 await SecureStore.setItemAsync('token', token);
                 await SecureStore.setItemAsync('userInfo', JSON.stringify(user));
-                
             }
             navigation.dispatch(
                 CommonActions.reset({
@@ -72,79 +68,137 @@ export default function LoginScreen() {
             } else if (status === 401) {
                 alert(serverMessage || 'No autorizado. Revisa tus credenciales.');
             } else if (status === 404) {
-                // Aquí es donde quieres mostrar que las credenciales no existen
                 alert(serverMessage || 'Credenciales incorrectas. Usuario no encontrado (404).');
             } else if (status >= 500) {
-                alert('Error del servidor. Intenta más tarde. xd');
-                console.error('API error - LoginScreen.js:72', status, error.response.data);
+                alert('Error del servidor. Intenta más tarde.');
+                console.error('API error - LoginScreen.js', status, error.response.data);
             } else {
                 alert(serverMessage || `Error ${status}`);
             }
-
         } finally {
             setLoading(false);
         }
     }
 
-
-    return (    
-            <View style={{ ...style1.container, marginTop: insets.top, marginBottom: insets.bottom  }}>
-                <Image source={require('../images/logo.png')}
-                    style={{ width: 150, height: 150, marginBottom: 2, marginTop: 0 }}
-                />
-
-                <Text style={style1.titles}>Login</Text>
-
-                <View style={style1.containerLogin}>
-
-                    <View style={{ position: 'relative', marginVertical: 10, width: '100%' }}>
-                        <Text style={style1.labelFloating}>Email Address</Text>
-                        <TextInput style={style1.inputsLogin}
-                            value={email}
-                            onChangeText={setEmail}
-                            placeholder="abc@example.com" keyboardType="email-address" />
+    return (
+        <KeyboardAvoidingView 
+            style={{ flex: 1 }} 
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
+            <StatusBar barStyle="dark-content" backgroundColor="#E8F5F0" />
+            <ScrollView 
+                contentContainerStyle={[
+                    styles.scrollContainer,
+                    { paddingTop: insets.top + 40, paddingBottom: insets.bottom + 20 }
+                ]}
+                keyboardShouldPersistTaps="handled"
+            >
+                {/* Header - Logo & Title */}
+                <View style={styles.headerSection}>
+                    <View style={styles.logoContainer}>
+                        <Image 
+                            source={require('../../assets/logo.png')} 
+                            style={{ width: 100, height: 100, borderRadius: 16 }} 
+                            resizeMode="contain"
+                        />
                     </View>
-
-                    <View style={{ position: 'relative', marginVertical: 10, width: '100%' }}>
-                        <Text style={style1.labelFloating}>Password</Text>
-                        <TextInput style={style1.inputsLogin}
-                            value={password}
-                            onChangeText={setPassword}
-                            placeholder="*******"
-                            secureTextEntry />
-                    </View>
-
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 10, width: '100%' }}>
-                        <TouchableOpacity onPress={() => navigation.navigate("ResetPassword")} style={style1.textButton}>
-                            <Text style={style1.textButtonLogin}>Forgot password?</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={() => navigation.navigate("Register")} style={style1.textButton}>
-                            <Text style={style1.textButtonLogin}>Create an account</Text>
-                        </TouchableOpacity>
-                    </View>
-
+                    <Text style={styles.appTitle}>Engli-Cards</Text>
+                    <Text style={styles.appSubtitle}>Elevate your English with every card.</Text>
                 </View>
 
-                <View>
-                    <TouchableOpacity onPress={handleLogin} style={[style1.buttons , {flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}]} disabled={loading}>
-                        <User color="#ffffffff" size={24} style={{ marginRight: 8 }} />
-                        {loading ? <ActivityIndicator color="#fff" /> : <Text style={style1.textLogin}>Login</Text>}
+                {/* Form Card */}
+                <View style={styles.formCard}>
+                    <Text style={styles.welcomeText}>Welcome back</Text>
+
+                    {/* Email Field */}
+                    <View style={styles.fieldGroup}>
+                        <Text style={styles.fieldLabel}>EMAIL ADDRESS</Text>
+                        <View style={styles.inputContainer}>
+                            <Mail color="#527F7C" size={18} style={styles.inputIcon} />
+                            <TextInput
+                                style={styles.textInput}
+                                value={email}
+                                onChangeText={setEmail}
+                                placeholder="name@example.com"
+                                placeholderTextColor="#CBEBE8"
+                                keyboardType="email-address"
+                                autoCapitalize="none"
+                            />
+                        </View>
+                    </View>
+
+                    {/* Password Field */}
+                    <View style={styles.fieldGroup}>
+                        <View style={styles.passwordLabelRow}>
+                            <Text style={styles.fieldLabel}>PASSWORD</Text>
+                            <TouchableOpacity onPress={() => navigation.navigate("ResetPassword")}>
+                                <Text style={styles.forgotText}>Forgot password?</Text>
+                            </TouchableOpacity>
+                        </View>
+                        <View style={styles.inputContainer}>
+                            <Lock color="#527F7C" size={18} style={styles.inputIcon} />
+                            <TextInput
+                                style={styles.textInput}
+                                value={password}
+                                onChangeText={setPassword}
+                                placeholder="••••••••"
+                                placeholderTextColor="#CBEBE8"
+                                secureTextEntry={!showPassword}
+                            />
+                            <TouchableOpacity 
+                                onPress={() => setShowPassword(!showPassword)}
+                                style={styles.eyeButton}
+                            >
+                                {showPassword ? (
+                                    <EyeOff color="#527F7C" size={18} />
+                                ) : (
+                                    <Eye color="#527F7C" size={18} />
+                                )}
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+
+                    {/* Login Button */}
+                    <TouchableOpacity
+                        onPress={handleLogin}
+                        style={styles.loginButton}
+                        disabled={loading}
+                        activeOpacity={0.85}
+                    >
+                        {loading ? (
+                            <ActivityIndicator color="#fff" />
+                        ) : (
+                            <View style={styles.loginButtonContent}>
+                                <Text style={styles.loginButtonText}>Login</Text>
+                                <LogIn color="#fff" size={18} style={{ marginLeft: 8 }} />
+                            </View>
+                        )}
+                    </TouchableOpacity>
+
+                    {/* Divider */}
+                    <View style={styles.dividerContainer}>
+                        <View style={styles.dividerLine} />
+                        <Text style={styles.dividerText}>OR CONTINUE WITH</Text>
+                        <View style={styles.dividerLine} />
+                    </View>
+
+                    {/* Google Sign In */}
+                    <TouchableOpacity style={styles.googleButton} activeOpacity={0.7}>
+                        <FontAwesome name="google" size={18} color="#4285F4" style={{ marginRight: 10 }} />
+                        <Text style={styles.googleButtonText}>Sign in with Google</Text>
                     </TouchableOpacity>
                 </View>
 
-                <View style={style1.dividerContainer}>
-                    <View style={style1.dividerLine} />
-                    <Text style={style1.dividerText}>Or</Text>
-                    <View style={style1.dividerLine} />
-                </View> 
-
-                <View style={{ marginTop: 0, marginBottom: 40 }}>
-                    <FontAwesome name="google" size={40} color="#584fd6ff" />
+                {/* Footer */}
+                <View style={styles.footer}>
+                    <Text style={styles.footerText}>
+                        Don't have an account?{' '}
+                    </Text>
+                    <TouchableOpacity onPress={() => navigation.navigate("Register")}>
+                        <Text style={styles.footerLink}>Create an account</Text>
+                    </TouchableOpacity>
                 </View>
-                    
-                <View>
-                    <Text style={style1.footerText}>© 2025 Engli Cards. All rights reserved.</Text>
-                </View>
-            </View>
+            </ScrollView>
+        </KeyboardAvoidingView>
     )
 }

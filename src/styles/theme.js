@@ -14,7 +14,19 @@ const paletteLight = {
 	muted: 'hsl(195, 30%, 95%)',
 	mutedForeground: 'hsl(210, 20%, 50%)',
 	border: 'hsl(195, 30%, 90%)',
-	card: 'hsl(0, 0%, 100%)'
+	card: 'hsl(0, 0%, 100%)',
+	// Stitch design tokens
+	primaryDark: '#08302E', // Dark text color
+	primaryLight: '#12B5B0', // Primary Teal
+	primaryContainer: '#CBEBE8',
+	mintBackground: '#E8F5F0',
+	surfaceContainer: '#F0F9F8',
+	surfaceContainerLow: '#CBEBE8',
+	surfaceLowest: '#ffffff',
+	inputIcon: '#527F7C',
+	onSurface: '#08302E',
+	onSurfaceVariant: '#527F7C',
+	outlineVariant: '#CBEBE8',
 };
 
 const paletteDark = {
@@ -83,7 +95,9 @@ export const shadows = {
 // Gradientes (nombres para usar con expo-linear-gradient si se añade)
 export const gradients = {
 	hero: ['hsl(183, 46%, 66%)', 'hsl(183, 46%, 66%)'],
-	card: ['hsl(0, 0%, 100%)', 'hsl(195, 40%, 98%)']
+	card: ['hsl(0, 0%, 100%)', 'hsl(195, 40%, 98%)'],
+	primaryButton: ['#006386', '#3dc2fd'],
+	loginBg: ['#E8F5F0', '#f5f7f8'],
 };
 
 export const getTheme = (scheme) => {

@@ -1,15 +1,18 @@
-import style1 from "../styles/styles1";
-import { View, Text, TextInput, TouchableOpacity } from "react-native";
-import { ActivityIndicator } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, ScrollView, Platform, StatusBar, ActivityIndicator, Image } from "react-native";
 import { useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { CommonActions } from '@react-navigation/native';
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { User, Mail, Lock, ShieldCheck, Zap, Trophy } from "lucide-react-native";
+import { loginStyles as styles } from "../styles/loginStyles";
 import axios from "axios";
 import { config } from "../config/api";
 import * as SecureStore from 'expo-secure-store';
 
 export default function RegisterScreen() {
-    const navigation = useNavigation(); 
+    const navigation = useNavigation();
+    const insets = useSafeAreaInsets();
+    
     const [loading, setLoading] = useState(false);
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
@@ -17,8 +20,6 @@ export default function RegisterScreen() {
     const [confirmPassword, setConfirmPassword] = useState('');
 
     const handleRegister = async () => {
-        // Lógica de registro
-
         if (password !== confirmPassword) {
             alert("Passwords do not match");
             return;
@@ -28,6 +29,7 @@ export default function RegisterScreen() {
             alert("Please fill all fields");
             return;
         }
+        
         setLoading(true);
 
         try {
@@ -38,7 +40,6 @@ export default function RegisterScreen() {
             });
             const { token, user } = response.data;
             if (token) {
-                // Guarda el token de manera segura
                 await SecureStore.setItemAsync('token', token);
             }
 
@@ -50,42 +51,151 @@ export default function RegisterScreen() {
             );
         } catch (error) {
             alert('Registration failed. Please try again.');
-            console.error("Error during registration: - RegisterScreen.js:53", error);
+            console.error("Error during registration:", error);
         } finally {
             setLoading(false);
         }
-    }
+    };
 
     return (
-        <View style={style1.container}>
-            <View style={style1.containerRegister}>
-                <Text style={style1.titles}>Sign up</Text>
-                <View style={{ position: 'relative', marginVertical: 10, width: '100%' }}>
-                    <Text style={style1.labelFloating}>Full name</Text>
-                    <TextInput style={style1.inputsRegister} value={name} onChangeText={setName} placeholder="Pepito Perez" />
+        <KeyboardAvoidingView 
+            style={{ flex: 1, backgroundColor: '#F0F9F8' }} // Extra subtle mint background
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
+            <StatusBar barStyle="dark-content" backgroundColor="#F0F9F8" />
+            <ScrollView 
+                contentContainerStyle={[
+                    styles.resetContainer, // Reusing base layout container
+                    { backgroundColor: '#F0F9F8', paddingTop: insets.top + 10, paddingBottom: insets.bottom + 20 }
+                ]}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+            >
+                {/* Header Section */}
+                <View style={styles.registerHeader}>
+                    <View style={styles.logoContainer}>
+                        <Image 
+                            source={require('../../assets/logo.png')} 
+                            style={{ width: 100, height: 100, borderRadius: 16 }} 
+                            resizeMode="contain"
+                        />
+                    </View>
+                    <Text style={styles.registerHeaderTitle}>Engli-Cards</Text>
+                    <Text style={styles.registerHeaderSubtitle}>Join the luminous circle of scholars</Text>
                 </View>
 
-                <View style={{ position: 'relative', marginVertical: 10, width: '100%' }}>
-                    <Text style={style1.labelFloating}>Email Address</Text>
-                    <TextInput style={style1.inputsRegister} value={email} onChangeText={setEmail} placeholder="abc@email.com" keyboardType="email-address" />
+                {/* Main Form Card */}
+                <View style={styles.registerCard}>
+                    <Text style={styles.registerCardTitle}>Sign up</Text>
+                    <Text style={styles.registerCardSubtitle}>Start your daily learning journey today.</Text>
+
+                    {/* Full Name */}
+                    <Text style={[styles.fieldLabel, { textTransform: 'none', letterSpacing: 0 }]}>Full name</Text>
+                    <View style={styles.registerFlatInputContainer}>
+                        <User color="#527F7C" size={18} style={styles.inputIcon} />
+                        <TextInput
+                            style={styles.textInput}
+                            value={name}
+                            onChangeText={setName}
+                            placeholder="Enter your full name"
+                            placeholderTextColor="#A1CFC9"
+                            autoCapitalize="words"
+                        />
+                    </View>
+
+                    {/* Email */}
+                    <Text style={[styles.fieldLabel, { textTransform: 'none', letterSpacing: 0 }]}>Email Address</Text>
+                    <View style={styles.registerFlatInputContainer}>
+                        <Mail color="#527F7C" size={18} style={styles.inputIcon} />
+                        <TextInput
+                            style={styles.textInput}
+                            value={email}
+                            onChangeText={setEmail}
+                            placeholder="example@email.com"
+                            placeholderTextColor="#A1CFC9"
+                            keyboardType="email-address"
+                            autoCapitalize="none"
+                        />
+                    </View>
+
+                    {/* Password */}
+                    <Text style={[styles.fieldLabel, { textTransform: 'none', letterSpacing: 0 }]}>Password</Text>
+                    <View style={styles.registerFlatInputContainer}>
+                        <Lock color="#527F7C" size={18} style={styles.inputIcon} />
+                        <TextInput
+                            style={styles.textInput}
+                            value={password}
+                            onChangeText={setPassword}
+                            placeholder="••••••••"
+                            placeholderTextColor="#A1CFC9"
+                            secureTextEntry
+                        />
+                    </View>
+
+                    {/* Confirm Password */}
+                    <Text style={[styles.fieldLabel, { textTransform: 'none', letterSpacing: 0 }]}>Confirm Password</Text>
+                    <View style={styles.registerFlatInputContainer}>
+                        <ShieldCheck color="#527F7C" size={18} style={styles.inputIcon} />
+                        <TextInput
+                            style={styles.textInput}
+                            value={confirmPassword}
+                            onChangeText={setConfirmPassword}
+                            placeholder="••••••••"
+                            placeholderTextColor="#A1CFC9"
+                            secureTextEntry
+                        />
+                    </View>
+
+                    {/* Submit Button */}
+                    <TouchableOpacity
+                        onPress={handleRegister}
+                        style={styles.loginButton}
+                        activeOpacity={0.85}
+                        disabled={loading}
+                    >
+                        {loading ? (
+                            <ActivityIndicator color="#ffffff" />
+                        ) : (
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                <Text style={{ fontSize: 16, fontWeight: '700', color: '#ffffff' }}>Register</Text>
+                            </View>
+                        )}
+                    </TouchableOpacity>
+
+                    {/* Footer Inside Card */}
+                    <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 20 }}>
+                        <Text style={styles.resetFooterText}>Already have an account?</Text>
+                        <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+                            <Text style={styles.resetFooterLink}>Sign in</Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
 
-                <View style={{ position: 'relative', marginVertical: 10, width: '100%' }}>
-                    <Text style={style1.labelFloating}>Password</Text>
-                    <TextInput style={style1.inputsRegister} value={password} onChangeText={setPassword} placeholder="*******" secureTextEntry />
+                {/* Info Blocks */}
+                <View style={styles.infoBlocksContainer}>
+                    <View style={[styles.infoBlock, styles.infoBlockLeft]}>
+                        <Zap color="#08302E" size={20} />
+                        <Text style={styles.infoBlockTitle}>ADAPTIVE</Text>
+                        <Text style={styles.infoBlockText}>Smart flashcards that learn your pace.</Text>
+                    </View>
+                    <View style={[styles.infoBlock, styles.infoBlockRight]}>
+                        <Trophy color="#08302E" size={20} />
+                        <Text style={styles.infoBlockTitle}>REWARDING</Text>
+                        <Text style={styles.infoBlockText}>Earn gems for every vocabulary master.</Text>
+                    </View>
                 </View>
 
-                <View style={{ position: 'relative', marginVertical: 10, width: '100%' }}>
-                    <Text style={style1.labelFloating}>Confirm Password</Text>
-                    <TextInput style={style1.inputsRegister} value={confirmPassword} onChangeText={setConfirmPassword} placeholder="*******" secureTextEntry />
+                {/* Bottom Links */}
+                <View style={styles.bottomLinksRow}>
+                    <TouchableOpacity>
+                        <Text style={styles.bottomLink}>Privacy Policy</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity>
+                        <Text style={styles.bottomLink}>Terms of Service</Text>
+                    </TouchableOpacity>
                 </View>
-            </View>
-            <View>
-                <TouchableOpacity style={style1.buttons} onPress={handleRegister} disabled={loading}>
-                    {loading ? <ActivityIndicator color="#fff" /> : <Text style={style1.textLogin}>Register</Text>}
-                </TouchableOpacity>
-            </View>
-        </View>
-    )
 
+            </ScrollView>
+        </KeyboardAvoidingView>
+    );
 }
