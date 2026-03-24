@@ -56,7 +56,7 @@ export default function FlashCard({
 
 	// Fallback mínimo si no pasan estilos (mantener robustez)
 	const base = styles ?? defaultStyles;
-	const imgUri = item?.[imageKey];
+	const imgUri = item?.[imageKey] || item?.image_url;
 
 	return (
 		<View style={base.centerAligned}>

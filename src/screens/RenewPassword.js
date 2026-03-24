@@ -1,4 +1,6 @@
+import React, { useState } from "react";
 import { useNavigation } from "@react-navigation/native";
+import { config } from '../config/api';
 import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, ScrollView, Platform, StatusBar } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ArrowLeft, Mail, Send, RotateCcw } from "lucide-react-native";
@@ -8,9 +10,35 @@ export default function RenewPassword() {
     const navigation = useNavigation();
     const insets = useSafeAreaInsets();
 
-    const handleSend = () => {
-        // Implement navigation or logic for resetting password here
-        alert("Reset link sent!");
+    const [email, setEmail] = useState("");
+    const [loading, setLoading] = useState(false);
+
+    const handleSend = async () => {
+        if (!email) {
+            alert("Por favor ingresa tu correo");
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const response = await fetch(`${config.BASE_URL}/auth/forgot-password`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                navigation.navigate("OtpVerification", { email });
+            } else {
+                alert(data.message || "Error al enviar el código");
+            }
+        } catch (error) {
+            alert("Error de conexión");
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -56,6 +84,9 @@ export default function RenewPassword() {
                             placeholderTextColor="#CBEBE8"
                             keyboardType="email-address"
                             autoCapitalize="none"
+                            value={email}
+                            onChangeText={setEmail}
+                            editable={!loading}
                         />
                     </View>
                 </View>

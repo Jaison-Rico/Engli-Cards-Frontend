@@ -1,4 +1,4 @@
-import { View, Text, TextInput, TouchableOpacity, Modal, Platform, ActivityIndicator, ScrollView, Alert } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Modal, Platform, ActivityIndicator, ScrollView, Alert, Image } from "react-native";
 import stylesNFC from "../styles/styleNFC";
 import { Picker } from '@react-native-picker/picker'; //componente para crear listas desplegables
 import { Camera, Save, ArrowLeft, ChevronDown, CheckCircle, Type, Globe, Lightbulb, Aperture, User } from 'lucide-react-native'; //import de icons
@@ -141,10 +141,39 @@ export default function NewFlashCard() {
             const user = JSON.parse(storedUser);
             const userId = user?.user_id ?? user?._id ?? user?.id ?? user?.userId;
             
+            // Subir imagen a Cloudinary si el usuario seleccionó una
+            let finalImageUrl = null;
+            if (image) {
+                const formData = new FormData();
+                const uri = image;
+                const ext = (uri?.split('.')?.pop() || 'jpg').toLowerCase();
+                const mime = ext === 'png' ? 'image/png' : ext === 'heic' ? 'image/heic' : 'image/jpeg';
+                const name = `flashcard.${ext}`;
+
+                formData.append('image', { uri, name, type: mime });
+
+                const token = await SecureStore.getItemAsync('token');
+                const uploadUrl = `${config.BASE_URL}/cloudinary/upload-flashcard`;
+                
+                const uploadResponse = await axios.post(
+                    uploadUrl,
+                    formData,
+                    {
+                        headers: {
+                            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                            'Content-Type': 'multipart/form-data',
+                        },
+                        timeout: 30000,
+                    }
+                );
+                
+                finalImageUrl = uploadResponse.data.imageUrl;
+            }
+
             const response = await axios.post(`${config.BASE_URL}/flashcards`, {
                 word: englishWord,
                 translation: spanishTranslation,
-                image_url: "http://example.com/image.jpg",
+                image_url: finalImageUrl,
                 user_id: +userId,
                 deck_id: +selectedMazo
             });
@@ -329,12 +358,21 @@ export default function NewFlashCard() {
 
                     {/* Image Upload */}
                     <Text style={stylesNFC.label}>Añadir Imagen</Text>
-                    <TouchableOpacity style={stylesNFC.imageUploadBox} onPress={pickImage}>
-                        <View style={stylesNFC.imageUploadCircle}>
-                            <Aperture color="#086B67" size={24} />
-                        </View>
-                        <Text style={stylesNFC.imageUploadTitle}>Subir una referencia visual</Text>
-                        <Text style={stylesNFC.imageUploadSub}>JPG, PNG hasta 5MB</Text>
+                    <TouchableOpacity 
+                        style={[stylesNFC.imageUploadBox, image ? { padding: 0, overflow: 'hidden', borderWidth: 0 } : {}]} 
+                        onPress={pickImage}
+                    >
+                        {image ? (
+                            <Image source={{ uri: image }} style={{ width: '100%', height: 160, resizeMode: 'cover', borderRadius: 16 }} />
+                        ) : (
+                            <>
+                                <View style={stylesNFC.imageUploadCircle}>
+                                    <Aperture color="#086B67" size={24} />
+                                </View>
+                                <Text style={stylesNFC.imageUploadTitle}>Subir una referencia visual</Text>
+                                <Text style={stylesNFC.imageUploadSub}>JPG, PNG hasta 5MB</Text>
+                            </>
+                        )}
                     </TouchableOpacity>
 
                     {/* Tip Block */}

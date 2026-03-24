@@ -1,5 +1,5 @@
 import stylesMS from '../styles/stylesMS';
-import { View, Text, TouchableOpacity, FlatList, ActivityIndicator, TextInput, StatusBar } from "react-native";
+import { View, Text, TouchableOpacity, FlatList, ActivityIndicator, TextInput, StatusBar, Alert } from "react-native";
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import React, { useState } from 'react';
 import { BookOpen, Activity, Plus } from 'lucide-react-native';
@@ -174,16 +174,27 @@ export default function MainScreen({ route }) {
                                 style={stylesMS.deckCard}
                                 activeOpacity={0.7}
                                 onPress={() => {
-                                    navigation.navigate('GameFlashCard', { sampleCards: item.flashcards});
+                                    navigation.navigate('DeckDetails', { deck: item });
                                 }}
                             >
                                 <View style={stylesMS.deckCardLeft}>
                                     <Text style={stylesMS.deckTitle}>{item.deck_name}</Text>
                                     <Text style={stylesMS.deckCount}>{(item.cardCount != null ? item.cardCount : 0)} tarjetas</Text>
                                 </View>
-                                <View style={stylesMS.deckCardRight}>
+                                <TouchableOpacity 
+                                    style={stylesMS.deckCardRight}
+                                    onPress={(e) => {
+                                        // Evitar que el clic en el botón active el clic en la tarjeta (DeckDetails)
+                                        e.stopPropagation();
+                                        if (item.flashcards && item.flashcards.length > 0) {
+                                            navigation.navigate('GameFlashCard', { sampleCards: item.flashcards });
+                                        } else {
+                                            Alert.alert("Mazo vacío", "Agrega algunas flashcards antes de estudiar.");
+                                        }
+                                    }}
+                                >
                                     <BookOpen size={20} color="#ffffff" strokeWidth={2.5} />
-                                </View>
+                                </TouchableOpacity>
                             </TouchableOpacity>
                         )}
                         ListEmptyComponent={() => (

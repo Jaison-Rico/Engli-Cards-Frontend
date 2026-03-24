@@ -13,6 +13,10 @@ import ProfileScreen from "../screens/ProfileScreen";
 import QuizGreetings from "../screens/tests/QuizGreetings";
 import QuizFruits from "../screens/tests/QuizFruits";
 import GameFlashCard from "../screens/games/GameFlashCard";
+import DeckDetailsScreen from "../screens/DeckDetailsScreen";
+import UpdateFlashCard from "../screens/UpdateFlashCard";
+import OtpScreen from "../screens/OtpScreen";
+import NewPasswordScreen from "../screens/NewPasswordScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -24,6 +28,8 @@ export default function AppNavigator(){
                 <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
                 <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />
                 <Stack.Screen name="ResetPassword" component={RenewPassword} options={{ headerShown: false }} />
+                <Stack.Screen name="OtpVerification" component={OtpScreen} options={{ headerShown: false }} />
+                <Stack.Screen name="NewPassword" component={NewPasswordScreen} options={{ headerShown: false }} />
                 <Stack.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false }} />
                 <Stack.Screen name="HomeScreen" component={HomeScreen} options={{ headerShown: false }} />
                 <Stack.Screen name="MainScreen" component={MainScreen} options={{ headerShown: false }} />
@@ -34,6 +40,8 @@ export default function AppNavigator(){
                 <Stack.Screen name="QuizGreetings" component={QuizGreetings} options={{ headerShown: false }} />
                 <Stack.Screen name="QuizFruits" component={QuizFruits} options={{ headerShown: false }} />
                 <Stack.Screen name="GameFlashCard" component={GameFlashCard} options={{ headerShown: false }} />
+                <Stack.Screen name="DeckDetails" component={DeckDetailsScreen} options={{ headerShown: false }} />
+                <Stack.Screen name="UpdateFlashCard" component={UpdateFlashCard} options={{ headerShown: false }} />
             </Stack.Navigator>
         </NavigationContainer>
     )

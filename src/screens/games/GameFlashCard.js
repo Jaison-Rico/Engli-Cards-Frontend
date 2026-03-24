@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, TouchableOpacity, Text, Animated } from 'react-native';
+import { View, TouchableOpacity, Text, Animated, ActivityIndicator } from 'react-native';
 import styles from '../../styles/styleGameFlashCard';
 import { X, CheckCircle, AlertCircle } from 'lucide-react-native';
 import FlashCard from '../../components/FlashCard';
@@ -13,11 +13,24 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 export default function GameFlashCard({ navigation, route }) {
   const { sampleCards, quiz } = route.params
   const [index, setIndex] = useState(0);
-  const total = sampleCards.length;
-  const current = sampleCards[index];
+  const [cards, setCards] = useState([]);
   const insets = useSafeAreaInsets(); 
   const [toast, setToast] = useState({ visible: false, message: '', type: '' });
   const [toastAnim] = useState(new Animated.Value(0));
+
+  useEffect(() => {
+    if (sampleCards && sampleCards.length > 0) {
+      let preparedCards = [...sampleCards];
+      // Solo barajar si NO es un mini-juego (no hay quiz)
+      if (!quiz) {
+        preparedCards = preparedCards.sort(() => Math.random() - 0.5);
+      }
+      setCards(preparedCards);
+    }
+  }, [sampleCards, quiz]);
+
+  const total = cards.length;
+  const current = cards[index];
 
   // Animación del toast
   useEffect(() => {
@@ -71,13 +84,20 @@ export default function GameFlashCard({ navigation, route }) {
         />
       </View>
       <Text style={styles.counter}>Tarjeta {index + 1} de {total}</Text>
-      <FlashCard key={index} item={current} styles={styles} frontLabel="English" backLabel="Español" />
+      
+      {cards.length > 0 ? (
+        <>
+          <FlashCard key={index} item={current} styles={styles} frontLabel="English" backLabel="Español" />
 
-      <View style={styles.dotsRow}>
-        {sampleCards.map((_, i) => (
-          <View key={i} style={[styles.dot, i === index && styles.dotActive]} />
-        ))}
-      </View>
+          <View style={styles.dotsRow}>
+            {cards.map((_, i) => (
+              <View key={i} style={[styles.dot, i === index && styles.dotActive]} />
+            ))}
+          </View>
+        </>
+      ) : (
+        <ActivityIndicator size="large" color="#12B5B0" style={{ marginTop: 50 }} />
+      )}
 
       <View style={styles.controls}>
         <TouchableOpacity onPress={goPrev} disabled={index === 0} style={[styles.btn, index === 0 && styles.btnDisabled]}>

@@ -407,5 +407,122 @@ export const loginStyles = StyleSheet.create({
         fontSize: 12,
         color: '#527F7C',
         marginHorizontal: 16,
+    },
+
+    // ── OTP Screen Styles ──
+    otpMainContainer: {
+        flexGrow: 1,
+        backgroundColor: '#E8F5F0', // mintBackground
+        alignItems: 'center',
+        paddingHorizontal: 28,
+    },
+    otpIconContainer: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        backgroundColor: '#D1F5F2',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: 60,
+        marginBottom: 32,
+    },
+    otpTitle: {
+        fontSize: 28,
+        fontWeight: '800',
+        color: '#08302E',
+        marginBottom: 8,
+        textAlign: 'center',
+    },
+    otpSubtitle: {
+        fontSize: 15,
+        color: '#527F7C',
+        textAlign: 'center',
+        marginBottom: 40,
+        lineHeight: 22,
+    },
+    otpInputRow: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 48,
+    },
+    otpCircle: {
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        borderWidth: 1.5,
+        borderColor: '#CBEBE8',
+        backgroundColor: '#ffffff',
+        marginHorizontal: 8,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    otpCircleFilled: {
+        borderWidth: 0,
+        backgroundColor: '#ffffff',
+        // Shadow for filled state
+        ...Platform.select({
+            ios: {
+                shadowColor: '#12B5B0',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.1,
+                shadowRadius: 8,
+            },
+            android: {
+                elevation: 3,
+            },
+        }),
+    },
+    otpText: {
+        fontSize: 24,
+        fontWeight: '700',
+        color: '#08302E',
+    },
+    otpDot: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        backgroundColor: '#527F7C',
+    },
+    timerCapsule: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#E0FCFA',
+        paddingHorizontal: 20,
+        paddingVertical: 10,
+        borderRadius: 20,
+        marginTop: 32,
+    },
+    timerText: {
+        fontSize: 13,
+        fontWeight: '700',
+        color: '#0D4A48',
+        marginLeft: 8,
+        textTransform: 'uppercase',
+    },
+
+    // ── Reset Password Styles ──
+    strengthContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '100%',
+        marginTop: 12,
+        marginBottom: 24,
+    },
+    strengthBar: {
+        flex: 1,
+        height: 4,
+        borderRadius: 2,
+        backgroundColor: '#E5F2F0',
+        marginHorizontal: 3,
+    },
+    strengthBarActive: {
+        backgroundColor: '#12B5B0',
+    },
+    passwordHint: {
+        fontSize: 12,
+        color: '#527F7C',
+        textAlign: 'center',
+        marginBottom: 32,
     }
 });
