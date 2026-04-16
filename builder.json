@@ -1,0 +1,16 @@
+{
+  "project": "Engli-Cards-Frontend",
+  "platform": "ios",
+  "github": {
+    "owner": "Jaison-Rico",
+    "repo": "Engli-Cards-Frontend"
+  },
+  "ios": {},
+  "flutter": {
+    "watch": {}
+  },
+  "reactNative": {
+    "expo": true
+  },
+  "mobai": {}
+}
