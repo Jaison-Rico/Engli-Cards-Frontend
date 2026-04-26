@@ -1,10 +1,11 @@
 import { StyleSheet } from "react-native";
 import theme, { tokens, shadows } from '../theme';
 
+const primaryColor = theme.colors.primaryLight || theme.colors.primary;
+
 const stylesQG = StyleSheet.create({
     containerMCTop: {
-        paddingLeft: 20,
-        paddingRight: 20,
+        paddingHorizontal: 20,
         backgroundColor: '#FFFFFF',
         height: 100,
         borderBottomLeftRadius: tokens.radius.lg,
@@ -19,109 +20,108 @@ const stylesQG = StyleSheet.create({
         marginTop: 0,
     },
     textsQG: {
-        fontSize: 15,
+        fontSize: 14,
         fontWeight: 'bold',
         textAlign: 'center',
         marginTop: 0,
         marginBottom: 20,
-        color: theme.colors.foreground,
+        color: theme.colors.mutedForeground,
     },
     textsQG2: {
-        fontSize: 15,
-        fontWeight: 'bold',
+        fontSize: 16,
+        fontWeight: '500',
         textAlign: 'center',
         marginTop: 15,
         marginBottom: 0,
-        color: theme.colors.foreground,
+        color: theme.colors.mutedForeground,
     },
     optionButton: {
-        fontSize: 15,
-        fontWeight: 'bold',
+        fontSize: 16,
+        fontWeight: '700',
         textAlign: 'center',
         color: theme.colors.foreground,
     },
     textBottomVerifyQG: {
-        fontSize: 15,
+        fontSize: 18,
         fontWeight: 'bold',
         textAlign: 'center',
-        color: theme.colors.foreground,
+        color: '#FFFFFF', // Siempre blanco en el botón de verificar activo
     },
     textTitleQG: {
-        fontSize: 30,
-        fontWeight: 'bold',
+        fontSize: 32,
+        fontWeight: '900',
         textAlign: 'center',
-        color: '#000000',
+        color: theme.colors.foreground,
         marginBottom: 0,
     },
     textButtonBackQG: {
         fontSize: 20,
         fontWeight: 'bold',
         textAlign: 'left',
-        marginBottom: 0,
-        marginTop: 0,
-        color: '#000000',
+        color: theme.colors.foreground,
     },
     containerTitleQG: {
-        minWidth: "70%",
-        minHeight: "20%",
-        borderWidth: 1,
-        borderRadius: 20,
-        borderColor: 'black',
-        backgroundColor: '#FFFFFF',
-        justifyContent: 'center', // Centra verticalmente el contenido
-        alignItems: 'center', // Centra horizontalmente el contenido
-        marginTop: 50, // Espacio entre los contenedores
-        alignSelf: 'center', // Centra el contenedor en la pantalla
+        width: "90%",
+        minHeight: 200,
+        backgroundColor: theme.colors.card,
+        borderRadius: tokens.radius.lg,
+        justifyContent: 'center', 
+        alignItems: 'center',
+        marginTop: 30,
+        alignSelf: 'center',
         marginBottom: 30,
+        paddingHorizontal: 20,
+        paddingVertical: 30,
+        ...shadows.card,
+        borderWidth: 1,
+        borderColor: theme.colors.border,
     },
     containerOptionsQG: {
-        minWidth: "70%",
-        minHeight: "8%",
-        borderWidth: 1,
-        borderRadius: 20,
-        borderColor: 'black',
-        backgroundColor: '#FFFFFF',
-        alignSelf: 'center',
-        marginBottom: 0,
+        width: "100%",
+        minHeight: 56,
+        borderRadius: tokens.radius.md,
+        backgroundColor: theme.colors.card,
+        borderWidth: 2,
+        borderColor: theme.colors.border,
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
+        paddingHorizontal: 15,
     },
     containerVerifyQG: {
-        minWidth: "70%",
-        minHeight: "8%",
-        borderWidth: 1,
-        borderRadius: 20,
-        borderColor: 'black',
-        backgroundColor: '#FFFFFF',
+        width: "100%",
+        height: 56,
+        borderRadius: tokens.radius.md,
+        backgroundColor: primaryColor,
         alignSelf: 'center',
-        marginBottom: 0,
-        marginTop: 35,
+        marginTop: 20,
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
+        ...shadows.soft,
     },
     selectedOption: {
-        backgroundColor: '#e3f2fd',
-        borderColor: '#2196f3',
+        backgroundColor: theme.colors.surfaceContainerLow || '#EAF9FA',
+        borderColor: primaryColor,
     },
     correctOption: {
-        backgroundColor: '#e8f5e8',
-        borderColor: '#4caf50',
+        backgroundColor: '#10B981', // Verde brillante
+        borderColor: '#10B981',
     },
     incorrectOption: {
-        backgroundColor: '#ffebee',
-        borderColor: '#f44336',
+        backgroundColor: '#EF4444', // Rojo brillante
+        borderColor: '#EF4444',
     },
     disabledButton: {
-        backgroundColor: '#f5f5f5',
+        backgroundColor: theme.colors.muted,
         opacity: 0.6,
+        shadowOpacity: 0,
     },
     correctButton: {
-        backgroundColor: '#4caf50',
+        backgroundColor: '#10B981',
     },
     incorrectButton: {
-        backgroundColor: '#f44336',
+        backgroundColor: '#EF4444',
     },
     modalBackdrop: {
         position: 'absolute',
@@ -155,7 +155,7 @@ const stylesQG = StyleSheet.create({
         marginBottom: tokens.spacing.lg
     },
     modalOkBtn: {
-        backgroundColor: theme.colors.accent,
+        backgroundColor: primaryColor,
         borderRadius: tokens.radius.md,
         paddingVertical: 12,
         paddingHorizontal: 24

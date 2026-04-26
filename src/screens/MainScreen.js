@@ -187,7 +187,11 @@ export default function MainScreen({ route }) {
                                         // Evitar que el clic en el botón active el clic en la tarjeta (DeckDetails)
                                         e.stopPropagation();
                                         if (item.flashcards && item.flashcards.length > 0) {
-                                            navigation.navigate('GameFlashCard', { sampleCards: item.flashcards });
+                                            navigation.navigate('GameFlashCard', { 
+                                                sampleCards: item.flashcards,
+                                                deckId: item.deck_id,
+                                                deckName: item.deck_name
+                                            });
                                         } else {
                                             Alert.alert("Mazo vacío", "Agrega algunas flashcards antes de estudiar.");
                                         }

@@ -9,7 +9,7 @@ const styleGameFlashCard = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.background,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     paddingVertical: 24
   },
   counter: {
@@ -74,17 +74,13 @@ const styleGameFlashCard = StyleSheet.create({
   quizBtn: { 
     flexDirection: 'row', 
     alignItems: 'center', 
-    justifyContent: 'flex-end', 
+    justifyContent: 'center', 
     gap: 8, 
     backgroundColor: theme.colors.primary, 
     paddingHorizontal: 16, 
     paddingVertical: 10, 
     borderRadius: 999, 
-    marginTop: 12, 
     elevation: 3, 
-    left: 100, 
-    top: -150,
-    marginRight: 20,
   },
   cardContainer: { 
     width: '88%', 

@@ -3,11 +3,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import { ProgressBar } from 'react-native-paper';
 import QuizResultModal from './QuizResultModal';
-import { MoveLeft } from 'lucide-react-native';
+import { ArrowLeft } from 'lucide-react-native';
 import * as Speech from 'expo-speech';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as SecureStore from 'expo-secure-store';
 import { config } from '../config/api';
+import theme from '../styles/theme';
 
 /*
 	Componente reutilizable de Quiz.
@@ -32,6 +33,7 @@ export default function Quiz({
 	instructionText = 'Selecciona la traducción correcta',
 	onFinish = () => { }
 }) {
+	const primaryColor = theme.colors.primaryLight || theme.colors.primary;
 	// Validaciones básicas según reglas actuales (no bloquea render, pero informa en consola)
 	if (questions.length !== 5) {
 		console.warn('[Quiz] Se esperaban 5 preguntas; recibidas:', questions.length);
@@ -52,12 +54,21 @@ export default function Quiz({
 	const [score, setScore] = useState(0);
 	const [resultModalVisible, setResultModalVisible] = useState(false);
 	const [startTime, setStartTime] = useState(null);
+	const [shuffledOptions, setShuffledOptions] = useState([]);
 
 	useEffect(() => {
 		setStartTime(Date.now());
 	}, []);
 
 	const currentQuestion = questions[currentQuestionIndex];
+
+	useEffect(() => {
+		if (currentQuestion?.options) {
+			// Función para barajar (Fisher-Yates)
+			const shuffled = [...currentQuestion.options].sort(() => Math.random() - 0.5);
+			setShuffledOptions(shuffled);
+		}
+	}, [currentQuestionIndex, questions]);
 
 	const handleOptionSelect = (optionId) => {
 		if (!isVerified) {
@@ -139,14 +150,14 @@ export default function Quiz({
 			<View style={{ backgroundColor: '#FFFFFF', paddingTop: insets.top }}>
 				<View style={{ ...styles.containerMCTop }}>
 					<TouchableOpacity style={{...styles.backButton}} onPress={onBack}>
-						<MoveLeft size={25} color="#6200ee" />
+						<ArrowLeft size={25} color={primaryColor} />
 						<Text style={styles.textButtonBackQG}> {heading}</Text>
 					</TouchableOpacity>
 					<Text style={styles.textsQG}>Pregunta {currentQuestionIndex + 1} de {questions.length}!</Text>
 					<ProgressBar
 						style={{ marginTop: 20 }}
 						progress={questions.length ? (currentQuestionIndex + 1) / questions.length : 0}
-						color={'#6200ee'}
+						color={primaryColor}
 					/>
 				</View>
 			</View>
@@ -158,10 +169,10 @@ export default function Quiz({
 					<Text style={styles.textsQG2}>{instructionText}</Text>
 				</View>
 
-				<View style={{flexDirection: "colum", gap: 20}}>
+				<View style={{flexDirection: "colum", gap: 16, paddingHorizontal: 20}}>
 					{/* Opciones */}
 
-						{currentQuestion?.options?.map((option) => (
+						{shuffledOptions.map((option) => (
 							<TouchableOpacity
 								key={option.id}
 								style={[
@@ -179,7 +190,12 @@ export default function Quiz({
 								}}
 								disabled={isVerified}
 							>
-								<Text style={styles.optionButton}>{option.text}</Text>
+								<Text style={[
+									styles.optionButton,
+									isVerified && (option.correct || (selectedOption === option.id && !option.correct)) ? {color: '#FFF'} : {}
+								]}>
+									{option.text}
+								</Text>
 							</TouchableOpacity>
 						))}
 					{/* Botón verificar / siguiente */}

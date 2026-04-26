@@ -17,6 +17,7 @@ import DeckDetailsScreen from "../screens/DeckDetailsScreen";
 import UpdateFlashCard from "../screens/UpdateFlashCard";
 import OtpScreen from "../screens/OtpScreen";
 import NewPasswordScreen from "../screens/NewPasswordScreen";
+import DeckQuizScreen from "../screens/DeckQuizScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -42,7 +43,8 @@ export default function AppNavigator(){
                 <Stack.Screen name="GameFlashCard" component={GameFlashCard} options={{ headerShown: false }} />
                 <Stack.Screen name="DeckDetails" component={DeckDetailsScreen} options={{ headerShown: false }} />
                 <Stack.Screen name="UpdateFlashCard" component={UpdateFlashCard} options={{ headerShown: false }} />
+                <Stack.Screen name="DeckQuiz" component={DeckQuizScreen} options={{ headerShown: false }} />
             </Stack.Navigator>
         </NavigationContainer>
     )
-}
+}

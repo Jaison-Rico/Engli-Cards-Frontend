@@ -236,6 +236,16 @@ export default function DeckDetailsScreen({ route, navigation }) {
                         <TouchableOpacity style={styles.actionButton} onPress={handleShare}>
                             <Share2 color={colors.primaryText} size={18} />
                         </TouchableOpacity>
+
+                        {flashcards.length >= 5 && (
+                            <TouchableOpacity 
+                                style={[styles.actionButton, { backgroundColor: colors.accent, width: 140, borderRadius: 10, flexDirection: 'row' }]} 
+                                onPress={() => navigation.navigate('DeckQuiz', { deckId: deck.deck_id, deckName: deckName })}
+                            >
+                                <Text style={{ color: '#FFF', fontWeight: 'bold', fontSize: 13, marginRight: 8 }}>Practicar Quiz</Text>
+                                <ChevronRight color="#FFF" size={16} />
+                            </TouchableOpacity>
+                        )}
                     </View>
                 </View>
             </View>
@@ -273,22 +283,20 @@ export default function DeckDetailsScreen({ route, navigation }) {
                         ListEmptyComponent={() => (
                             <Text style={styles.emptyText}>No se encontraron resultados.</Text>
                         )}
+                        ListFooterComponent={() => (
+                            <TouchableOpacity 
+                                style={styles.addMoreCard} 
+                                onPress={() => navigation.navigate('NewFlashCard', { deckId: deck.deck_id })}
+                            >
+                                <View style={styles.plusCircle}>
+                                    <Plus color={colors.primaryText} size={24} />
+                                </View>
+                                <Text style={styles.addMoreTitle}>¿Quieres añadir más?</Text>
+                                <Text style={styles.addMoreSubtitle}>Sigue ampliando tu vocabulario agregando nuevas tarjetas.</Text>
+                            </TouchableOpacity>
+                        )}
                     />
                 )}
-            </View>
-            
-            {/* FLOATING ACTION BOTTOM CONTAINER */}
-            <View style={styles.bottomFloatingContainer}>
-                <TouchableOpacity 
-                    style={styles.addMoreCard} 
-                    onPress={() => navigation.navigate('NewFlashCard', { deckId: deck.deck_id })}
-                >
-                    <View style={styles.plusCircle}>
-                        <Plus color={colors.primaryText} size={24} />
-                    </View>
-                    <Text style={styles.addMoreTitle}>¿Quieres añadir más?</Text>
-                    <Text style={styles.addMoreSubtitle}>Sigue ampliando tu vocabulario agregando nuevas tarjetas.</Text>
-                </TouchableOpacity>
             </View>
         </View>
     );
@@ -390,7 +398,7 @@ const styles = StyleSheet.create({
         color: colors.primaryText,
     },
     flatListContent: {
-        paddingBottom: 200, 
+        paddingBottom: 40, 
     },
     cardContainer: {
         flexDirection: "row",
@@ -452,16 +460,9 @@ const styles = StyleSheet.create({
         fontStyle: "italic"
     },
     
-    bottomFloatingContainer: {
-        position: 'absolute',
-        bottom: 20, 
-        left: 0,
-        right: 0,
-        alignItems: 'center',
-        paddingBottom: 20, 
-    },
+
     addMoreCard: {
-        width: "90%",
+        width: "100%",
         backgroundColor: colors.white,
         borderWidth: 2,
         borderColor: colors.lightCyan,
@@ -469,7 +470,8 @@ const styles = StyleSheet.create({
         borderRadius: 20,
         padding: 20,
         alignItems: "center",
-        paddingBottom: 40 
+        marginTop: 20,
+        marginBottom: 50
     },
     plusCircle: {
         width: 50,

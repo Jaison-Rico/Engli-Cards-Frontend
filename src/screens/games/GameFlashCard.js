@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, TouchableOpacity, Text, Animated, ActivityIndicator } from 'react-native';
 import styles from '../../styles/styleGameFlashCard';
-import { X, CheckCircle, AlertCircle } from 'lucide-react-native';
+import { ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react-native';
 import FlashCard from '../../components/FlashCard';
 import { Ionicons } from '@expo/vector-icons';
 import QuizStartButton from '../../components/QuizStartButton';
@@ -67,12 +67,32 @@ export default function GameFlashCard({ navigation, route }) {
   const goNext = () => setIndex((i) => (i < total - 1 ? i + 1 : i));
 
   return (
-    <View style={{...styles.screen, paddingTop: insets.top + 20}}>
-      <View>
+    <View style={{...styles.screen, paddingTop: insets.top + 10}}>
+      <View style={{ 
+        flexDirection: 'row', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        paddingHorizontal: 20, 
+        width: '100%',
+        marginBottom: 30
+      }}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 8 }}>
+          <ArrowLeft color="#12B5B0" size={28} />
+        </TouchableOpacity>
+        
         <QuizStartButton
           onPress={() => {
             if (quiz) {
-              navigation.navigate(quiz)
+              navigation.navigate(quiz);
+            } else if (route.params.deckId) {
+              if (total >= 5) {
+                navigation.navigate('DeckQuiz', { 
+                  deckId: route.params.deckId, 
+                  deckName: route.params.deckName || 'Quiz' 
+                });
+              } else {
+                showToast('Necesitas al menos 5 tarjetas en este mazo para hacer un quiz.', 'error');
+              }
             } else {
               showToast('No hay prueba disponible para este conjunto de tarjetas.', 'error');
             }
@@ -83,31 +103,33 @@ export default function GameFlashCard({ navigation, route }) {
           iconName="play-outline"
         />
       </View>
-      <Text style={styles.counter}>Tarjeta {index + 1} de {total}</Text>
-      
-      {cards.length > 0 ? (
-        <>
-          <FlashCard key={index} item={current} styles={styles} frontLabel="English" backLabel="Español" />
+      <View style={{ flex: 1, width: '100%', alignItems: 'center', justifyContent: 'center', paddingBottom: 40 }}>
+        <Text style={styles.counter}>Tarjeta {index + 1} de {total}</Text>
+        
+        {cards.length > 0 ? (
+          <>
+            <FlashCard key={index} item={current} styles={styles} frontLabel="English" backLabel="Español" />
 
-          <View style={styles.dotsRow}>
-            {cards.map((_, i) => (
-              <View key={i} style={[styles.dot, i === index && styles.dotActive]} />
-            ))}
-          </View>
-        </>
-      ) : (
-        <ActivityIndicator size="large" color="#12B5B0" style={{ marginTop: 50 }} />
-      )}
+            <View style={styles.dotsRow}>
+              {cards.map((_, i) => (
+                <View key={i} style={[styles.dot, i === index && styles.dotActive]} />
+              ))}
+            </View>
+          </>
+        ) : (
+          <ActivityIndicator size="large" color="#12B5B0" style={{ marginTop: 50 }} />
+        )}
 
-      <View style={styles.controls}>
-        <TouchableOpacity onPress={goPrev} disabled={index === 0} style={[styles.btn, index === 0 && styles.btnDisabled]}>
-          <Ionicons name="chevron-back" size={18} color="#fff" />
-          <Text style={styles.btnText}>Anterior</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={goNext} disabled={index === total - 1} style={[styles.btn, index === total - 1 && styles.btnDisabled]}>
-          <Text style={styles.btnText}>Siguiente</Text>
-          <Ionicons name="chevron-forward" size={18} color="#fff" />
-        </TouchableOpacity>
+        <View style={styles.controls}>
+          <TouchableOpacity onPress={goPrev} disabled={index === 0} style={[styles.btn, index === 0 && styles.btnDisabled]}>
+            <Ionicons name="chevron-back" size={18} color="#fff" />
+            <Text style={styles.btnText}>Anterior</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={goNext} disabled={index === total - 1} style={[styles.btn, index === total - 1 && styles.btnDisabled]}>
+            <Text style={styles.btnText}>Siguiente</Text>
+            <Ionicons name="chevron-forward" size={18} color="#fff" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       
