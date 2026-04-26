@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import { ProgressBar } from 'react-native-paper';
 import QuizResultModal from './QuizResultModal';
 import { MoveLeft } from 'lucide-react-native';
 import * as Speech from 'expo-speech';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as SecureStore from 'expo-secure-store';
+import { config } from '../config/api';
 
 /*
 	Componente reutilizable de Quiz.
@@ -70,13 +72,56 @@ export default function Quiz({
 		}
 	};
 
-	const handleNext = () => {
+	const handleNext = async () => {
 		if (currentQuestionIndex < questions.length - 1) {
 			setCurrentQuestionIndex(currentQuestionIndex + 1);
 			setSelectedOption(null);
 			setIsVerified(false);
 			setIsCorrect(false);
 		} else {
+			// Enviar progreso al backend
+			try {
+				const storedUser = await SecureStore.getItemAsync('userInfo');
+				const token = await SecureStore.getItemAsync('token');
+				
+				if (storedUser && token) {
+					const user = JSON.parse(storedUser);
+					const userId = user?.user_id ?? user?._id ?? user?.id ?? user?.userId;
+					
+					if (userId) {
+						const res = await fetch(`${config.BASE_URL}/progress/quiz-complete`, {
+							method: 'POST',
+							headers: {
+								'Content-Type': 'application/json',
+								Authorization: `Bearer ${token}`
+							},
+							body: JSON.stringify({
+								userId: Number(userId),
+								totalQuestions: questions.length,
+								correctAnswers: score
+							})
+						});
+
+						if (res.ok) {
+							const data = await res.json();
+							if (data.unlockedAchievements && data.unlockedAchievements.length > 0) {
+								// Mostrar notificación de logro
+								const ach = data.unlockedAchievements[0];
+								setTimeout(() => {
+									Alert.alert(
+										'🏆 ¡Nuevo Logro Desbloqueado!', 
+										`¡Has completado: ${ach.title}!\n\n${ach.description}`,
+										[{ text: '¡Genial!' }]
+									);
+								}, 500); // Pequeño retraso para que aparezca después/junto con el modal
+							}
+						}
+					}
+				}
+			} catch(e) {
+				console.error("Error al guardar progreso del quiz:", e);
+			}
+
 			onFinish(score, questions.length);
 			setResultModalVisible(true);
 		}
