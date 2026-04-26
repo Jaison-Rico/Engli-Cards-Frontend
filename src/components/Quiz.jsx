@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import { ProgressBar } from 'react-native-paper';
@@ -51,6 +51,11 @@ export default function Quiz({
 	const [isCorrect, setIsCorrect] = useState(false);
 	const [score, setScore] = useState(0);
 	const [resultModalVisible, setResultModalVisible] = useState(false);
+	const [startTime, setStartTime] = useState(null);
+
+	useEffect(() => {
+		setStartTime(Date.now());
+	}, []);
 
 	const currentQuestion = questions[currentQuestionIndex];
 
@@ -98,7 +103,8 @@ export default function Quiz({
 							body: JSON.stringify({
 								userId: Number(userId),
 								totalQuestions: questions.length,
-								correctAnswers: score
+								correctAnswers: score,
+								timeSpentSeconds: startTime ? Math.floor((Date.now() - startTime) / 1000) : 0
 							})
 						});
 
