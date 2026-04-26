@@ -31,7 +31,8 @@ export default function Quiz({
 	heading = '',
 	onBack = () => { },
 	instructionText = 'Selecciona la traducción correcta',
-	onFinish = () => { }
+	onFinish = () => { },
+	deckId = null
 }) {
 	const primaryColor = theme.colors.primaryLight || theme.colors.primary;
 	// Validaciones básicas según reglas actuales (no bloquea render, pero informa en consola)
@@ -113,6 +114,7 @@ export default function Quiz({
 							},
 							body: JSON.stringify({
 								userId: Number(userId),
+								deckId: deckId ? Number(deckId) : null,
 								totalQuestions: questions.length,
 								correctAnswers: score,
 								timeSpentSeconds: startTime ? Math.floor((Date.now() - startTime) / 1000) : 0

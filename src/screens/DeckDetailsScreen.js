@@ -398,7 +398,7 @@ const styles = StyleSheet.create({
         color: colors.primaryText,
     },
     flatListContent: {
-        paddingBottom: 40, 
+        paddingBottom: 100, 
     },
     cardContainer: {
         flexDirection: "row",

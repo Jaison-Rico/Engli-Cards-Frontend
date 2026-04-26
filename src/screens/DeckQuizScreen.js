@@ -68,6 +68,7 @@ export default function DeckQuizScreen({ route, navigation }) {
             <Quiz 
                 questions={quizData}
                 heading={deckName}
+                deckId={deckId}
                 onBack={() => navigation.goBack()}
                 instructionText="Selecciona la traducción correcta"
                 onFinish={(score, total) => {

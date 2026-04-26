@@ -271,9 +271,11 @@ export default function ProfileScreen() {
           <BookOpen color={primaryColor} size={24} />
           <Text style={stylesProfile.topBarTitle}>Engli-Cards</Text>
         </View>
-        <TouchableOpacity onPress={() => {/* Go to settings if needed */}}>
-          <Settings color={primaryColor} size={24} />
-        </TouchableOpacity>
+        {userData?.role === 'admin' && (
+          <TouchableOpacity onPress={() => navigation.navigate('AdminSettings')}>
+            <Settings color={primaryColor} size={24} />
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Header Info */}

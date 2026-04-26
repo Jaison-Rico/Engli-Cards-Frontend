@@ -8,6 +8,8 @@ import axios from 'axios';
 import { config } from '../config/api';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import CreateDeck from './CreateDeck';
+import PathNode from '../components/PathNode';
+import stylesLP from '../styles/stylesLearningPath';
 
 
 export default function MainScreen({ route }) {
@@ -44,7 +46,11 @@ export default function MainScreen({ route }) {
             deck_name: d.deck_name ?? d.name ?? d.title ?? 'Deck',
             // contar flashcards si vienen, o cards/cardsCount
             cardCount: d.cardCount ?? d.cardsCount ?? (Array.isArray(d.flashcards) ? d.flashcards.length : (Array.isArray(d.cards) ? d.cards.length : 0)),
-            flashcards: d.flashcards
+            flashcards: d.flashcards,
+            is_system: d.is_system ?? false,
+            order_index: d.order_index ?? 0,
+            is_locked: d.is_locked ?? false,
+            best_accuracy: d.best_accuracy ?? 0
         }));
     };
 
@@ -101,12 +107,12 @@ export default function MainScreen({ route }) {
             };
 
             fetchDecks();
-
-            return () => {
-                isActive = false;
-            };
+            return () => { isActive = false; };
         }, [route, refreshKey])
     );
+
+    const systemDecks = decks.filter(d => d.is_system).sort((a, b) => a.order_index - b.order_index);
+    const personalDecks = decks.filter(d => !d.is_system);
 
 
 
@@ -151,10 +157,8 @@ export default function MainScreen({ route }) {
                 </TouchableOpacity>
             </View>
 
-            {/* Section Title */}
-            <Text style={stylesMS.misMazosTitle}>Mis Mazos</Text>
 
-            {/* Deck List */}
+            {/* Deck List & Path */}
             <View style={stylesMS.deckListContainer}>
                 {isOffline && (
                     <Text style={{ margin: 10, textAlign: 'center', color: 'orange' }}>
@@ -166,9 +170,59 @@ export default function MainScreen({ route }) {
                 ) : (
                     <FlatList
                         style={{ flex: 1 }}
-                        data={decks.filter((d) => d.deck_name?.toLowerCase().includes(search.toLowerCase()))}
+                        data={personalDecks.filter((d) => d.deck_name?.toLowerCase().includes(search.toLowerCase()))}
                         keyExtractor={(item, index) => (item.deck_id ? String(item.deck_id) : `${item.deck_name || 'deck'}-${index}`)}
                         showsVerticalScrollIndicator={false}
+                        ListHeaderComponent={() => (
+                            <View>
+                                {systemDecks.length > 0 && (() => {
+                                    const completedCount = systemDecks.filter(d => d.best_accuracy >= (d.min_accuracy || 0.9)).length;
+                                    const progressPercent = Math.round((completedCount / systemDecks.length) * 100);
+                                    const currentDeck = systemDecks.find(d => !d.is_locked && d.best_accuracy < (d.min_accuracy || 0.9)) || systemDecks[0];
+                                    
+                                    return (
+                                        <View style={{ marginBottom: 30, alignItems: 'center' }}>
+                                            <View style={stylesLP.headerContainer}>
+                                                <Text style={stylesLP.journeyText}>YOUR JOURNEY</Text>
+                                                <Text style={stylesLP.titleText}>Ruta de Aprendizaje</Text>
+                                                
+                                                <View style={stylesLP.progressContainer}>
+                                                    <View style={stylesLP.progressRow}>
+                                                        <Text style={stylesLP.progressLabelLeft}>Current Level: {currentDeck?.deck_name}</Text>
+                                                        <Text style={stylesLP.progressLabelRight}>{progressPercent}% Total</Text>
+                                                    </View>
+                                                    <View style={stylesLP.progressBarBg}>
+                                                        <View style={[stylesLP.progressBarFill, { width: `${progressPercent}%` }]} />
+                                                    </View>
+                                                </View>
+                                            </View>
+
+                                            <View style={stylesLP.container}>
+                                                {systemDecks.map((item, index) => (
+                                                    <PathNode 
+                                                        key={item.deck_id}
+                                                        deck={item}
+                                                        index={index}
+                                                        onPress={() => {
+                                                            if (item.flashcards && item.flashcards.length > 0) {
+                                                                navigation.navigate('GameFlashCard', { 
+                                                                    sampleCards: item.flashcards,
+                                                                    deckId: item.deck_id,
+                                                                    deckName: item.deck_name
+                                                                });
+                                                            } else {
+                                                                Alert.alert("Mazo vacío", "Este nivel aún no tiene contenido.");
+                                                            }
+                                                        }}
+                                                    />
+                                                ))}
+                                            </View>
+                                        </View>
+                                    );
+                                })()}
+                                <Text style={[stylesMS.misMazosTitle, { marginLeft: 0, marginTop: 10, marginBottom: 16 }]}>Mis Mazos</Text>
+                            </View>
+                        )}
                         renderItem={({ item }) => (
                             <TouchableOpacity 
                                 style={stylesMS.deckCard}
@@ -184,7 +238,6 @@ export default function MainScreen({ route }) {
                                 <TouchableOpacity 
                                     style={stylesMS.deckCardRight}
                                     onPress={(e) => {
-                                        // Evitar que el clic en el botón active el clic en la tarjeta (DeckDetails)
                                         e.stopPropagation();
                                         if (item.flashcards && item.flashcards.length > 0) {
                                             navigation.navigate('GameFlashCard', { 
@@ -203,10 +256,10 @@ export default function MainScreen({ route }) {
                         )}
                         ListEmptyComponent={() => (
                             <Text style={{ margin: 20, textAlign: 'center', color: '#527F7C' }}>
-                                {error ? `Error: ${error}` : 'No hay mazos para mostrar'}
+                                {error ? `Error: ${error}` : 'No tienes mazos personales aún'}
                             </Text>
                         )}
-                        contentContainerStyle={decks.length === 0 ? { flexGrow: 1 } : { paddingBottom: 20 }}
+                        contentContainerStyle={(personalDecks.length === 0 && systemDecks.length === 0) ? { flexGrow: 1 } : { paddingBottom: 40 }}
                     />
                 )}
             </View>
