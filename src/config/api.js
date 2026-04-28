@@ -1,29 +1,27 @@
-import { NativeModules, Platform } from 'react-native';
-
-const fallbackDevUrl = 'http://10.0.2.2:3000';
+import { Platform } from 'react-native';
+import Constants from 'expo-constants';
 
 const getDevBaseUrl = () => {
+  // 1. Si hay una variable de entorno explícita, usarla
   const envUrl = process.env.EXPO_PUBLIC_API_URL;
   if (envUrl) {
     return envUrl.replace(/\/$/, '');
   }
 
-  const scriptURL = NativeModules?.SourceCode?.scriptURL;
-  if (!scriptURL) {
-    return fallbackDevUrl;
+  // 2. Usar el hostUri de Expo que contiene la IP real del servidor de desarrollo
+  //    Esto funciona en dispositivos físicos, simuladores y emuladores
+  const hostUri = Constants.expoConfig?.hostUri ?? Constants.manifest?.debuggerHost;
+  if (hostUri) {
+    const host = hostUri.split(':')[0]; // extraer solo la IP/hostname
+    console.log('🚀 [API CONFIG] Expo hostUri detectado:', hostUri, '-> host:', host);
+    return `http://${host}:3000`;
   }
 
-  const host = scriptURL.split('://')[1]?.split(':')[0];
-
-  if (!host) {
-    return fallbackDevUrl;
+  // 3. Fallback según la plataforma
+  if (Platform.OS === 'android') {
+    return 'http://10.0.2.2:3000';
   }
-
-  if (host === 'localhost' || host === '127.0.0.1') {
-    return Platform.OS === 'android' ? fallbackDevUrl : 'http://localhost:3000';
-  }
-
-  return `http://${host}:3000`;
+  return 'http://localhost:3000';
 };
 
 const dev = {
@@ -36,6 +34,10 @@ const prod = {
 
 export const config = __DEV__ ? dev : prod;
 
+console.log('🚀 [API CONFIG] Platform:', Platform.OS);
+console.log('🚀 [API CONFIG] __DEV__:', __DEV__);
+console.log('🚀 [API CONFIG] Final BASE_URL:', config.BASE_URL);
+
 // __DEV__ es una variable global de React Native que es true en modo desarrollo
 
 
@@ -46,6 +48,4 @@ Ejemplo de usuario para pruebas:
   "email": "test@example.com",
   "password": "2210"
 }
-
-
 */
