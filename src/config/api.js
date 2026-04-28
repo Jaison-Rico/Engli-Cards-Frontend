@@ -29,7 +29,7 @@ const dev = {
 };
 
 const prod = {
-  BASE_URL: "https://engli-cards-backend-production.up.railway.app"
+  BASE_URL: "https://engli.cards.backend.oween.software"
 };
 
 export const config = __DEV__ ? dev : prod;
