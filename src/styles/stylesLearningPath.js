@@ -1,198 +1,105 @@
 import { StyleSheet } from 'react-native';
 
-const stylesLP = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
-    paddingVertical: 10,
-    width: '100%',
-    backgroundColor: '#fff',
-    alignItems: 'center',
+    flex: 1,
+    backgroundColor: '#F4F7F6', // Light gray background
+    paddingTop: 40,
   },
   headerContainer: {
-    width: '90%',
-    alignItems: 'center',
-    marginBottom: 30,
+    paddingHorizontal: 24,
+    marginBottom: 24,
   },
-  journeyText: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    color: '#12B5B0',
-    letterSpacing: 2,
-    textTransform: 'uppercase',
-    marginBottom: 5,
-  },
-  titleText: {
-    fontSize: 24,
+  headerTitle: {
+    fontSize: 32,
     fontWeight: '900',
-    color: '#08302E',
-    marginBottom: 20,
+    color: '#1E293B', // Slate 800
+    marginBottom: 6,
+    letterSpacing: -0.5,
   },
-  progressContainer: {
-    width: '100%',
-    backgroundColor: '#F8FAFC',
-    borderRadius: 15,
-    padding: 15,
+  headerSubtitle: {
+    fontSize: 16,
+    color: '#64748B', // Slate 500
+    fontWeight: '500',
   },
-  progressRow: {
+  listContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 40,
+  },
+  cardContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  progressLabelLeft: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#12B5B0',
-  },
-  progressLabelRight: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#4A6E6C',
-  },
-  progressBarBg: {
-    height: 8,
-    backgroundColor: '#E2E8F0',
-    borderRadius: 4,
-    width: '100%',
-  },
-  progressBarFill: {
-    height: 8,
-    backgroundColor: '#45D0B6',
-    borderRadius: 4,
-  },
-
-  pathNodeContainer: {
-    width: '100%',
     alignItems: 'center',
-    marginBottom: 40,
-    position: 'relative',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 20,
+    marginBottom: 16,
+    elevation: 8,
+    shadowColor: '#94A3B8', // Slate 400
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
   },
-  // Nodos circulares
-  circleCompleted: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#45D0B6',
+  cardLocked: {
+    backgroundColor: '#F8FAFC', // Slate 50
+    elevation: 2,
+    shadowOpacity: 0.05,
+  },
+  iconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 18,
+  },
+  iconAvailable: {
+    backgroundColor: '#E0F2FE', // Sky 100
+  },
+  iconLocked: {
+    backgroundColor: '#F1F5F9', // Slate 100
+  },
+  textContainer: {
+    flex: 1,
+  },
+  cardTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#0F172A', // Slate 900
+    marginBottom: 4,
+  },
+  cardTitleLocked: {
+    color: '#94A3B8', // Slate 400
+  },
+  cardStatus: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#0EA5E9', // Sky 500
+  },
+  cardStatusLocked: {
+    color: '#CBD5E1', // Slate 300
+    fontWeight: '600',
+  },
+  playButton: {
+    backgroundColor: '#0EA5E9', // Sky 500
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 4,
-    shadowColor: '#45D0B6',
+    shadowColor: '#0EA5E9',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
-    shadowRadius: 5,
+    shadowRadius: 6,
   },
-  circleActive: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-    backgroundColor: '#F0FDFA',
+  lockIconContainer: {
+    width: 48,
+    height: 48,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#45D0B6',
-    elevation: 8,
-    shadowColor: '#45D0B6',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-  },
-  circleLocked: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#fff',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#E2E8F0',
-    borderStyle: 'dashed',
-  },
-  
-  // Badges y Pills
-  masteredBadge: {
-    position: 'absolute',
-    top: -10,
-    right: -10,
-    backgroundColor: '#FBBF24',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 10,
-    transform: [{ rotate: '5deg' }],
-    zIndex: 10,
-  },
-  masteredText: {
-    color: '#78350F',
-    fontSize: 9,
-    fontWeight: '900',
-  },
-  
-  pillCompleted: {
-    marginTop: -15, // Solapa con el círculo
-    backgroundColor: '#fff',
-    paddingHorizontal: 15,
-    paddingVertical: 6,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    zIndex: 5,
-  },
-  pillCompletedText: {
-    color: '#45D0B6',
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  
-  pillActive: {
-    marginTop: -15,
-    backgroundColor: '#45D0B6',
-    paddingHorizontal: 20,
-    paddingVertical: 8,
-    borderRadius: 20,
-    elevation: 3,
-    shadowColor: '#45D0B6',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    zIndex: 5,
-  },
-  pillActiveText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  
-  pillContinue: {
-    marginTop: 5,
-    backgroundColor: '#fff',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 15,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  pillContinueText: {
-    color: '#45D0B6',
-    fontSize: 9,
-    fontWeight: '900',
-    letterSpacing: 1,
-  },
-  
-  pillLocked: {
-    marginTop: 10,
-    backgroundColor: '#F8FAFC',
-    paddingHorizontal: 15,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-  pillLockedText: {
-    color: '#94A3B8',
-    fontSize: 12,
-    fontWeight: '600',
+    backgroundColor: '#F1F5F9', // Slate 100
+    borderRadius: 24,
   }
 });
 
-
-export default stylesLP;
+export default styles;
