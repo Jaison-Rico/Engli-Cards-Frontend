@@ -3,15 +3,18 @@ import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from "react-nat
 import { ProgressChart, BarChart } from "react-native-chart-kit";
 import { Dimensions } from "react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import theme, { tokens, shadows } from '../styles/theme';
+import { tokens, shadows } from '../styles/theme';
 import * as SecureStore from 'expo-secure-store';
 import { config } from '../config/api';
 import { useFocusEffect } from '@react-navigation/native';
 import { Layers, Layout, Clock, TrendingUp } from 'lucide-react-native';
 
+import { useAppTheme } from '../context/ThemeContext';
+
 const screenWidth = Dimensions.get("window").width;
 
 export default function StatsScreen() {
+	const { theme } = useAppTheme();
 	const insets = useSafeAreaInsets();
 	const [isLoading, setIsLoading] = useState(true);
 	const [stats, setStats] = useState(null);

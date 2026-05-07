@@ -1,13 +1,11 @@
 import { StyleSheet, Platform } from "react-native";
-import theme, { tokens } from './theme';
-
 // Login screen styles matching the Stitch "Login (Teal)" design
-export const loginStyles = StyleSheet.create({
+export const get_loginStyles = (theme) => StyleSheet.create({
 
     // ── Scroll / Background ──
     scrollContainer: {
         flexGrow: 1,
-        backgroundColor: '#E8F5F0',
+        backgroundColor: theme.colors.background,
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 28,
@@ -22,7 +20,7 @@ export const loginStyles = StyleSheet.create({
         width: 80,
         height: 80,
         borderRadius: 40,
-        backgroundColor: '#F0F9F8',
+        backgroundColor: theme.colors.card,
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: 16,
@@ -30,14 +28,14 @@ export const loginStyles = StyleSheet.create({
     appTitle: {
         fontSize: 32,
         fontWeight: '800',
-        color: '#0D4A48',
+        color: theme.colors.foreground,
         letterSpacing: -0.5,
         marginBottom: 6,
         fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif-medium',
     },
     appSubtitle: {
         fontSize: 14,
-        color: '#527F7C',
+        color: theme.colors.mutedForeground,
         letterSpacing: 0.2,
         fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif',
     },
@@ -45,13 +43,13 @@ export const loginStyles = StyleSheet.create({
     // ── Form Card ──
     formCard: {
         width: '100%',
-        backgroundColor: '#ffffff',
+        backgroundColor: theme.colors.card,
         borderRadius: 24,
         paddingHorizontal: 24,
         paddingVertical: 28,
         ...Platform.select({
             ios: {
-                shadowColor: '#12B5B0',
+                shadowColor: theme.colors.primary,
                 shadowOffset: { width: 0, height: 16 },
                 shadowOpacity: 0.1,
                 shadowRadius: 32,
@@ -64,7 +62,7 @@ export const loginStyles = StyleSheet.create({
     welcomeText: {
         fontSize: 22,
         fontWeight: '700',
-        color: '#08302E',
+        color: theme.colors.foreground,
         marginBottom: 24,
     },
 
@@ -75,7 +73,7 @@ export const loginStyles = StyleSheet.create({
     fieldLabel: {
         fontSize: 11,
         fontWeight: '700',
-        color: '#08302E',
+        color: theme.colors.foreground,
         letterSpacing: 1.2,
         textTransform: 'uppercase',
         marginBottom: 8,
@@ -89,28 +87,28 @@ export const loginStyles = StyleSheet.create({
     forgotText: {
         fontSize: 12,
         fontWeight: '600',
-        color: '#0D4A48',
+        color: theme.colors.primary,
     },
 
     // ── Input Container ──
     inputContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#ffffff',
+        backgroundColor: theme.colors.background,
         borderRadius: 25,
         borderWidth: 1.5,
-        borderColor: '#CBEBE8',
+        borderColor: theme.colors.border,
         paddingHorizontal: 16,
         height: 52,
     },
     inputIcon: {
         marginRight: 10,
-        color: '#527F7C'
+        color: theme.colors.mutedForeground
     },
     textInput: {
         flex: 1,
         fontSize: 15,
-        color: '#2c2f30',
+        color: theme.colors.foreground,
         paddingVertical: 0,
         fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif',
     },
@@ -127,11 +125,11 @@ export const loginStyles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         marginTop: 8,
-        backgroundColor: '#12B5B0',
+        backgroundColor: theme.colors.primary,
         // Simulated gradient via shadow glow
         ...Platform.select({
             ios: {
-                shadowColor: '#12B5B0',
+                shadowColor: theme.colors.primary,
                 shadowOffset: { width: 0, height: 8 },
                 shadowOpacity: 0.35,
                 shadowRadius: 16,
@@ -162,13 +160,13 @@ export const loginStyles = StyleSheet.create({
     dividerLine: {
         flex: 1,
         height: 1,
-        backgroundColor: '#CBEBE8',
+        backgroundColor: theme.colors.border,
     },
     dividerText: {
         marginHorizontal: 14,
         fontSize: 10,
         fontWeight: '700',
-        color: '#0D4A48',
+        color: theme.colors.mutedForeground,
         letterSpacing: 1.5,
         textTransform: 'uppercase',
     },
@@ -182,13 +180,13 @@ export const loginStyles = StyleSheet.create({
         height: 48,
         borderRadius: 24,
         borderWidth: 1.5,
-        borderColor: '#CBEBE8',
-        backgroundColor: '#ffffff',
+        borderColor: theme.colors.border,
+        backgroundColor: theme.colors.card,
     },
     googleButtonText: {
         fontSize: 14,
         fontWeight: '700',
-        color: '#08302E',
+        color: theme.colors.foreground,
     },
 
     // ── Footer ──
@@ -200,18 +198,18 @@ export const loginStyles = StyleSheet.create({
     },
     footerText: {
         fontSize: 13,
-        color: '#527F7C',
+        color: theme.colors.mutedForeground,
     },
     footerLink: {
         fontSize: 13,
         fontWeight: '700',
-        color: '#0D4A48',
+        color: theme.colors.primary,
     },
 
     // ── Reset Password Specific Styles ──
     resetContainer: {
         flexGrow: 1,
-        backgroundColor: '#ffffff',
+        backgroundColor: theme.colors.background,
         alignItems: 'center',
         paddingHorizontal: 28,
     },
@@ -224,30 +222,31 @@ export const loginStyles = StyleSheet.create({
     resetNavTitle: {
         fontSize: 24,
         fontWeight: '800',
-        color: '#0D4A48',
+        color: theme.colors.foreground,
         marginLeft: 16,
     },
     resetHighlightCard: {
         width: '100%',
-        backgroundColor: '#D1F5F2', // Soft cyan
+        backgroundColor: theme.colors.card,
         borderRadius: 32,
         paddingHorizontal: 24,
         paddingVertical: 40,
         alignItems: 'center',
         marginBottom: 32,
+        ...theme.shadows.soft
     },
     resetIconCircle: {
         width: 80,
         height: 80,
         borderRadius: 40,
-        backgroundColor: '#ffffff',
+        backgroundColor: theme.colors.background,
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: 24,
         // Soft shadow
         ...Platform.select({
             ios: {
-                shadowColor: '#12B5B0',
+                shadowColor: theme.colors.primary,
                 shadowOffset: { width: 0, height: 8 },
                 shadowOpacity: 0.15,
                 shadowRadius: 16,
@@ -260,12 +259,12 @@ export const loginStyles = StyleSheet.create({
     resetCardTitle: {
         fontSize: 24,
         fontWeight: '800',
-        color: '#08302E',
+        color: theme.colors.foreground,
         marginBottom: 12,
     },
     resetCardSubtitle: {
         fontSize: 14,
-        color: '#08302E',
+        color: theme.colors.mutedForeground,
         textAlign: 'center',
         lineHeight: 22,
     },
@@ -281,12 +280,12 @@ export const loginStyles = StyleSheet.create({
     },
     resetFooterText: {
         fontSize: 14,
-        color: '#527F7C',
+        color: theme.colors.mutedForeground,
     },
     resetFooterLink: {
         fontSize: 14,
         fontWeight: '700',
-        color: '#08302E',
+        color: theme.colors.foreground,
         marginLeft: 4,
     },
 
@@ -300,7 +299,7 @@ export const loginStyles = StyleSheet.create({
         width: 64,
         height: 64,
         borderRadius: 32,
-        backgroundColor: '#086B67',
+        backgroundColor: theme.colors.primary,
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: 16,
@@ -308,21 +307,21 @@ export const loginStyles = StyleSheet.create({
     registerHeaderTitle: {
         fontSize: 28,
         fontWeight: '800',
-        color: '#08302E',
+        color: theme.colors.foreground,
         marginBottom: 4,
     },
     registerHeaderSubtitle: {
         fontSize: 14,
-        color: '#527F7C',
+        color: theme.colors.mutedForeground,
     },
     registerCard: {
         width: '100%',
-        backgroundColor: '#ffffff',
+        backgroundColor: theme.colors.card,
         borderRadius: 24,
         padding: 24,
         ...Platform.select({
             ios: {
-                shadowColor: '#12B5B0',
+                shadowColor: theme.colors.primary,
                 shadowOffset: { width: 0, height: 12 },
                 shadowOpacity: 0.1,
                 shadowRadius: 24,
@@ -336,21 +335,21 @@ export const loginStyles = StyleSheet.create({
     registerCardTitle: {
         fontSize: 24,
         fontWeight: '800',
-        color: '#08302E',
+        color: theme.colors.foreground,
         marginBottom: 6,
     },
     registerCardSubtitle: {
         fontSize: 13,
-        color: '#527F7C',
+        color: theme.colors.mutedForeground,
         marginBottom: 24,
     },
     registerFlatInputContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#F5FAF9',
+        backgroundColor: theme.colors.background,
         borderRadius: 4,
         borderWidth: 1,
-        borderColor: '#E5F2F0',
+        borderColor: theme.colors.border,
         paddingHorizontal: 16,
         height: 52,
         marginBottom: 16,
@@ -359,7 +358,7 @@ export const loginStyles = StyleSheet.create({
         width: '100%',
         height: 52,
         borderRadius: 4,
-        backgroundColor: '#086B67',
+        backgroundColor: theme.colors.primary,
         alignItems: 'center',
         justifyContent: 'center',
         marginTop: 8,
@@ -373,7 +372,7 @@ export const loginStyles = StyleSheet.create({
     },
     infoBlock: {
         flex: 1,
-        backgroundColor: '#C5F0EA',
+        backgroundColor: theme.colors.muted,
         borderRadius: 4,
         padding: 16,
         alignItems: 'center',
@@ -387,14 +386,14 @@ export const loginStyles = StyleSheet.create({
     infoBlockTitle: {
         fontSize: 12,
         fontWeight: '700',
-        color: '#086B67',
+        color: theme.colors.primary,
         marginTop: 8,
         marginBottom: 4,
         letterSpacing: 1,
     },
     infoBlockText: {
         fontSize: 10,
-        color: '#527F7C',
+        color: theme.colors.mutedForeground,
         textAlign: 'center',
         lineHeight: 14,
     },
@@ -405,14 +404,14 @@ export const loginStyles = StyleSheet.create({
     },
     bottomLink: {
         fontSize: 12,
-        color: '#527F7C',
+        color: theme.colors.mutedForeground,
         marginHorizontal: 16,
     },
 
     // ── OTP Screen Styles ──
     otpMainContainer: {
         flexGrow: 1,
-        backgroundColor: '#E8F5F0', // mintBackground
+        backgroundColor: theme.colors.background,
         alignItems: 'center',
         paddingHorizontal: 28,
     },
@@ -420,22 +419,23 @@ export const loginStyles = StyleSheet.create({
         width: 100,
         height: 100,
         borderRadius: 50,
-        backgroundColor: '#D1F5F2',
+        backgroundColor: theme.colors.card,
         alignItems: 'center',
         justifyContent: 'center',
         marginTop: 60,
         marginBottom: 32,
+        ...theme.shadows.soft
     },
     otpTitle: {
         fontSize: 28,
         fontWeight: '800',
-        color: '#08302E',
+        color: theme.colors.foreground,
         marginBottom: 8,
         textAlign: 'center',
     },
     otpSubtitle: {
         fontSize: 15,
-        color: '#527F7C',
+        color: theme.colors.mutedForeground,
         textAlign: 'center',
         marginBottom: 40,
         lineHeight: 22,
@@ -451,19 +451,19 @@ export const loginStyles = StyleSheet.create({
         height: 60,
         borderRadius: 30,
         borderWidth: 1.5,
-        borderColor: '#CBEBE8',
-        backgroundColor: '#ffffff',
+        borderColor: theme.colors.border,
+        backgroundColor: theme.colors.card,
         marginHorizontal: 8,
         alignItems: 'center',
         justifyContent: 'center',
     },
     otpCircleFilled: {
         borderWidth: 0,
-        backgroundColor: '#ffffff',
+        backgroundColor: theme.colors.card,
         // Shadow for filled state
         ...Platform.select({
             ios: {
-                shadowColor: '#12B5B0',
+                shadowColor: theme.colors.primary,
                 shadowOffset: { width: 0, height: 4 },
                 shadowOpacity: 0.1,
                 shadowRadius: 8,
@@ -476,18 +476,18 @@ export const loginStyles = StyleSheet.create({
     otpText: {
         fontSize: 24,
         fontWeight: '700',
-        color: '#08302E',
+        color: theme.colors.foreground,
     },
     otpDot: {
         width: 8,
         height: 8,
         borderRadius: 4,
-        backgroundColor: '#527F7C',
+        backgroundColor: theme.colors.mutedForeground,
     },
     timerCapsule: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#E0FCFA',
+        backgroundColor: theme.colors.muted,
         paddingHorizontal: 20,
         paddingVertical: 10,
         borderRadius: 20,
@@ -496,7 +496,7 @@ export const loginStyles = StyleSheet.create({
     timerText: {
         fontSize: 13,
         fontWeight: '700',
-        color: '#0D4A48',
+        color: theme.colors.primary,
         marginLeft: 8,
         textTransform: 'uppercase',
     },
@@ -513,15 +513,15 @@ export const loginStyles = StyleSheet.create({
         flex: 1,
         height: 4,
         borderRadius: 2,
-        backgroundColor: '#E5F2F0',
+        backgroundColor: theme.colors.border,
         marginHorizontal: 3,
     },
     strengthBarActive: {
-        backgroundColor: '#12B5B0',
+        backgroundColor: theme.colors.primary,
     },
     passwordHint: {
         fontSize: 12,
-        color: '#527F7C',
+        color: theme.colors.mutedForeground,
         textAlign: 'center',
         marginBottom: 32,
     }

@@ -8,9 +8,12 @@ import * as SecureStore from 'expo-secure-store';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Mail, Lock, Eye, EyeOff, LogIn } from 'lucide-react-native';
 import { FontAwesome } from '@expo/vector-icons';
-import { loginStyles as styles } from '../styles/loginStyles';
+import { get_loginStyles } from '../styles/loginStyles';
+import { useAppTheme } from '../context/ThemeContext';
 
 export default function LoginScreen() {
+    const { theme } = useAppTheme();
+    const styles = get_loginStyles(theme);
     const navigation = useNavigation();
     const insets = useSafeAreaInsets();
     const [email, setEmail] = useState('');
@@ -85,7 +88,10 @@ export default function LoginScreen() {
             style={{ flex: 1 }} 
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
-            <StatusBar barStyle="dark-content" backgroundColor="#E8F5F0" />
+            <StatusBar 
+                barStyle={theme.mode === 'dark' ? "light-content" : "dark-content"} 
+                backgroundColor={theme.colors.background} 
+            />
             <ScrollView 
                 contentContainerStyle={[
                     styles.scrollContainer,
@@ -114,13 +120,13 @@ export default function LoginScreen() {
                     <View style={styles.fieldGroup}>
                         <Text style={styles.fieldLabel}>EMAIL ADDRESS</Text>
                         <View style={styles.inputContainer}>
-                            <Mail color="#527F7C" size={18} style={styles.inputIcon} />
+                            <Mail color={theme.colors.mutedForeground} size={18} style={styles.inputIcon} />
                             <TextInput
                                 style={styles.textInput}
                                 value={email}
                                 onChangeText={setEmail}
                                 placeholder="name@example.com"
-                                placeholderTextColor="#CBEBE8"
+                                placeholderTextColor={theme.colors.mutedForeground}
                                 keyboardType="email-address"
                                 autoCapitalize="none"
                             />
@@ -136,13 +142,13 @@ export default function LoginScreen() {
                             </TouchableOpacity>
                         </View>
                         <View style={styles.inputContainer}>
-                            <Lock color="#527F7C" size={18} style={styles.inputIcon} />
+                            <Lock color={theme.colors.mutedForeground} size={18} style={styles.inputIcon} />
                             <TextInput
                                 style={styles.textInput}
                                 value={password}
                                 onChangeText={setPassword}
                                 placeholder="••••••••"
-                                placeholderTextColor="#CBEBE8"
+                                placeholderTextColor={theme.colors.mutedForeground}
                                 secureTextEntry={!showPassword}
                             />
                             <TouchableOpacity 
@@ -150,9 +156,9 @@ export default function LoginScreen() {
                                 style={styles.eyeButton}
                             >
                                 {showPassword ? (
-                                    <EyeOff color="#527F7C" size={18} />
+                                    <EyeOff color={theme.colors.mutedForeground} size={18} />
                                 ) : (
-                                    <Eye color="#527F7C" size={18} />
+                                    <Eye color={theme.colors.mutedForeground} size={18} />
                                 )}
                             </TouchableOpacity>
                         </View>

@@ -1,9 +1,13 @@
+import { useAppTheme } from '../context/ThemeContext';
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import stylesLP from '../styles/stylesLearningPath';
+import get_stylesLP from '../styles/stylesLearningPath';
 import { Lock, Check, Apple } from 'lucide-react-native'; // Usamos iconos aproximados
 
 const PathNode = ({ deck, onPress, index }) => {
+  const { theme, toggleTheme } = useAppTheme();
+  const stylesLP = get_stylesLP(theme);
+
   const isLocked = deck.is_locked;
   const isCompleted = deck.best_accuracy >= (deck.min_accuracy || 0.9);
   const isActive = !isLocked && !isCompleted;

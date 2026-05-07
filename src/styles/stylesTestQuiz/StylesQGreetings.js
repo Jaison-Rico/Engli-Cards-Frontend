@@ -1,15 +1,14 @@
 import { StyleSheet } from "react-native";
-import theme, { tokens, shadows } from '../theme';
 
-const primaryColor = theme.colors.primaryLight || theme.colors.primary;
-
-const stylesQG = StyleSheet.create({
+const get_stylesQG = (theme) => {
+    const primaryColor = theme.colors.primaryLight || theme.colors.primary;
+    return StyleSheet.create({
     containerMCTop: {
         paddingHorizontal: 20,
         backgroundColor: '#FFFFFF',
         height: 100,
-        borderBottomLeftRadius: tokens.radius.lg,
-        borderBottomRightRadius: tokens.radius.lg,
+        borderBottomLeftRadius: theme.tokens.radius.lg,
+        borderBottomRightRadius: theme.tokens.radius.lg,
         flexDirection: 'column',
         justifyContent: 'flex-end',
     },
@@ -64,7 +63,7 @@ const stylesQG = StyleSheet.create({
         width: "90%",
         minHeight: 200,
         backgroundColor: theme.colors.card,
-        borderRadius: tokens.radius.lg,
+        borderRadius: theme.tokens.radius.lg,
         justifyContent: 'center', 
         alignItems: 'center',
         marginTop: 30,
@@ -72,14 +71,14 @@ const stylesQG = StyleSheet.create({
         marginBottom: 30,
         paddingHorizontal: 20,
         paddingVertical: 30,
-        ...shadows.card,
+        ...theme.shadows.card,
         borderWidth: 1,
         borderColor: theme.colors.border,
     },
     containerOptionsQG: {
         width: "100%",
         minHeight: 56,
-        borderRadius: tokens.radius.md,
+        borderRadius: theme.tokens.radius.md,
         backgroundColor: theme.colors.card,
         borderWidth: 2,
         borderColor: theme.colors.border,
@@ -91,14 +90,14 @@ const stylesQG = StyleSheet.create({
     containerVerifyQG: {
         width: "100%",
         height: 56,
-        borderRadius: tokens.radius.md,
+        borderRadius: theme.tokens.radius.md,
         backgroundColor: primaryColor,
         alignSelf: 'center',
         marginTop: 20,
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
-        ...shadows.soft,
+        ...theme.shadows.soft,
     },
     selectedOption: {
         backgroundColor: theme.colors.surfaceContainerLow || '#EAF9FA',
@@ -136,27 +135,27 @@ const stylesQG = StyleSheet.create({
     modalCard: {
         width: '80%',
         backgroundColor: '#FFFFFF',
-        borderRadius: tokens.radius.lg,
-        padding: tokens.spacing.lg,
+        borderRadius: theme.tokens.radius.lg,
+        padding: theme.tokens.spacing.lg,
         alignItems: 'center',
-        ...shadows.card,
+        ...theme.shadows.card,
     },
     modalTitle: {
         fontSize: 22,
         fontWeight: '800',
         color: theme.colors.foreground,
-        marginBottom: tokens.spacing.sm,
+        marginBottom: theme.tokens.spacing.sm,
         textAlign: 'center'
     },
     modalMessage: {
         fontSize: 16,
         color: theme.colors.mutedForeground,
         textAlign: 'center',
-        marginBottom: tokens.spacing.lg
+        marginBottom: theme.tokens.spacing.lg
     },
     modalOkBtn: {
         backgroundColor: primaryColor,
-        borderRadius: tokens.radius.md,
+        borderRadius: theme.tokens.radius.md,
         paddingVertical: 12,
         paddingHorizontal: 24
     },
@@ -165,8 +164,9 @@ const stylesQG = StyleSheet.create({
         fontWeight: '700',
         fontSize: 16
     }
-});
-export default stylesQG;
+    });
+};
+export default get_stylesQG;
 
 
 

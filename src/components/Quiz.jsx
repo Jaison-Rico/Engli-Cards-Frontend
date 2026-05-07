@@ -8,7 +8,8 @@ import * as Speech from 'expo-speech';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as SecureStore from 'expo-secure-store';
 import { config } from '../config/api';
-import theme from '../styles/theme';
+import { useAppTheme } from '../context/ThemeContext';
+import get_stylesQG from '../styles/stylesTestQuiz/StylesQGreetings';
 
 /*
 	Componente reutilizable de Quiz.
@@ -34,6 +35,8 @@ export default function Quiz({
 	onFinish = () => { },
 	deckId = null
 }) {
+	const { theme } = useAppTheme();
+	const styles = get_stylesQG(theme);
 	const primaryColor = theme.colors.primaryLight || theme.colors.primary;
 	// Validaciones básicas según reglas actuales (no bloquea render, pero informa en consola)
 	if (questions.length !== 5) {
@@ -236,4 +239,3 @@ export default function Quiz({
 // Importamos estilos específicos de Quiz Greetings para conservar apariencia.
 // Otras pantallas pueden crear sus propios estilos y ajustar este import.
 // Si se requiere estilos diferentes, se puede agregar prop styleOverrides.
-import styles from '../styles/stylesTestQuiz/StylesQGreetings';

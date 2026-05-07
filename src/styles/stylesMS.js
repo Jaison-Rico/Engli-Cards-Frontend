@@ -1,27 +1,26 @@
 import { StyleSheet, Platform } from "react-native";
-import theme, { tokens, shadows } from './theme';
 
-const stylesMS = StyleSheet.create({
+const get_stylesMS = (theme) => StyleSheet.create({
 containerMCTop: {
     paddingLeft: 20,
     paddingRight: 20,
-    backgroundColor: '#ffffff',
+    backgroundColor: theme.colors.background,
 },
 titlesMC:{
     fontSize: 28,
     fontWeight: '900',
-    color: '#08302E',
+    color: theme.colors.foreground,
 },
 subtitlesMC:{
     fontSize: 14,
     fontWeight: '400',
     marginTop: 4,
-    color: '#527F7C',
+    color: theme.colors.mutedForeground,
 },
 buttonStats:{
     flexDirection: 'row',
     alignItems: 'center',
-    borderColor: '#E5F2F0',
+    borderColor: theme.colors.border,
     borderWidth: 1.5,
     borderRadius: 20,
     paddingVertical: 8,
@@ -31,10 +30,10 @@ buttonStats:{
 textButtonMCStats:{
     fontSize: 14,
     fontWeight: '700',
-    color: '#08302E',
+    color: theme.colors.foreground,
 },
 searchContainerTop: {
-    backgroundColor: '#F5FAF9',
+    backgroundColor: theme.colors.card,
     borderRadius: 24,
     flexDirection: 'row',
     alignItems: 'center',
@@ -45,7 +44,7 @@ searchContainerTop: {
 searchInputTop: {
     flex: 1,
     fontSize: 15,
-    color: '#08302E',
+    color: theme.colors.foreground,
 },
 containerMCBottonsMain:{
     flexDirection: 'row',
@@ -61,8 +60,8 @@ buttonCDeck: {
     width: "47%",
     height: 120,
     borderRadius: 24,
-    backgroundColor: '#ffffff',
-    ...shadows.card,
+    backgroundColor: theme.colors.card,
+    ...theme.shadows.card,
 },
 buttonCFlashcard:{
     flexDirection: 'column',
@@ -72,18 +71,18 @@ buttonCFlashcard:{
     width: "47%",
     height: 120,
     borderRadius: 24,
-    backgroundColor: '#ffffff',
-    ...shadows.card,
+    backgroundColor: theme.colors.card,
+    ...theme.shadows.card,
 },
 buttonCardText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#08302E',
+    color: theme.colors.foreground,
 },
 misMazosTitle: {
     fontSize: 22,
     fontWeight: '900',
-    color: '#08302E',
+    color: theme.colors.foreground,
     marginTop: 36,
     marginLeft: 20,
 },
@@ -95,11 +94,11 @@ deckListContainer: {
     paddingBottom: 20,
 },
 deckCard: {
-    backgroundColor: '#ffffff',
+    backgroundColor: theme.colors.card,
     borderRadius: 24,
     padding: 20,
     marginBottom: 16,
-    shadowColor: '#000',
+    shadowColor: theme.colors.mutedForeground,
     shadowOpacity: 0.04,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 4 },
@@ -115,11 +114,11 @@ deckCardLeft: {
 deckTitle: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#08302E',
+    color: theme.colors.foreground,
 },
 deckCount: {
     fontSize: 14,
-    color: '#527F7C',
+    color: theme.colors.mutedForeground,
     marginTop: 6,
     fontWeight: '500',
 },
@@ -127,7 +126,7 @@ deckCardRight: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#12B5B0',
+    backgroundColor: theme.colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
 },
@@ -144,19 +143,19 @@ modalOverlay: {
     alignItems: 'center',
 },
 modalContainer: {
-    backgroundColor: '#ffffff',
+    backgroundColor: theme.colors.card,
     borderRadius: 24,
     width: '88%',
     maxWidth: 400,
     padding: 24,
     alignItems: 'center',
-    ...shadows.card,
+    ...theme.shadows.card,
 },
 modalHeaderIcon: {
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#E8F5F0', // Light mint
+    backgroundColor: theme.colors.muted,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
@@ -164,13 +163,13 @@ modalHeaderIcon: {
 modalTitleCenter: {
     fontSize: 24,
     fontWeight: '800',
-    color: '#08302E',
+    color: theme.colors.foreground,
     textAlign: 'center',
     marginBottom: 8,
 },
 modalSubtitle: {
     fontSize: 14,
-    color: '#527F7C',
+    color: theme.colors.mutedForeground,
     textAlign: 'center',
     lineHeight: 22,
     marginBottom: 24,
@@ -178,7 +177,7 @@ modalSubtitle: {
 modalLabel: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#08302E',
+    color: theme.colors.foreground,
     marginBottom: 8,
     alignSelf: 'flex-start',
     width: '100%',
@@ -186,26 +185,26 @@ modalLabel: {
 modalInput: {
     width: '100%',
     borderWidth: 1,
-    borderColor: '#E5F2F0',
+    borderColor: theme.colors.border,
     borderRadius: 4,
     paddingHorizontal: 16,
     height: 52,
     fontSize: 15,
-    color: '#08302E',
-    backgroundColor: '#ffffff',
+    color: theme.colors.foreground,
+    backgroundColor: theme.colors.background,
     marginBottom: 24,
 },
 modalButtonCreate: {
     width: '100%',
     height: 52,
     borderRadius: 26,
-    backgroundColor: '#12B5B0',
+    backgroundColor: theme.colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
     ...Platform.select({
         ios: {
-            shadowColor: '#12B5B0',
+            shadowColor: theme.colors.primary,
             shadowOffset: { width: 0, height: 8 },
             shadowOpacity: 0.35,
             shadowRadius: 16,
@@ -229,7 +228,7 @@ modalButtonCancel: {
 modalButtonTextCancel: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#08302E',
+    color: theme.colors.foreground,
 },
 // Toast styles
 toastContainer: {
@@ -237,8 +236,8 @@ toastContainer: {
     top: 0,
     left: 20,
     right: 20,
-    borderRadius: tokens.radius.md,
-    ...shadows.card,
+    borderRadius: theme.tokens.radius.md,
+    ...theme.shadows.card,
     zIndex: 9999,
 },
 toastContent: {
@@ -255,7 +254,7 @@ toastText: {
     lineHeight: 20,
 }
 })
-export default stylesMS;
+export default get_stylesMS;
 
 
 

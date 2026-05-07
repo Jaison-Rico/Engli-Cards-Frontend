@@ -1,6 +1,7 @@
+import { useAppTheme } from '../context/ThemeContext';
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Alert, TextInput, ActivityIndicator } from 'react-native';
-import stylesProfile from '../styles/stylesProfile';
+import { View, Text, ScrollView, TouchableOpacity, Alert, TextInput, ActivityIndicator, Modal } from 'react-native';
+import get_stylesProfile from '../styles/stylesProfile';
 import { CommonActions, useNavigation, useFocusEffect } from '@react-navigation/native';
 import * as SecureStore from 'expo-secure-store';
 import { Avatar } from '@rneui/themed';
@@ -8,9 +9,11 @@ import { LogOut, Pencil, Check, X, Trash2, Settings, BookOpen, GraduationCap, Ta
 import * as ImagePicker from 'expo-image-picker';
 import { config } from '../config/api';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import theme from '../styles/theme';
 
 export default function ProfileScreen() {
+  const { theme, toggleTheme } = useAppTheme();
+  const stylesProfile = get_stylesProfile(theme);
+
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const [userData, setUserData] = useState(null);
@@ -22,6 +25,15 @@ export default function ProfileScreen() {
   const [isEditingName, setIsEditingName] = useState(false);
   const [newName, setNewName] = useState('');
   const [showAllAchievements, setShowAllAchievements] = useState(false);
+  const [showBetaModal, setShowBetaModal] = useState(false);
+
+  const handleThemeToggle = () => {
+    // Solo mostramos el modal si estamos en modo claro y vamos a pasar a oscuro
+    if (theme.mode === 'light') {
+      setShowBetaModal(true);
+    }
+    toggleTheme();
+  };
 
   useFocusEffect(
     React.useCallback(() => {
@@ -271,11 +283,20 @@ export default function ProfileScreen() {
           <BookOpen color={primaryColor} size={24} />
           <Text style={stylesProfile.topBarTitle}>Engli-Cards</Text>
         </View>
-        {userData?.role === 'admin' && (
-          <TouchableOpacity onPress={() => navigation.navigate('AdminSettings')}>
-            <Settings color={primaryColor} size={24} />
+        <View style={{flexDirection: 'row', alignItems: 'center', gap: 16}}>
+          <TouchableOpacity onPress={handleThemeToggle}>
+            {theme.mode === 'dark' ? (
+              <Sun color={primaryColor} size={24} />
+            ) : (
+              <Moon color={primaryColor} size={24} />
+            )}
           </TouchableOpacity>
-        )}
+          {userData?.role === 'admin' && (
+            <TouchableOpacity onPress={() => navigation.navigate('AdminSettings')}>
+              <Settings color={primaryColor} size={24} />
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
 
       {/* Header Info */}
@@ -436,6 +457,33 @@ export default function ProfileScreen() {
           <Text style={stylesProfile.deleteButtonText}>Eliminar Cuenta</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Beta Warning Modal */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={showBetaModal}
+        onRequestClose={() => setShowBetaModal(false)}
+      >
+        <View style={stylesProfile.modalOverlay}>
+          <View style={stylesProfile.modalContent}>
+            <View style={{ backgroundColor: primaryColor + '20', padding: 16, borderRadius: 30, marginBottom: 16 }}>
+              <Zap color={primaryColor} size={32} />
+            </View>
+            <Text style={stylesProfile.modalTitle}>Modo Beta</Text>
+            <Text style={stylesProfile.modalText}>
+              Oye, el modo oscuro está en modo beta, pueden haber errores.
+            </Text>
+            <TouchableOpacity 
+              style={stylesProfile.modalButton} 
+              onPress={() => setShowBetaModal(false)}
+              activeOpacity={0.8}
+            >
+              <Text style={stylesProfile.modalButtonText}>Entendido</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }

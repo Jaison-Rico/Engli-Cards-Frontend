@@ -1,9 +1,9 @@
 import { StyleSheet } from 'react-native';
-import theme, { tokens } from './theme';
+import { tokens } from './theme';
 
 // Estilos de la pantalla del juego Frutas
 // Mantén estos estilos como fuente única para esta pantalla
-const styleGameFlashCard = StyleSheet.create({
+const get_styleGameFlashCard = (theme) => StyleSheet.create({
   centerAligned: { alignItems: 'center' },
   screen: {
     flex: 1,
@@ -121,4 +121,4 @@ const styleGameFlashCard = StyleSheet.create({
   cardImage: { width: '78%', height: '50%', resizeMode: 'contain', marginTop: 4 },
 });
 
-export default styleGameFlashCard;
+export default get_styleGameFlashCard;

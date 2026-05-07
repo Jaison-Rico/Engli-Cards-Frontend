@@ -1,7 +1,8 @@
+import { useAppTheme } from '../context/ThemeContext';
 import React from "react";
 import { View, Text, FlatList, TouchableOpacity, SafeAreaView } from "react-native";
 import { Play, Lock, Sparkles, BookOpen, Apple, Users, Briefcase, School, Plane, Palette, Dog } from "lucide-react-native";
-import styles from "../styles/stylesLearningPath";
+import get_styles from '../styles/stylesLearningPath';
 import greetingsData from './games/imagesGreetings.json';
 import FruitsData from './games/imagesFruits.json';
 
@@ -17,6 +18,9 @@ const lessons = [
 ];
 
 export default function LearningPath({ navigation }) {
+  const { theme, toggleTheme } = useAppTheme();
+  const styles = get_styles(theme);
+
   const handleLessonPress = (lesson) => {
     if (lesson.status === "locked") return;
     
@@ -70,7 +74,7 @@ export default function LearningPath({ navigation }) {
                 styles.iconContainer, 
                 isLocked ? styles.iconLocked : styles.iconAvailable
               ]}>
-                {renderIcon(item.icon, isLocked ? '#94A3B8' : '#0EA5E9')}
+                {renderIcon(item.icon, isLocked ? theme.colors.mutedForeground : theme.colors.primary)}
               </View>
 
               <View style={styles.textContainer}>
@@ -90,7 +94,7 @@ export default function LearningPath({ navigation }) {
 
               {isLocked ? (
                 <View style={styles.lockIconContainer}>
-                  <Lock size={22} color="#94A3B8" strokeWidth={2.5} />
+                  <Lock size={22} color={theme.colors.mutedForeground} strokeWidth={2.5} />
                 </View>
               ) : (
                 <View style={styles.playButton}>

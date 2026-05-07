@@ -1,9 +1,12 @@
 import React, { useEffect, useRef } from 'react';
 import { View, StyleSheet } from 'react-native';
-import theme from '../styles/theme';
+
 import LottieView from 'lottie-react-native';
 
+import { useAppTheme } from '../context/ThemeContext';
+
 export default function HomeScreen({ navigation }) {
+  const { theme } = useAppTheme();
   const animation = useRef(null);
 
   useEffect(() => {
@@ -15,7 +18,7 @@ export default function HomeScreen({ navigation }) {
   }, [navigation]);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <LottieView
         ref={animation}
         source={require('../assets/animations/logoApp.json')}
@@ -30,7 +33,6 @@ export default function HomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background,
     alignItems: 'center',
     justifyContent: 'center',
   },

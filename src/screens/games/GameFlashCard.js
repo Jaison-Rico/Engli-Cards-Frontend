@@ -1,16 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { View, TouchableOpacity, Text, Animated, ActivityIndicator } from 'react-native';
-import styles from '../../styles/styleGameFlashCard';
+import { useAppTheme } from '../../context/ThemeContext';
+import get_styleGameFlashCard from '../../styles/styleGameFlashCard';
 import { ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react-native';
 import FlashCard from '../../components/FlashCard';
 import { Ionicons } from '@expo/vector-icons';
 import QuizStartButton from '../../components/QuizStartButton';
-import stylesMS from '../../styles/stylesMS';
+import get_stylesMS from '../../styles/stylesMS';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 
 // Pantalla exportada por defecto (usada por el Navigator)
 export default function GameFlashCard({ navigation, route }) {
+  const { theme } = useAppTheme();
+  const styles = get_styleGameFlashCard(theme);
+  const stylesMS = get_stylesMS(theme);
   const { sampleCards, quiz } = route.params
   const [index, setIndex] = useState(0);
   const [cards, setCards] = useState([]);

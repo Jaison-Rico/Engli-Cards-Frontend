@@ -6,20 +6,24 @@ import NewFlashCard from "../screens/NewFlashCard";
 import ProfileScreen from "../screens/ProfileScreen";
 import LearningPath from "./LearningPath";
 
+import { useAppTheme } from "../context/ThemeContext";
+
 const Tab = createBottomTabNavigator();
 
 export default function BottomTabs() {
+  const { theme } = useAppTheme();
+
   return (
       <Tab.Navigator
         screenOptions={{
           headerShown: false,
           tabBarShowLabel: true,
-          tabBarActiveTintColor: "#007bff",
-          tabBarInactiveTintColor: "gray",
+          tabBarActiveTintColor: theme.colors.primary,
+          tabBarInactiveTintColor: theme.colors.mutedForeground,
           tabBarStyle: {
-            backgroundColor: "#fff",
+            backgroundColor: theme.colors.card,
             borderTopWidth: 0.5,
-            borderTopColor: "#ccc",
+            borderTopColor: theme.colors.border,
             height: 60,
             paddingBottom: 5,
           },

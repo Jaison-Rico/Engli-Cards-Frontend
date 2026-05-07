@@ -2,13 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { View, ActivityIndicator, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import Quiz from '../components/Quiz';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import theme from '../styles/theme';
 import { config } from '../config/api';
 import * as SecureStore from 'expo-secure-store';
+import { useAppTheme } from '../context/ThemeContext';
 
 export default function DeckQuizScreen({ route, navigation }) {
+    const { theme } = useAppTheme();
     const { deckId, deckName } = route.params;
     const insets = useSafeAreaInsets();
+    const styles = get_styles(theme);
     const [loading, setLoading] = useState(true);
     const [quizData, setQuizData] = useState(null);
     const [error, setError] = useState(null);
@@ -79,10 +81,10 @@ export default function DeckQuizScreen({ route, navigation }) {
     );
 }
 
-const styles = StyleSheet.create({
+const get_styles = (theme) => StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#FFF',
+        backgroundColor: theme.colors.background,
     },
     center: {
         flex: 1,

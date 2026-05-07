@@ -1,7 +1,6 @@
 import { StyleSheet } from 'react-native';
-import theme, { tokens, shadows } from './theme';
 
-const stylesProfile = StyleSheet.create({
+const get_stylesProfile = (theme) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.surfaceLowest || theme.colors.background,
@@ -22,7 +21,7 @@ const stylesProfile = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: theme.colors.surfaceContainer || theme.colors.card,
     marginHorizontal: 20,
-    borderRadius: tokens.radius.lg,
+    borderRadius: theme.tokens.radius.lg,
     paddingVertical: 24,
     marginBottom: 20,
     marginTop: 10,
@@ -90,13 +89,13 @@ const stylesProfile = StyleSheet.create({
   statBox: {
     backgroundColor: theme.colors.card,
     width: '48%',
-    borderRadius: tokens.radius.md,
+    borderRadius: theme.tokens.radius.md,
     padding: 16,
     alignItems: 'center',
     borderWidth: 1,
     borderColor: theme.colors.surfaceContainer || theme.colors.border,
     marginBottom: 5,
-    ...shadows.soft,
+    ...theme.shadows.soft,
   },
   statBoxActive: {
     backgroundColor: theme.colors.primaryLight || theme.colors.primary,
@@ -150,7 +149,7 @@ const stylesProfile = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: theme.colors.surfaceContainer || theme.colors.card,
     padding: 16,
-    borderRadius: tokens.radius.md,
+    borderRadius: theme.tokens.radius.md,
   },
   achievementIconContainer: {
     width: 40,
@@ -199,11 +198,11 @@ const stylesProfile = StyleSheet.create({
     marginTop: 30,
     marginBottom: 20,
     padding: 24,
-    borderRadius: tokens.radius.xl,
+    borderRadius: theme.tokens.radius.xl,
     borderWidth: 1,
     borderColor: theme.colors.surfaceContainer || theme.colors.border,
     alignItems: 'center',
-    ...shadows.card,
+    ...theme.shadows.card,
   },
   levelHeaderRow: {
     flexDirection: 'row',
@@ -247,7 +246,7 @@ const stylesProfile = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 15,
-    borderRadius: tokens.radius.md,
+    borderRadius: theme.tokens.radius.md,
     backgroundColor: theme.colors.surfaceContainer || theme.colors.card,
     gap: 10,
   },
@@ -261,7 +260,7 @@ const stylesProfile = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 15,
-    borderRadius: tokens.radius.md,
+    borderRadius: theme.tokens.radius.md,
     gap: 10,
     marginTop: 10,
   },
@@ -270,6 +269,52 @@ const stylesProfile = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
+
+  // ── Modal Styles ──
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    width: '90%',
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.tokens.radius.xl,
+    padding: 24,
+    alignItems: 'center',
+    ...theme.shadows.card,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: theme.colors.foreground,
+    marginBottom: 12,
+  },
+  modalText: {
+    fontSize: 15,
+    color: theme.colors.mutedForeground,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 24,
+  },
+  modalButton: {
+    backgroundColor: theme.colors.primary,
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    borderRadius: theme.tokens.radius.full,
+    elevation: 4,
+    shadowColor: theme.colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+  },
+  modalButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '700',
+  },
 });
 
-export default stylesProfile;
+export default get_stylesProfile;

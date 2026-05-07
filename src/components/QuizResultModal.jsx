@@ -1,21 +1,8 @@
 import React from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
-import theme, { tokens, shadows } from '../styles/theme';
+import { useAppTheme } from '../context/ThemeContext';
+import { tokens, shadows } from '../styles/theme';
 
-/**
- * QuizResultModal
- * Modal reutilizable para mostrar el resultado del quiz.
- * Contrato:
- * - visible: boolean -> controla la visibilidad
- * - score: number -> aciertos
- * - total: number -> total de preguntas
- * - onOk: () => void -> acción al pulsar OK (p.ej. navigation.goBack())
- * - title?: string -> título del modal (default: 'Resultados')
- * - okText?: string -> texto del botón (default: 'OK')
- * - description?: string -> texto bajo el título; si no se pasa, se genera con score/total
- * - dismissible?: boolean -> permitir cerrar tocando el fondo (default: false)
- * - onRequestClose?: () => void -> handler para back (Android) o cierre de Modal
- */
 export default function QuizResultModal({
 	visible,
 	score = 0,
@@ -27,6 +14,8 @@ export default function QuizResultModal({
 	dismissible = false,
 	onRequestClose
 }) {
+	const { theme } = useAppTheme();
+	const styles = get_styles(theme);
 	const message = description ?? `Has obtenido ${score} de ${total} respuestas correctas.`;
 
 	const handleRequestClose = () => {
@@ -62,7 +51,7 @@ export default function QuizResultModal({
 	);
 }
 
-const styles = StyleSheet.create({
+const get_styles = (theme) => StyleSheet.create({
 	backdrop: {
 		position: 'absolute',
 		top: 0,

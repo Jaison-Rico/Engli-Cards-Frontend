@@ -1,5 +1,6 @@
+import { useAppTheme } from '../context/ThemeContext';
 import { View, Text, TextInput, TouchableOpacity, Modal, Platform, ActivityIndicator, ScrollView, Alert, Image } from "react-native";
-import stylesNFC from "../styles/styleNFC";
+import get_stylesNFC from '../styles/styleNFC';
 import { Picker } from '@react-native-picker/picker'; //componente para crear listas desplegables
 import { Camera, Save, ArrowLeft, ChevronDown, CheckCircle, Type, Globe, Lightbulb, Aperture, User } from 'lucide-react-native'; //import de icons
 import React, { useState, useEffect } from 'react';
@@ -10,6 +11,9 @@ import { config } from '../config/api';
 import * as ImagePicker from 'expo-image-picker';
 
 export default function NewFlashCard() {
+  const { theme, toggleTheme } = useAppTheme();
+  const stylesNFC = get_stylesNFC(theme);
+
     const navigation = useNavigation();
     const [selectedMazo, setSelectedMazo] = useState("");
     // iOS: mostramos un Modal con el wheel y evitamos romper el layout

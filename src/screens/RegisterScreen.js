@@ -4,12 +4,15 @@ import { useNavigation } from "@react-navigation/native";
 import { CommonActions } from '@react-navigation/native';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { User, Mail, Lock, ShieldCheck, Zap, Trophy } from "lucide-react-native";
-import { loginStyles as styles } from "../styles/loginStyles";
+import { get_loginStyles } from "../styles/loginStyles";
+import { useAppTheme } from '../context/ThemeContext';
 import axios from "axios";
 import { config } from "../config/api";
 import * as SecureStore from 'expo-secure-store';
 
 export default function RegisterScreen() {
+    const { theme } = useAppTheme();
+    const styles = get_loginStyles(theme);
     const navigation = useNavigation();
     const insets = useSafeAreaInsets();
     
@@ -59,14 +62,17 @@ export default function RegisterScreen() {
 
     return (
         <KeyboardAvoidingView 
-            style={{ flex: 1, backgroundColor: '#F0F9F8' }} // Extra subtle mint background
+            style={{ flex: 1, backgroundColor: theme.colors.background }} 
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
-            <StatusBar barStyle="dark-content" backgroundColor="#F0F9F8" />
+            <StatusBar 
+                barStyle={theme.mode === 'dark' ? "light-content" : "dark-content"} 
+                backgroundColor={theme.colors.background} 
+            />
             <ScrollView 
                 contentContainerStyle={[
                     styles.resetContainer, // Reusing base layout container
-                    { backgroundColor: '#F0F9F8', paddingTop: insets.top + 10, paddingBottom: insets.bottom + 20 }
+                    { backgroundColor: theme.colors.background, paddingTop: insets.top + 10, paddingBottom: insets.bottom + 20 }
                 ]}
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
@@ -92,13 +98,13 @@ export default function RegisterScreen() {
                     {/* Full Name */}
                     <Text style={[styles.fieldLabel, { textTransform: 'none', letterSpacing: 0 }]}>Full name</Text>
                     <View style={styles.registerFlatInputContainer}>
-                        <User color="#527F7C" size={18} style={styles.inputIcon} />
+                        <User color={theme.colors.mutedForeground} size={18} style={styles.inputIcon} />
                         <TextInput
                             style={styles.textInput}
                             value={name}
                             onChangeText={setName}
                             placeholder="Enter your full name"
-                            placeholderTextColor="#A1CFC9"
+                            placeholderTextColor={theme.colors.mutedForeground}
                             autoCapitalize="words"
                         />
                     </View>
@@ -106,13 +112,13 @@ export default function RegisterScreen() {
                     {/* Email */}
                     <Text style={[styles.fieldLabel, { textTransform: 'none', letterSpacing: 0 }]}>Email Address</Text>
                     <View style={styles.registerFlatInputContainer}>
-                        <Mail color="#527F7C" size={18} style={styles.inputIcon} />
+                        <Mail color={theme.colors.mutedForeground} size={18} style={styles.inputIcon} />
                         <TextInput
                             style={styles.textInput}
                             value={email}
                             onChangeText={setEmail}
                             placeholder="example@email.com"
-                            placeholderTextColor="#A1CFC9"
+                            placeholderTextColor={theme.colors.mutedForeground}
                             keyboardType="email-address"
                             autoCapitalize="none"
                         />
@@ -121,13 +127,13 @@ export default function RegisterScreen() {
                     {/* Password */}
                     <Text style={[styles.fieldLabel, { textTransform: 'none', letterSpacing: 0 }]}>Password</Text>
                     <View style={styles.registerFlatInputContainer}>
-                        <Lock color="#527F7C" size={18} style={styles.inputIcon} />
+                        <Lock color={theme.colors.mutedForeground} size={18} style={styles.inputIcon} />
                         <TextInput
                             style={styles.textInput}
                             value={password}
                             onChangeText={setPassword}
                             placeholder="••••••••"
-                            placeholderTextColor="#A1CFC9"
+                            placeholderTextColor={theme.colors.mutedForeground}
                             secureTextEntry
                         />
                     </View>
@@ -135,13 +141,13 @@ export default function RegisterScreen() {
                     {/* Confirm Password */}
                     <Text style={[styles.fieldLabel, { textTransform: 'none', letterSpacing: 0 }]}>Confirm Password</Text>
                     <View style={styles.registerFlatInputContainer}>
-                        <ShieldCheck color="#527F7C" size={18} style={styles.inputIcon} />
+                        <ShieldCheck color={theme.colors.mutedForeground} size={18} style={styles.inputIcon} />
                         <TextInput
                             style={styles.textInput}
                             value={confirmPassword}
                             onChangeText={setConfirmPassword}
                             placeholder="••••••••"
-                            placeholderTextColor="#A1CFC9"
+                            placeholderTextColor={theme.colors.mutedForeground}
                             secureTextEntry
                         />
                     </View>
@@ -174,12 +180,12 @@ export default function RegisterScreen() {
                 {/* Info Blocks */}
                 <View style={styles.infoBlocksContainer}>
                     <View style={[styles.infoBlock, styles.infoBlockLeft]}>
-                        <Zap color="#08302E" size={20} />
+                        <Zap color={theme.colors.primary} size={20} />
                         <Text style={styles.infoBlockTitle}>ADAPTIVE</Text>
                         <Text style={styles.infoBlockText}>Smart flashcards that learn your pace.</Text>
                     </View>
                     <View style={[styles.infoBlock, styles.infoBlockRight]}>
-                        <Trophy color="#08302E" size={20} />
+                        <Trophy color={theme.colors.primary} size={20} />
                         <Text style={styles.infoBlockTitle}>REWARDING</Text>
                         <Text style={styles.infoBlockText}>Earn gems for every vocabulary master.</Text>
                     </View>

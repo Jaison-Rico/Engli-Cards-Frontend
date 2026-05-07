@@ -1,4 +1,5 @@
-import stylesMS from '../styles/stylesMS';
+import { useAppTheme } from '../context/ThemeContext';
+import get_stylesMS from '../styles/stylesMS';
 import { View, Text, TouchableOpacity, FlatList, ActivityIndicator, TextInput, StatusBar, Alert } from "react-native";
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import React, { useState } from 'react';
@@ -9,10 +10,14 @@ import { config } from '../config/api';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import CreateDeck from './CreateDeck';
 import PathNode from '../components/PathNode';
-import stylesLP from '../styles/stylesLearningPath';
+import get_stylesLP from '../styles/stylesLearningPath';
 
 
 export default function MainScreen({ route }) {
+  const { theme, toggleTheme } = useAppTheme();
+  const stylesMS = get_stylesMS(theme);
+  const stylesLP = get_stylesLP(theme);
+
     const navigation = useNavigation(); //obtiene la función de navegación
     const [search, setSearch] = useState("");
     const [decks, setDecks] = useState([]);
@@ -117,8 +122,11 @@ export default function MainScreen({ route }) {
 
 
     return (
-        <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
-            <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+                <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+
+
+                                    <StatusBar barStyle={theme.mode === 'dark' ? "light-content" : "dark-content"} backgroundColor={theme.colors.background} />
+
             <View style={{ ...stylesMS.containerMCTop, paddingTop: insets.top + 10 }}>
                 {/* Header Row */}
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>

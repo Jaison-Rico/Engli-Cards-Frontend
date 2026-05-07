@@ -1,3 +1,4 @@
+import { useAppTheme } from '../context/ThemeContext';
 import React, { useState, useEffect } from 'react';
 import { View, Text, Modal, TextInput, TouchableOpacity, ActivityIndicator, Animated, Platform } from 'react-native';
 import { CheckCircle, AlertCircle, Layers } from 'lucide-react-native';
@@ -5,9 +6,12 @@ import { BlurView } from 'expo-blur';
 import * as SecureStore from 'expo-secure-store';
 import axios from 'axios';
 import { config } from '../config/api';
-import stylesMS from '../styles/stylesMS';
+import get_stylesMS from '../styles/stylesMS';
 
 export default function CreateDeck({ visible, onClose, onCreateDeck }) {
+  const { theme, toggleTheme } = useAppTheme();
+  const stylesMS = get_stylesMS(theme);
+
 	const [deckName, setDeckName] = useState("");
 	const [loading, setLoading] = useState(false);
 	const [toast, setToast] = useState({ visible: false, message: '', type: '' });

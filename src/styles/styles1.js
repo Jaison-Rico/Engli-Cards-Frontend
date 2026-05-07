@@ -1,8 +1,9 @@
-import { StyleSheet } from "react-native";
-import theme, { globalStyles, tokens } from './theme';
+import { getGlobalStyles } from './theme';
 
 
-const style1 = StyleSheet.create({
+const get_style1 = (theme) => {
+	const globalStyles = getGlobalStyles(theme);
+	return StyleSheet.create({
 container: {
 		...globalStyles.container,
 		alignItems: 'center',
@@ -78,9 +79,9 @@ titles:{
     color: theme.colors.foreground,
 },
 buttons:{
-    height: tokens.components.buttonHeight,
-    paddingHorizontal: tokens.components.buttonPaddingX,
-    borderRadius: tokens.radius.lg,
+    height: theme.tokens.components.buttonHeight,
+    paddingHorizontal: theme.tokens.components.buttonPaddingX,
+    borderRadius: theme.tokens.radius.lg,
     justifyContent: 'center',
     alignItems: 'center',
     textAlign:'center',
@@ -144,4 +145,4 @@ footerText: {
     fontSize: 12,
 }
 })
-export default style1;
+export default get_style1;

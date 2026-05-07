@@ -1,9 +1,9 @@
 import { StyleSheet } from 'react-native';
-import theme, { tokens } from './theme';
+import { tokens } from './theme';
 
 // Estilos de la pantalla del juego Greetings
 // Mantén estos estilos como fuente única para esta pantalla
-const stylesGreetings = StyleSheet.create({
+const get_stylesGreetings = (theme) => StyleSheet.create({
     centerAligned: { alignItems: 'center' },
     screen: { flex: 1, backgroundColor: theme.colors.background, alignItems: 'center', justifyContent: 'center', paddingVertical: 24 },
     counter: { color: theme.colors.foreground, marginBottom: 12, fontWeight: '600', opacity: 0.8, letterSpacing: 0.3 },
@@ -51,4 +51,4 @@ const stylesGreetings = StyleSheet.create({
     cardImage: { width: '78%', height: '50%', resizeMode: 'contain', marginTop: 4 },
 });
 
-export default stylesGreetings;
+export default get_stylesGreetings;

@@ -5,9 +5,10 @@ import { ChevronLeft, Plus, Settings, BookOpen, Trash2, Edit3, Shield, X, Save }
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as SecureStore from 'expo-secure-store';
 import { config } from '../config/api';
-import theme from '../styles/theme';
+import { useAppTheme } from '../context/ThemeContext';
 
 export default function AdminSettingsScreen() {
+  const { theme } = useAppTheme();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const [lessons, setLessons] = useState([]);

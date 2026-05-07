@@ -4,9 +4,12 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { config } from '../config/api';
 import { ArrowLeft, Lock, ShieldCheck, Eye, EyeOff, RotateCcw } from "lucide-react-native";
-import { loginStyles as styles } from "../styles/loginStyles";
+import { get_loginStyles } from "../styles/loginStyles";
+import { useAppTheme } from '../context/ThemeContext';
 
 export default function NewPasswordScreen() {
+    const { theme } = useAppTheme();
+    const styles = get_loginStyles(theme);
     const navigation = useNavigation();
     const route = useRoute();
     const insets = useSafeAreaInsets();

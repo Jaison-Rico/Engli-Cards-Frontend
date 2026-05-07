@@ -44,9 +44,11 @@ const paletteDark = {
 // Tokens
 export const tokens = {
 	radius: {
+		xl: 32,
 		lg: 24,
 		md: 16,
-		sm: 12
+		sm: 12,
+		full: 999,
 	},
 	spacing: {
 		xs: 6,
@@ -103,14 +105,11 @@ export const gradients = {
 export const getTheme = (scheme) => {
 	const colorScheme = scheme || Appearance.getColorScheme() || 'light';
 	const colors = colorScheme === 'dark' ? paletteDark : paletteLight;
-	return { colors, tokens, shadows, gradients, colorScheme };
+	return { colors, tokens, shadows, gradients, mode: colorScheme };
 };
 
-// Instancia por defecto (lee el esquema del SO al cargar)
-export const theme = getTheme();
-
-// Estilos globales reutilizables
-export const globalStyles = StyleSheet.create({
+// Estilos globales reutilizables (factoría dinámica)
+export const getGlobalStyles = (theme) => StyleSheet.create({
 	appBackground: {
 		flex: 1,
 		backgroundColor: theme.colors.background
@@ -143,7 +142,7 @@ export const globalStyles = StyleSheet.create({
 		borderRadius: tokens.radius.lg,
 		alignItems: 'center',
 		justifyContent: 'center',
-		backgroundColor: paletteLight.accent // se ve bien en ambos modos
+		backgroundColor: theme.colors.accent
 	},
 	buttonPrimaryText: {
 		color: '#fff',
@@ -175,4 +174,4 @@ export const motionPresets = {
 	}
 };
 
-export default theme;
+export default { getTheme, tokens, shadows, gradients, getGlobalStyles };

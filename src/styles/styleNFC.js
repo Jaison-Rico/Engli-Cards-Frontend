@@ -1,8 +1,6 @@
-import { Bold } from "lucide-react-native";
 import { StyleSheet, Platform } from "react-native";
-import theme, { tokens, shadows } from './theme';
 
-const stylesNFC = StyleSheet.create({
+const get_stylesNFC = (theme) => StyleSheet.create({
     screenWrapper: {
         flex: 1,
         backgroundColor: '#F5FAFB',
@@ -40,7 +38,7 @@ const stylesNFC = StyleSheet.create({
         marginBottom: 20,
         paddingHorizontal: 20,
         paddingTop: 24,
-        ...shadows.card,
+        ...theme.shadows.card,
         elevation: 2,
     },
     label: {
@@ -196,7 +194,7 @@ const stylesNFC = StyleSheet.create({
         flex: 1,
         paddingVertical: 12,
         paddingHorizontal: 20,
-        borderRadius: tokens.radius.md,
+        borderRadius: theme.tokens.radius.md,
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -223,7 +221,7 @@ const stylesNFC = StyleSheet.create({
     androidModalOption: {
         paddingVertical: 16,
         paddingHorizontal: 16,
-        borderRadius: tokens.radius.md,
+        borderRadius: theme.tokens.radius.md,
         marginVertical: 4,
         backgroundColor: theme.colors.muted,
     },
@@ -274,7 +272,7 @@ const stylesNFC = StyleSheet.create({
         lineHeight: 22,
     },
 });
-export default stylesNFC;
+export default get_stylesNFC;
 
 
 
