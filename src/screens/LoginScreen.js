@@ -83,6 +83,10 @@ export default function LoginScreen() {
         }
     }
 
+    const handleGoogleLogin = async () => {
+        alert('El inicio de sesión con Google está deshabilitado temporalmente porque se encuentra en desarrollo.');
+    };
+
     return (
         <KeyboardAvoidingView 
             style={{ flex: 1 }} 
@@ -189,7 +193,11 @@ export default function LoginScreen() {
                     </View>
 
                     {/* Google Sign In */}
-                    <TouchableOpacity style={styles.googleButton} activeOpacity={0.7}>
+                    <TouchableOpacity 
+                        style={styles.googleButton} 
+                        activeOpacity={0.7}
+                        onPress={handleGoogleLogin}
+                    >
                         <FontAwesome name="google" size={18} color="#4285F4" style={{ marginRight: 10 }} />
                         <Text style={styles.googleButtonText}>Sign in with Google</Text>
                     </TouchableOpacity>
