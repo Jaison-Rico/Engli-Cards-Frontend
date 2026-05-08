@@ -3,169 +3,184 @@ import { StyleSheet } from "react-native";
 const get_stylesQG = (theme) => {
     const primaryColor = theme.colors.primaryLight || theme.colors.primary;
     return StyleSheet.create({
-    containerMCTop: {
-        paddingHorizontal: 20,
-        backgroundColor: '#FFFFFF',
-        height: 100,
-        borderBottomLeftRadius: theme.tokens.radius.lg,
-        borderBottomRightRadius: theme.tokens.radius.lg,
-        flexDirection: 'column',
-        justifyContent: 'flex-end',
-    },
-    backButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 0,
-        marginTop: 0,
-    },
-    textsQG: {
-        fontSize: 14,
-        fontWeight: 'bold',
-        textAlign: 'center',
-        marginTop: 0,
-        marginBottom: 20,
-        color: theme.colors.mutedForeground,
-    },
-    textsQG2: {
-        fontSize: 16,
-        fontWeight: '500',
-        textAlign: 'center',
-        marginTop: 15,
-        marginBottom: 0,
-        color: theme.colors.mutedForeground,
-    },
-    optionButton: {
-        fontSize: 16,
-        fontWeight: '700',
-        textAlign: 'center',
-        color: theme.colors.foreground,
-    },
-    textBottomVerifyQG: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        textAlign: 'center',
-        color: '#FFFFFF', // Siempre blanco en el botón de verificar activo
-    },
-    textTitleQG: {
-        fontSize: 32,
-        fontWeight: '900',
-        textAlign: 'center',
-        color: theme.colors.foreground,
-        marginBottom: 0,
-    },
-    textButtonBackQG: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        textAlign: 'left',
-        color: theme.colors.foreground,
-    },
-    containerTitleQG: {
-        width: "90%",
-        minHeight: 200,
-        backgroundColor: theme.colors.card,
-        borderRadius: theme.tokens.radius.lg,
-        justifyContent: 'center', 
-        alignItems: 'center',
-        marginTop: 30,
-        alignSelf: 'center',
-        marginBottom: 30,
-        paddingHorizontal: 20,
-        paddingVertical: 30,
-        ...theme.shadows.card,
-        borderWidth: 1,
-        borderColor: theme.colors.border,
-    },
-    containerOptionsQG: {
-        width: "100%",
-        minHeight: 56,
-        borderRadius: theme.tokens.radius.md,
-        backgroundColor: theme.colors.card,
-        borderWidth: 2,
-        borderColor: theme.colors.border,
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingHorizontal: 15,
-    },
-    containerVerifyQG: {
-        width: "100%",
-        height: 56,
-        borderRadius: theme.tokens.radius.md,
-        backgroundColor: primaryColor,
-        alignSelf: 'center',
-        marginTop: 20,
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'center',
-        ...theme.shadows.soft,
-    },
-    selectedOption: {
-        backgroundColor: theme.colors.surfaceContainerLow || '#EAF9FA',
-        borderColor: primaryColor,
-    },
-    correctOption: {
-        backgroundColor: '#10B981', // Verde brillante
-        borderColor: '#10B981',
-    },
-    incorrectOption: {
-        backgroundColor: '#EF4444', // Rojo brillante
-        borderColor: '#EF4444',
-    },
-    disabledButton: {
-        backgroundColor: theme.colors.muted,
-        opacity: 0.6,
-        shadowOpacity: 0,
-    },
-    correctButton: {
-        backgroundColor: '#10B981',
-    },
-    incorrectButton: {
-        backgroundColor: '#EF4444',
-    },
-    modalBackdrop: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0,0,0,0.5)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    modalCard: {
-        width: '80%',
-        backgroundColor: '#FFFFFF',
-        borderRadius: theme.tokens.radius.lg,
-        padding: theme.tokens.spacing.lg,
-        alignItems: 'center',
-        ...theme.shadows.card,
-    },
-    modalTitle: {
-        fontSize: 22,
-        fontWeight: '800',
-        color: theme.colors.foreground,
-        marginBottom: theme.tokens.spacing.sm,
-        textAlign: 'center'
-    },
-    modalMessage: {
-        fontSize: 16,
-        color: theme.colors.mutedForeground,
-        textAlign: 'center',
-        marginBottom: theme.tokens.spacing.lg
-    },
-    modalOkBtn: {
-        backgroundColor: primaryColor,
-        borderRadius: theme.tokens.radius.md,
-        paddingVertical: 12,
-        paddingHorizontal: 24
-    },
-    modalOkText: {
-        color: '#fff',
-        fontWeight: '700',
-        fontSize: 16
-    }
+        containerMCTop: {
+            paddingHorizontal: 20,
+            backgroundColor: theme.colors.card,
+            paddingBottom: 15,
+            borderBottomLeftRadius: 32,
+            borderBottomRightRadius: 32,
+            flexDirection: 'column',
+            justifyContent: 'flex-end',
+            ...theme.shadows.soft,
+        },
+        backButton: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginBottom: 8,
+        },
+        textButtonBackQG: {
+            fontSize: 20,
+            fontWeight: '800',
+            textAlign: 'left',
+            color: theme.colors.foreground,
+            marginLeft: 8,
+        },
+        textsQG: {
+            fontSize: 14,
+            fontWeight: '700',
+            textAlign: 'center',
+            marginBottom: 12,
+            color: theme.colors.mutedForeground,
+            textTransform: 'uppercase',
+            letterSpacing: 1,
+        },
+        textsQG2: {
+            fontSize: 16,
+            fontWeight: '600',
+            textAlign: 'center',
+            marginTop: 12,
+            color: theme.colors.mutedForeground,
+            opacity: 0.8,
+        },
+        containerTitleQG: {
+            width: "90%",
+            minHeight: 180,
+            backgroundColor: theme.colors.card,
+            borderRadius: 32,
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginTop: 24,
+            alignSelf: 'center',
+            marginBottom: 24,
+            paddingHorizontal: 24,
+            paddingVertical: 32,
+            ...theme.shadows.card,
+            borderWidth: 1,
+            borderColor: theme.colors.border,
+        },
+        textTitleQG: {
+            fontSize: 36,
+            fontWeight: '900',
+            textAlign: 'center',
+            color: theme.colors.foreground,
+            letterSpacing: -0.5,
+        },
+        containerOptionsQG: {
+            width: "100%",
+            minHeight: 64,
+            borderRadius: 20,
+            backgroundColor: theme.colors.card,
+            borderWidth: 2,
+            borderColor: theme.colors.border,
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            paddingHorizontal: 20,
+            marginBottom: 4,
+            ...theme.shadows.soft,
+            elevation: 2,
+        },
+        optionButton: {
+            fontSize: 18,
+            fontWeight: '700',
+            color: theme.colors.foreground,
+            flex: 1,
+        },
+        selectedOption: {
+            backgroundColor: theme.colors.surfaceContainer || '#F0F9F8',
+            borderColor: primaryColor,
+            borderWidth: 2,
+        },
+        correctOption: {
+            backgroundColor: '#ECFDF5', // Esmeralda muy claro
+            borderColor: '#10B981',
+            borderWidth: 2,
+        },
+        incorrectOption: {
+            backgroundColor: '#FEF2F2', // Rojo muy claro
+            borderColor: '#EF4444',
+            borderWidth: 2,
+        },
+        optionTextCorrect: {
+            color: '#065F46',
+        },
+        optionTextIncorrect: {
+            color: '#991B1B',
+        },
+        containerVerifyQG: {
+            width: "100%",
+            height: 60,
+            borderRadius: 20,
+            backgroundColor: primaryColor,
+            alignSelf: 'center',
+            marginTop: 24,
+            flexDirection: 'row',
+            justifyContent: 'center',
+            alignItems: 'center',
+            ...theme.shadows.card,
+        },
+        textBottomVerifyQG: {
+            fontSize: 18,
+            fontWeight: '800',
+            textAlign: 'center',
+            color: '#FFFFFF',
+            letterSpacing: 0.5,
+        },
+        disabledButton: {
+            backgroundColor: theme.colors.muted,
+            opacity: 0.5,
+        },
+        correctButton: {
+            backgroundColor: '#10B981',
+        },
+        incorrectButton: {
+            backgroundColor: '#EF4444',
+        },
+        // Modal de resultados
+        modalBackdrop: {
+            flex: 1,
+            backgroundColor: 'rgba(0,0,0,0.6)',
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+        modalCard: {
+            width: '85%',
+            backgroundColor: theme.colors.card,
+            borderRadius: 32,
+            padding: 32,
+            alignItems: 'center',
+            ...theme.shadows.card,
+        },
+        modalTitle: {
+            fontSize: 28,
+            fontWeight: '900',
+            color: theme.colors.foreground,
+            marginBottom: 12,
+            textAlign: 'center'
+        },
+        modalMessage: {
+            fontSize: 18,
+            color: theme.colors.mutedForeground,
+            textAlign: 'center',
+            marginBottom: 24,
+            lineHeight: 24,
+        },
+        modalOkBtn: {
+            backgroundColor: primaryColor,
+            borderRadius: 20,
+            paddingVertical: 16,
+            paddingHorizontal: 40,
+            width: '100%',
+            alignItems: 'center',
+        },
+        modalOkText: {
+            color: '#fff',
+            fontWeight: '800',
+            fontSize: 18,
+        }
     });
 };
+
 export default get_stylesQG;
 
 

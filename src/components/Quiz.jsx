@@ -3,7 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import { ProgressBar } from 'react-native-paper';
 import QuizResultModal from './QuizResultModal';
-import { ArrowLeft } from 'lucide-react-native';
+import { ArrowLeft, CheckCircle2, XCircle } from 'lucide-react-native';
 import * as Speech from 'expo-speech';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as SecureStore from 'expo-secure-store';
@@ -151,40 +151,45 @@ export default function Quiz({
 
 	return (
 		<View>
-			{/* Encabezado con fondo blanco extendido */}
-			<View style={{ backgroundColor: '#FFFFFF', paddingTop: insets.top }}>
-				<View style={{ ...styles.containerMCTop }}>
-					<TouchableOpacity style={{...styles.backButton}} onPress={onBack}>
-						<ArrowLeft size={25} color={primaryColor} />
-						<Text style={styles.textButtonBackQG}> {heading}</Text>
+			{/* Encabezado con fondo dinámico */}
+			<View style={styles.containerMCTop}>
+				<View style={{ paddingTop: insets.top }}>
+					<TouchableOpacity style={styles.backButton} onPress={onBack}>
+						<ArrowLeft size={28} color={primaryColor} />
+						<Text style={styles.textButtonBackQG}>{heading}</Text>
 					</TouchableOpacity>
-					<Text style={styles.textsQG}>Pregunta {currentQuestionIndex + 1} de {questions.length}!</Text>
+					<Text style={styles.textsQG}>Pregunta {currentQuestionIndex + 1} de {questions.length}</Text>
 					<ProgressBar
-						style={{ marginTop: 20 }}
+						style={{ height: 8, borderRadius: 4 }}
 						progress={questions.length ? (currentQuestionIndex + 1) / questions.length : 0}
 						color={primaryColor}
 					/>
 				</View>
 			</View>
-			{/* contenedor main */}
-			<View style={{paddingBottom: insets.bottom}}>
+
+			{/* Contenedor principal */}
+			<View style={{ paddingBottom: insets.bottom + 20 }}>
 				{/* Pregunta */}
 				<View style={styles.containerTitleQG}>
 					<Text style={styles.textTitleQG}>{currentQuestion?.question}</Text>
 					<Text style={styles.textsQG2}>{instructionText}</Text>
 				</View>
 
-				<View style={{flexDirection: "colum", gap: 16, paddingHorizontal: 20}}>
+				<View style={{ gap: 12, paddingHorizontal: 20 }}>
 					{/* Opciones */}
+					{shuffledOptions.map((option) => {
+						const isSelected = selectedOption === option.id;
+						const showCorrect = isVerified && option.correct;
+						const showIncorrect = isVerified && isSelected && !option.correct;
 
-						{shuffledOptions.map((option) => (
+						return (
 							<TouchableOpacity
 								key={option.id}
 								style={[
 									styles.containerOptionsQG,
-									selectedOption === option.id && styles.selectedOption,
-									isVerified && option.correct && styles.correctOption,
-									isVerified && selectedOption === option.id && !option.correct && styles.incorrectOption
+									isSelected && styles.selectedOption,
+									showCorrect && styles.correctOption,
+									showIncorrect && styles.incorrectOption
 								]}
 								onPress={() => {
 									try {
@@ -197,28 +202,39 @@ export default function Quiz({
 							>
 								<Text style={[
 									styles.optionButton,
-									isVerified && (option.correct || (selectedOption === option.id && !option.correct)) ? {color: '#FFF'} : {}
+									showCorrect && styles.optionTextCorrect,
+									showIncorrect && styles.optionTextIncorrect
 								]}>
 									{option.text}
 								</Text>
+								
+								{/* Iconos de feedback */}
+								{showCorrect && (
+									<CheckCircle2 size={24} color="#10B981" />
+								)}
+								{showIncorrect && (
+									<XCircle size={24} color="#EF4444" />
+								)}
 							</TouchableOpacity>
-						))}
+						);
+					})}
+
 					{/* Botón verificar / siguiente */}
-						<TouchableOpacity
-							style={[
-								styles.containerVerifyQG,
-								!selectedOption && styles.disabledButton,
-								isVerified && (isCorrect ? styles.correctButton : styles.incorrectButton)
-							]}
-							onPress={isVerified ? handleNext : handleVerify}
-							disabled={!selectedOption}
-						>
-							<Text style={styles.textBottomVerifyQG}>
-								{isVerified ?
-									(currentQuestionIndex < questions.length - 1 ? 'Siguiente' : 'Ver Resultados')
-									: 'Verificar'}
-							</Text>
-						</TouchableOpacity>
+					<TouchableOpacity
+						style={[
+							styles.containerVerifyQG,
+							!selectedOption && styles.disabledButton,
+							isVerified && (isCorrect ? styles.correctButton : styles.incorrectButton)
+						]}
+						onPress={isVerified ? handleNext : handleVerify}
+						disabled={!selectedOption}
+					>
+						<Text style={styles.textBottomVerifyQG}>
+							{isVerified ?
+								(currentQuestionIndex < questions.length - 1 ? 'Siguiente' : 'Ver Resultados')
+								: 'Verificar'}
+						</Text>
+					</TouchableOpacity>
 				</View>
 			</View>
 
