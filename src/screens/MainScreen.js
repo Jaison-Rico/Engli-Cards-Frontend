@@ -234,6 +234,16 @@ export default function MainScreen({ route }) {
                                     const progressPercent = Math.round((completedCount / systemDecks.length) * 100);
                                     const currentDeck = systemDecks.find(d => !d.is_locked && d.best_accuracy < (d.min_accuracy || 0.9)) || systemDecks[0];
                                     
+                                    // Mapeo de nombres de mazos a pantallas específicas de Quiz
+                                    const quizScreens = {
+                                        'Greetings': 'Greetings',
+                                        'Fruits': 'Fruits',
+                                        'Familia': 'Family',
+                                        'Trabajo': 'Work',
+                                        'Escuela': 'School',
+                                        'Viajes': 'Travel'
+                                    };
+
                                     return (
                                         <View style={{ marginBottom: 30, alignItems: 'center' }}>
                                             <View style={stylesLP.headerContainer}>
@@ -262,7 +272,8 @@ export default function MainScreen({ route }) {
                                                                 navigation.navigate('GameFlashCard', { 
                                                                     sampleCards: item.flashcards,
                                                                     deckId: item.deck_id,
-                                                                    deckName: item.deck_name
+                                                                    deckName: item.deck_name,
+                                                                    quiz: quizScreens[item.deck_name] // Pasamos el nombre de la pantalla específica
                                                                 });
                                                             } else {
                                                                 Alert.alert("Mazo vacío", "Este nivel aún no tiene contenido.");

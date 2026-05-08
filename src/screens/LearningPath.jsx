@@ -7,12 +7,12 @@ import greetingsData from './games/imagesGreetings.json';
 import FruitsData from './games/imagesFruits.json';
 
 const lessons = [
-  { id: 1, title: "Greetings", status: "available", data: greetingsData, quiz: 'QuizGreetings', icon: 'Sparkles' },
-  { id: 2, title: "Fruits", status: "available", data: FruitsData, quiz: 'QuizFruits', icon: 'Apple' },
-  { id: 3, title: "Familia", status: "locked", icon: 'Users' },
-  { id: 4, title: "Trabajo", status: "locked", icon: 'Briefcase' },
-  { id: 5, title: "Escuela", status: "locked", icon: 'School' },
-  { id: 6, title: "Viajes", status: "locked", icon: 'Plane' },
+  { id: 1, title: "Greetings", status: "available", data: greetingsData, quiz: 'Greetings', icon: 'Sparkles' },
+  { id: 2, title: "Fruits", status: "available", data: FruitsData, quiz: 'Fruits', icon: 'Apple' },
+  { id: 3, title: "Familia", status: "locked", quiz: 'Family', icon: 'Users' },
+  { id: 4, title: "Trabajo", status: "locked", quiz: 'Work', icon: 'Briefcase' },
+  { id: 5, title: "Escuela", status: "locked", quiz: 'School', icon: 'School' },
+  { id: 6, title: "Viajes", status: "locked", quiz: 'Travel', icon: 'Plane' },
   { id: 7, title: "Colores", status: "locked", icon: 'Palette' },
   { id: 8, title: "Animales", status: "locked", icon: 'Dog' },
 ];

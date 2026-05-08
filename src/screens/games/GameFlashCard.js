@@ -87,7 +87,10 @@ export default function GameFlashCard({ navigation, route }) {
         <QuizStartButton
           onPress={() => {
             if (quiz) {
-              navigation.navigate(quiz);
+              navigation.navigate(quiz, { 
+                deckId: route.params.deckId, 
+                deckName: route.params.deckName 
+              });
             } else if (route.params.deckId) {
               if (total >= 5) {
                 navigation.navigate('DeckQuiz', { 

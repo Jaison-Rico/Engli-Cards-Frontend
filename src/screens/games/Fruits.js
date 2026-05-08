@@ -1,52 +1,72 @@
-import React, { useState } from 'react';
-import { View, TouchableOpacity, Text } from 'react-native';
-import styles from '../../styles/stylesFrutas';
-import fruitsData from './imagesFruits.json';
-import FlashCard from '../../components/FlashCard';
-import { Ionicons } from '@expo/vector-icons';
-import QuizStartButton from '../../components/QuizStartButton';
-// Datos extraídos desde JSON para separación de contenido
-const sampleCards = fruitsData;
+import { useNavigation } from '@react-navigation/native';
+import Quiz from '../../components/Quiz';
 
-// Pantalla exportada por defecto (usada por el Navigator)
-export default function Fruits({navigation}) {
-  const [index, setIndex] = useState(0);
-  const total = sampleCards.length;
-  const current = sampleCards[index];
+export default function Fruits({ route }) {
+  const { deckId, deckName } = route?.params || {};
+  const questions = [
+    {
+      id: 1,
+      question: 'Manzana',
+      options: [
+        { id: 1, text: 'Apple', correct: true },
+        { id: 2, text: 'Banana', correct: false },
+        { id: 3, text: 'Cherry', correct: false },
+        { id: 4, text: 'Orange', correct: false }
+      ]
+    },
+    {
+      id: 2,
+      question: 'Cambur - Banano',
+      options: [
+        { id: 1, text: 'Apple', correct: false },
+        { id: 2, text: 'Banana', correct: true },
+        { id: 3, text: 'Cherry', correct: false },
+        { id: 4, text: 'Orange', correct: false }
+      ]
+    },
+    {
+      id: 3,
+      question: 'Naranja',
+      options: [
+        { id: 1, text: 'Watermelon', correct: false },
+        { id: 2, text: 'Pineapple', correct: false },
+        { id: 3, text: 'Orange', correct: true },
+        { id: 4, text: 'Elderberry', correct: false }
+      ]
+    },
+    {
+      id: 4,
+      question: 'Patilla - Zandia',
+      options: [
+        { id: 1, text: 'Hello', correct: false },
+        { id: 2, text: 'Watermelon', correct: true },
+        { id: 3, text: 'Peach', correct: false },
+        { id: 4, text: 'Mango', correct: false }
+      ]
+    },
+    {
+      id: 5,
+      question: 'Cereza',
+      options: [
+        { id: 1, text: 'Grapes', correct: false },
+        { id: 2, text: 'Cherry', correct: true },
+        { id: 3, text: 'Kiwi', correct: false },
+        { id: 4, text: 'Mandarin', correct: false }
+      ]
+    }
+  ];
 
-  const goPrev = () => setIndex((i) => (i > 0 ? i - 1 : i));
-  const goNext = () => setIndex((i) => (i < total - 1 ? i + 1 : i));
+  const navigation = useNavigation();
 
   return (
-    <View style={styles.screen}>
-      <View>
-        <QuizStartButton
-          onPress={() => {navigation.navigate('QuizFruits')}}
-          buttonStyle={styles.quizBtn}
-          textStyle={styles.btnText}
-          label="Comenzar Prueba"
-          iconName="play-outline"
-        />
-      </View>
-      <Text style={styles.counter}>Tarjeta {index + 1} de {total}</Text>
-      <FlashCard key={index} item={current} styles={styles} frontLabel="English" backLabel="Español" />
-
-      <View style={styles.dotsRow}>
-        {sampleCards.map((_, i) => (
-          <View key={i} style={[styles.dot, i === index && styles.dotActive]} />
-        ))}
-      </View>
-
-      <View style={styles.controls}>
-        <TouchableOpacity onPress={goPrev} disabled={index === 0} style={[styles.btn, index===0 && styles.btnDisabled]}>
-          <Ionicons name="chevron-back" size={18} color="#fff" />
-          <Text style={styles.btnText}>Anterior</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={goNext} disabled={index === total - 1} style={[styles.btn, index===total-1 && styles.btnDisabled]}>
-          <Text style={styles.btnText}>Siguiente</Text>
-          <Ionicons name="chevron-forward" size={18} color="#fff" />
-        </TouchableOpacity>
-      </View>
-    </View>
+    <Quiz
+      questions={questions}
+      heading={deckName || 'Fruits'}
+      deckId={deckId}
+      onBack={() => navigation.goBack()}
+      onFinish={(score, total) => {
+        console.log('Quiz terminado. Puntuación:', score, '/', total);
+      }}
+    />
   );
 }

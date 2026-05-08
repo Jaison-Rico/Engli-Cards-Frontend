@@ -1,7 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import Quiz from '../../components/Quiz';
 
-export default function QuizFamily({ route }) {
+export default function Family({ route }) {
   const { deckId, deckName } = route?.params || {};
   const questions = [
     {
@@ -61,7 +61,7 @@ export default function QuizFamily({ route }) {
   return (
     <Quiz
       questions={questions}
-      heading={deckName || 'Familia'}
+      heading={deckName || 'Family'}
       deckId={deckId}
       onBack={() => navigation.goBack()}
       onFinish={(score, total) => {

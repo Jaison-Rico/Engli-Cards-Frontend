@@ -10,8 +10,12 @@ import NewFlashCard from "../screens/NewFlashCard";
 import StatsScreen from "../screens/StatsScreen";
 import BottomTabs from "../screens/BottomTabs";
 import ProfileScreen from "../screens/ProfileScreen";
-import QuizGreetings from "../screens/tests/QuizGreetings";
-import QuizFruits from "../screens/tests/QuizFruits";
+import Greetings from "../screens/games/Greetings";
+import Fruits from "../screens/games/Fruits";
+import Family from "../screens/games/Family";
+import Work from "../screens/games/Work";
+import School from "../screens/games/School";
+import Travel from "../screens/games/Travel";
 import GameFlashCard from "../screens/games/GameFlashCard";
 import DeckDetailsScreen from "../screens/DeckDetailsScreen";
 import UpdateFlashCard from "../screens/UpdateFlashCard";
@@ -39,8 +43,12 @@ export default function AppNavigator(){
                 <Stack.Screen name="NewFlashCard" component={NewFlashCard} options={{ headerShown: false }} />
                 <Stack.Screen name="StatsScreen" component={StatsScreen} options={{ headerShown: false }} />
                 <Stack.Screen name="BottomTabs" component={BottomTabs} options={{ headerShown: false }} />
-                <Stack.Screen name="QuizGreetings" component={QuizGreetings} options={{ headerShown: false }} />
-                <Stack.Screen name="QuizFruits" component={QuizFruits} options={{ headerShown: false }} />
+                <Stack.Screen name="Greetings" component={Greetings} options={{ headerShown: false }} />
+                <Stack.Screen name="Fruits" component={Fruits} options={{ headerShown: false }} />
+                <Stack.Screen name="Family" component={Family} options={{ headerShown: false }} />
+                <Stack.Screen name="Work" component={Work} options={{ headerShown: false }} />
+                <Stack.Screen name="School" component={School} options={{ headerShown: false }} />
+                <Stack.Screen name="Travel" component={Travel} options={{ headerShown: false }} />
                 <Stack.Screen name="GameFlashCard" component={GameFlashCard} options={{ headerShown: false }} />
                 <Stack.Screen name="DeckDetails" component={DeckDetailsScreen} options={{ headerShown: false }} />
                 <Stack.Screen name="UpdateFlashCard" component={UpdateFlashCard} options={{ headerShown: false }} />
