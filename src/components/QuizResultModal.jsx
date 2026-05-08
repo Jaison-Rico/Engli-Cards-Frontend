@@ -1,22 +1,28 @@
 import React from 'react';
-import { Modal, View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { Modal, View, Text, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
 import { useAppTheme } from '../context/ThemeContext';
 import { tokens, shadows } from '../styles/theme';
+import LottieView from 'lottie-react-native';
+
+const { width, height } = Dimensions.get('window');
 
 export default function QuizResultModal({
 	visible,
 	score = 0,
 	total = 0,
 	onOk,
-	title = 'Resultados',
-	okText = 'OK',
+	onReview,
+	hasFailed = false,
+	title = '¡Quiz Completado!',
+	okText = 'Continuar',
 	description,
 	dismissible = false,
 	onRequestClose
 }) {
 	const { theme } = useAppTheme();
 	const styles = get_styles(theme);
-	const message = description ?? `Has obtenido ${score} de ${total} respuestas correctas.`;
+	const isPerfect = score === total && total > 0;
+	const message = description ?? `Has obtenido ${score} de ${total} respuestas correctas. ${isPerfect ? '¡Excelente trabajo!' : ''}`;
 
 	const handleRequestClose = () => {
 		if (onRequestClose) return onRequestClose();
@@ -36,16 +42,48 @@ export default function QuizResultModal({
 					style={styles.backdropTouch}
 					onPress={dismissible ? handleRequestClose : undefined}
 				>
-					<TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
+					<TouchableOpacity activeOpacity={1} onPress={() => {}}>
 						<View style={styles.card}>
-							<Text style={styles.title}>{title}</Text>
+							<Text style={styles.title}>{isPerfect ? '🏆 ¡Perfecto!' : title}</Text>
 							<Text style={styles.message}>{message}</Text>
-							<TouchableOpacity style={styles.okBtn} onPress={onOk}>
-								<Text style={styles.okText}>{okText}</Text>
-							</TouchableOpacity>
+							
+							<View style={{ width: '100%', gap: 10 }}>
+								<TouchableOpacity 
+									style={styles.okBtn} 
+									onPress={onOk}
+									hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+								>
+									<Text style={styles.okText}>{okText}</Text>
+								</TouchableOpacity>
+
+								{!isPerfect && hasFailed && (
+									<TouchableOpacity 
+										style={[styles.okBtn, { backgroundColor: 'transparent', borderWidth: 2, borderColor: theme.colors.accent }]} 
+										onPress={onReview}
+										hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+									>
+										<Text style={[styles.okText, { color: theme.colors.accent }]}>Repasar Errores</Text>
+									</TouchableOpacity>
+								)}
+							</View>
 						</View>
 					</TouchableOpacity>
 				</TouchableOpacity>
+
+				{isPerfect && (
+					<LottieView
+						source={{ uri: 'https://assets5.lottiefiles.com/packages/lf20_u4y3uoxk.json' }}
+						autoPlay
+						loop={false}
+						style={{
+							position: 'absolute',
+							width: width,
+							height: height,
+							zIndex: -1, // Lo ponemos detrás por si acaso bloquea, o simplemente lo movemos al final
+							pointerEvents: 'none',
+						}}
+					/>
+				)}
 			</View>
 		</Modal>
 	);

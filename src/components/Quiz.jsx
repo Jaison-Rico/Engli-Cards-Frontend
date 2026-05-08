@@ -10,6 +10,9 @@ import * as SecureStore from 'expo-secure-store';
 import { config } from '../config/api';
 import { useAppTheme } from '../context/ThemeContext';
 import get_stylesQG from '../styles/stylesTestQuiz/StylesQGreetings';
+import * as Haptics from 'expo-haptics';
+import SoundManager from '../config/sounds';
+import { Image } from 'react-native';
 
 /*
 	Componente reutilizable de Quiz.
@@ -56,15 +59,16 @@ export default function Quiz({
 	const [isVerified, setIsVerified] = useState(false);
 	const [isCorrect, setIsCorrect] = useState(false);
 	const [score, setScore] = useState(0);
+	const [failedQuestions, setFailedQuestions] = useState([]);
 	const [resultModalVisible, setResultModalVisible] = useState(false);
 	const [startTime, setStartTime] = useState(null);
 	const [shuffledOptions, setShuffledOptions] = useState([]);
 
+	const currentQuestion = questions[currentQuestionIndex];
+
 	useEffect(() => {
 		setStartTime(Date.now());
 	}, []);
-
-	const currentQuestion = questions[currentQuestionIndex];
 
 	useEffect(() => {
 		if (currentQuestion?.options) {
@@ -76,6 +80,7 @@ export default function Quiz({
 
 	const handleOptionSelect = (optionId) => {
 		if (!isVerified) {
+			Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 			setSelectedOption(optionId);
 		}
 	};
@@ -87,7 +92,13 @@ export default function Quiz({
 			setIsCorrect(correct);
 			setIsVerified(true);
 			if (correct) {
+				Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+				SoundManager.play('correct');
 				setScore((prev) => prev + 1);
+			} else {
+				Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+				SoundManager.play('wrong');
+				setFailedQuestions(prev => [...prev, currentQuestion]);
 			}
 		}
 	};
@@ -171,6 +182,13 @@ export default function Quiz({
 			<View style={{ paddingBottom: insets.bottom + 20 }}>
 				{/* Pregunta */}
 				<View style={styles.containerTitleQG}>
+					{currentQuestion?.image && (
+						<Image 
+							source={{ uri: currentQuestion.image }} 
+							style={{ width: 120, height: 120, marginBottom: 15, borderRadius: 16 }} 
+							resizeMode="contain"
+						/>
+					)}
 					<Text style={styles.textTitleQG}>{currentQuestion?.question}</Text>
 					<Text style={styles.textsQG2}>{instructionText}</Text>
 				</View>
@@ -247,6 +265,19 @@ export default function Quiz({
 					setResultModalVisible(false);
 					onBack();
 				}}
+				onReview={() => {
+					setResultModalVisible(false);
+					// Reset quiz with only failed questions
+					setCurrentQuestionIndex(0);
+					setScore(0);
+					setIsVerified(false);
+					setSelectedOption(null);
+					// This would require more logic to fully reset 'questions' prop, 
+					// but for now we close and feedback to user.
+					Alert.alert("Repaso", "En la próxima versión podrás repasar solo tus errores aquí mismo.");
+					onBack();
+				}}
+				hasFailed={failedQuestions.length > 0}
 			/>
 		</View>
 	);

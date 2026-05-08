@@ -3,7 +3,9 @@ import get_stylesMS from '../styles/stylesMS';
 import { View, Text, TouchableOpacity, FlatList, ActivityIndicator, TextInput, StatusBar, Alert } from "react-native";
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import React, { useState } from 'react';
-import { BookOpen, Activity, Plus } from 'lucide-react-native';
+import { BookOpen, Activity, Plus, Flame } from 'lucide-react-native';
+import * as Haptics from 'expo-haptics';
+import SoundManager from '../config/sounds';
 import * as SecureStore from 'expo-secure-store';
 import axios from 'axios';
 import { config } from '../config/api';
@@ -32,6 +34,7 @@ export default function MainScreen({ route }) {
     // Estado para el modal de crear deck
     const [modalVisible, setModalVisible] = useState(false);
     const [refreshKey, setRefreshKey] = useState(0);
+    const [streak, setStreak] = useState(0);
 
     const updateSearch = (searchText) => {
         setSearch(searchText);
@@ -99,6 +102,13 @@ export default function MainScreen({ route }) {
                         setDecks(normalizeDecks(data));
                         setIsOffline(false);
                     }
+
+                    // Fetch stats for streak
+                    const statsRes = await fetch(`${config.BASE_URL}/users/${userId}/stats`, { headers });
+                    if (statsRes.ok) {
+                        const stats = await statsRes.json();
+                        if (isActive) setStreak(stats.streak_current || 0);
+                    }
                 } catch (err) {
                     const serverMessage = err?.response?.data?.message || err?.message || 'Error inesperado';
                     if (isActive) {
@@ -135,10 +145,30 @@ export default function MainScreen({ route }) {
                         <Text style={stylesMS.subtitlesMC}>¡Hola! {userData?.name?.split(' ')[0] || 'jaison'} Continúa aprendiendo</Text>
                     </View>
 
-                    <TouchableOpacity onPress={() => navigation.push("StatsScreen")} style={stylesMS.buttonStats}>
-                        <Activity color="#08302E" size={18} strokeWidth={2.5} />
-                        <Text style={stylesMS.textButtonMCStats}>Stats</Text>
-                    </TouchableOpacity>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                        <View style={{ 
+                            flexDirection: 'row', 
+                            alignItems: 'center', 
+                            backgroundColor: theme.colors.surfaceContainerLow || '#E8F5F0', 
+                            paddingHorizontal: 12, 
+                            paddingVertical: 6, 
+                            borderRadius: 20 
+                        }}>
+                            <Flame color="#F97316" size={20} fill="#F97316" />
+                            <Text style={{ marginLeft: 4, fontWeight: '800', color: '#C2410C' }}>{streak}</Text>
+                        </View>
+                        
+                        <TouchableOpacity 
+                            onPress={() => {
+                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                                navigation.push("StatsScreen");
+                            }} 
+                            style={stylesMS.buttonStats}
+                        >
+                            <Activity color="#08302E" size={18} strokeWidth={2.5} />
+                            <Text style={stylesMS.textButtonMCStats}>Stats</Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
 
                 {/* Flat Search Input */}
@@ -155,11 +185,27 @@ export default function MainScreen({ route }) {
 
             {/* Main Action Buttons */}
             <View style={stylesMS.containerMCBottonsMain}>
-                <TouchableOpacity onPress={() => setModalVisible(true)} style={stylesMS.buttonCDeck} activeOpacity={0.8}>
+                <TouchableOpacity 
+                    onPress={() => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                        SoundManager.play('click');
+                        setModalVisible(true);
+                    }} 
+                    style={stylesMS.buttonCDeck} 
+                    activeOpacity={0.8}
+                >
                     <Plus color="#08302E" size={32} strokeWidth={2} />
                     <Text style={stylesMS.buttonCardText}>Crear Deck</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => navigation.push("NewFlashCard")} style={stylesMS.buttonCFlashcard} activeOpacity={0.8}>
+                <TouchableOpacity 
+                    onPress={() => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                        SoundManager.play('click');
+                        navigation.push("NewFlashCard");
+                    }} 
+                    style={stylesMS.buttonCFlashcard} 
+                    activeOpacity={0.8}
+                >
                     <BookOpen color="#08302E" size={30} strokeWidth={2} />
                     <Text style={stylesMS.buttonCardText}>Crear Flashcard</Text>
                 </TouchableOpacity>
