@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1,
+    "english": "School",
+    "spanish": "Escuela",
+    "image": "https://cdn-icons-png.flaticon.com/512/167/167707.png"
+  },
+  {
+    "id": 2,
+    "english": "Student",
+    "spanish": "Estudiante",
+    "image": "https://cdn-icons-png.flaticon.com/512/201/201608.png"
+  },
+  {
+    "id": 3,
+    "english": "Pencil",
+    "spanish": "Lápiz",
+    "image": "https://cdn-icons-png.flaticon.com/512/588/588395.png"
+  },
+  {
+    "id": 4,
+    "english": "Book",
+    "spanish": "Libro",
+    "image": "https://cdn-icons-png.flaticon.com/512/2232/2232688.png"
+  },
+  {
+    "id": 5,
+    "english": "Test",
+    "spanish": "Examen",
+    "image": "https://cdn-icons-png.flaticon.com/512/2641/2641409.png"
+  }
+]

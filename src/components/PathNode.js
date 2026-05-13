@@ -2,7 +2,7 @@ import { useAppTheme } from '../context/ThemeContext';
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import get_stylesLP from '../styles/stylesLearningPath';
-import { Lock, Check, Apple } from 'lucide-react-native'; // Usamos iconos aproximados
+import { Lock, Check, Sparkles, Apple, Users, Briefcase, School, Plane, Palette, Dog, BookOpen } from 'lucide-react-native';
 
 const PathNode = ({ deck, onPress, index }) => {
   const { theme, toggleTheme } = useAppTheme();
@@ -11,6 +11,23 @@ const PathNode = ({ deck, onPress, index }) => {
   const isLocked = deck.is_locked;
   const isCompleted = deck.best_accuracy >= (deck.min_accuracy || 0.9);
   const isActive = !isLocked && !isCompleted;
+
+  const renderIcon = (size, color) => {
+    const iconName = deck.deck_name;
+    const props = { size, color, strokeWidth: 2 };
+    
+    switch(iconName) {
+      case 'Greetings': return <Sparkles {...props} />;
+      case 'Fruits': return <Apple {...props} />;
+      case 'Familia': return <Users {...props} />;
+      case 'Trabajo': return <Briefcase {...props} />;
+      case 'Escuela': return <School {...props} />;
+      case 'Viajes': return <Plane {...props} />;
+      case 'Colores': return <Palette {...props} />;
+      case 'Animales': return <Dog {...props} />;
+      default: return <BookOpen {...props} />;
+    }
+  };
 
   return (
     <View style={stylesLP.pathNodeContainer}>
@@ -24,7 +41,7 @@ const PathNode = ({ deck, onPress, index }) => {
             <View style={stylesLP.masteredBadge}>
               <Text style={stylesLP.masteredText}>MASTERED</Text>
             </View>
-            <Check color="#fff" size={32} strokeWidth={3} />
+            {renderIcon(40, "#fff")}
           </TouchableOpacity>
           <View style={stylesLP.pillCompleted}>
             <Text style={stylesLP.pillCompletedText}>{deck.deck_name}</Text>
@@ -39,8 +56,7 @@ const PathNode = ({ deck, onPress, index }) => {
             onPress={onPress}
             style={stylesLP.circleActive}
           >
-            {/* Si tienes una imagen del mazo, se podría usar aquí. Por ahora un icono o emoji */}
-            <Apple color="#45D0B6" size={40} strokeWidth={1.5} />
+            {renderIcon(45, theme.colors.primary)}
           </TouchableOpacity>
           <View style={stylesLP.pillActive}>
             <Text style={stylesLP.pillActiveText}>{deck.deck_name}</Text>

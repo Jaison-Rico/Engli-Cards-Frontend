@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1,
+    "english": "Father",
+    "spanish": "Padre",
+    "image": "https://cdn-icons-png.flaticon.com/512/219/219969.png"
+  },
+  {
+    "id": 2,
+    "english": "Mother",
+    "spanish": "Madre",
+    "image": "https://cdn-icons-png.flaticon.com/512/219/219970.png"
+  },
+  {
+    "id": 3,
+    "english": "Brother",
+    "spanish": "Hermano",
+    "image": "https://cdn-icons-png.flaticon.com/512/219/219971.png"
+  },
+  {
+    "id": 4,
+    "english": "Grandfather",
+    "spanish": "Abuelo",
+    "image": "https://cdn-icons-png.flaticon.com/512/219/219972.png"
+  },
+  {
+    "id": 5,
+    "english": "Son",
+    "spanish": "Hijo",
+    "image": "https://cdn-icons-png.flaticon.com/512/219/219973.png"
+  }
+]

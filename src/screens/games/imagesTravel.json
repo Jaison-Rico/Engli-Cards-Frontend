@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1,
+    "english": "Trip",
+    "spanish": "Viaje",
+    "image": "https://cdn-icons-png.flaticon.com/512/201/201623.png"
+  },
+  {
+    "id": 2,
+    "english": "Airplane",
+    "spanish": "Avión",
+    "image": "https://cdn-icons-png.flaticon.com/512/619/619043.png"
+  },
+  {
+    "id": 3,
+    "english": "Hotel",
+    "spanish": "Hotel",
+    "image": "https://cdn-icons-png.flaticon.com/512/2983/2983973.png"
+  },
+  {
+    "id": 4,
+    "english": "Passport",
+    "spanish": "Pasaporte",
+    "image": "https://cdn-icons-png.flaticon.com/512/2163/2163539.png"
+  },
+  {
+    "id": 5,
+    "english": "Suitcase",
+    "spanish": "Maleta",
+    "image": "https://cdn-icons-png.flaticon.com/512/2906/2906423.png"
+  }
+]

@@ -124,7 +124,18 @@ export default function GameFlashCard({ navigation, route }) {
             </View>
           </>
         ) : (
-          <ActivityIndicator size="large" color="#12B5B0" style={{ marginTop: 50 }} />
+          <View style={{ alignItems: 'center', padding: 20 }}>
+            {quiz ? (
+              <>
+                <Ionicons name="book-outline" size={60} color="#12B5B0" style={{ marginBottom: 20 }} />
+                <Text style={[styles.btnText, { color: theme.colors.foreground, textAlign: 'center' }]}>
+                  Este nivel no tiene tarjetas de estudio aún, pero puedes saltar directamente a la prueba.
+                </Text>
+              </>
+            ) : (
+              <ActivityIndicator size="large" color="#12B5B0" />
+            )}
+          </View>
         )}
 
         <View style={styles.controls}>

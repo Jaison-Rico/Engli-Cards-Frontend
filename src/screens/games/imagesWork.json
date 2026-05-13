@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1,
+    "english": "Job",
+    "spanish": "Trabajo",
+    "image": "https://cdn-icons-png.flaticon.com/512/262/262335.png"
+  },
+  {
+    "id": 2,
+    "english": "Doctor",
+    "spanish": "Médico",
+    "image": "https://cdn-icons-png.flaticon.com/512/3774/3774299.png"
+  },
+  {
+    "id": 3,
+    "english": "Teacher",
+    "spanish": "Profesor",
+    "image": "https://cdn-icons-png.flaticon.com/512/1995/1995539.png"
+  },
+  {
+    "id": 4,
+    "english": "Office",
+    "spanish": "Oficina",
+    "image": "https://cdn-icons-png.flaticon.com/512/1063/1063374.png"
+  },
+  {
+    "id": 5,
+    "english": "Money",
+    "spanish": "Dinero",
+    "image": "https://cdn-icons-png.flaticon.com/512/2489/2489756.png"
+  }
+]

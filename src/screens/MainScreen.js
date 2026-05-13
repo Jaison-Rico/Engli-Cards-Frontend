@@ -11,14 +11,11 @@ import axios from 'axios';
 import { config } from '../config/api';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import CreateDeck from './CreateDeck';
-import PathNode from '../components/PathNode';
-import get_stylesLP from '../styles/stylesLearningPath';
 
 
 export default function MainScreen({ route }) {
   const { theme, toggleTheme } = useAppTheme();
   const stylesMS = get_stylesMS(theme);
-  const stylesLP = get_stylesLP(theme);
 
     const navigation = useNavigation(); //obtiene la función de navegación
     const [search, setSearch] = useState("");
@@ -126,7 +123,6 @@ export default function MainScreen({ route }) {
         }, [route, refreshKey])
     );
 
-    const systemDecks = decks.filter(d => d.is_system).sort((a, b) => a.order_index - b.order_index);
     const personalDecks = decks.filter(d => !d.is_system);
 
 
@@ -229,62 +225,6 @@ export default function MainScreen({ route }) {
                         showsVerticalScrollIndicator={false}
                         ListHeaderComponent={() => (
                             <View>
-                                {systemDecks.length > 0 && (() => {
-                                    const completedCount = systemDecks.filter(d => d.best_accuracy >= (d.min_accuracy || 0.9)).length;
-                                    const progressPercent = Math.round((completedCount / systemDecks.length) * 100);
-                                    const currentDeck = systemDecks.find(d => !d.is_locked && d.best_accuracy < (d.min_accuracy || 0.9)) || systemDecks[0];
-                                    
-                                    // Mapeo de nombres de mazos a pantallas específicas de Quiz
-                                    const quizScreens = {
-                                        'Greetings': 'Greetings',
-                                        'Fruits': 'Fruits',
-                                        'Familia': 'Family',
-                                        'Trabajo': 'Work',
-                                        'Escuela': 'School',
-                                        'Viajes': 'Travel'
-                                    };
-
-                                    return (
-                                        <View style={{ marginBottom: 30, alignItems: 'center' }}>
-                                            <View style={stylesLP.headerContainer}>
-                                                <Text style={stylesLP.journeyText}>YOUR JOURNEY</Text>
-                                                <Text style={stylesLP.titleText}>Ruta de Aprendizaje</Text>
-                                                
-                                                <View style={stylesLP.progressContainer}>
-                                                    <View style={stylesLP.progressRow}>
-                                                        <Text style={stylesLP.progressLabelLeft}>Current Level: {currentDeck?.deck_name}</Text>
-                                                        <Text style={stylesLP.progressLabelRight}>{progressPercent}% Total</Text>
-                                                    </View>
-                                                    <View style={stylesLP.progressBarBg}>
-                                                        <View style={[stylesLP.progressBarFill, { width: `${progressPercent}%` }]} />
-                                                    </View>
-                                                </View>
-                                            </View>
-
-                                            <View style={stylesLP.container}>
-                                                {systemDecks.map((item, index) => (
-                                                    <PathNode 
-                                                        key={item.deck_id}
-                                                        deck={item}
-                                                        index={index}
-                                                        onPress={() => {
-                                                            if (item.flashcards && item.flashcards.length > 0) {
-                                                                navigation.navigate('GameFlashCard', { 
-                                                                    sampleCards: item.flashcards,
-                                                                    deckId: item.deck_id,
-                                                                    deckName: item.deck_name,
-                                                                    quiz: quizScreens[item.deck_name] // Pasamos el nombre de la pantalla específica
-                                                                });
-                                                            } else {
-                                                                Alert.alert("Mazo vacío", "Este nivel aún no tiene contenido.");
-                                                            }
-                                                        }}
-                                                    />
-                                                ))}
-                                            </View>
-                                        </View>
-                                    );
-                                })()}
                                 <Text style={[stylesMS.misMazosTitle, { marginLeft: 0, marginTop: 10, marginBottom: 16 }]}>Mis Mazos</Text>
                             </View>
                         )}
@@ -324,7 +264,7 @@ export default function MainScreen({ route }) {
                                 {error ? `Error: ${error}` : 'No tienes mazos personales aún'}
                             </Text>
                         )}
-                        contentContainerStyle={(personalDecks.length === 0 && systemDecks.length === 0) ? { flexGrow: 1 } : { paddingBottom: 40 }}
+                        contentContainerStyle={(personalDecks.length === 0) ? { flexGrow: 1 } : { paddingBottom: 40 }}
                     />
                 )}
             </View>
