@@ -24,6 +24,9 @@ export default function NewFlashCard() {
 
     // Imagen Picker
     const [image, setImage] = useState(null);
+    const [mediaType, setMediaType] = useState('image'); // 'image' o 'gif'
+    const [gifUrl, setGifUrl] = useState('');
+    
     // Abrir la galería y seleccionar una imagen (maneja permisos en Android)
     const pickImage = async () => {
         try {
@@ -105,11 +108,13 @@ export default function NewFlashCard() {
                     const data = Array.isArray(resp.data) ? resp.data : (resp.data?.decks ?? []);
 
                     if (isActive) {
-                        // Normalizar los mazos
-                        const normalizedDecks = data.map((d) => ({
-                            deck_id: d.deck_id ?? d.id ?? d._id ?? d.deckId,
-                            deck_name: d.deck_name ?? d.name ?? d.title ?? 'Deck sin nombre'
-                        }));
+                        // Normalizar los mazos y filtrar solo los mazos personalizados (no del sistema)
+                        const normalizedDecks = data
+                            .filter(d => !d.is_system)
+                            .map((d) => ({
+                                deck_id: d.deck_id ?? d.id ?? d._id ?? d.deckId,
+                                deck_name: d.deck_name ?? d.name ?? d.title ?? 'Deck sin nombre'
+                            }));
                         setDecks(normalizedDecks);
                     }
                 } catch (err) {
@@ -145,9 +150,11 @@ export default function NewFlashCard() {
             const user = JSON.parse(storedUser);
             const userId = user?.user_id ?? user?._id ?? user?.id ?? user?.userId;
             
-            // Subir imagen a Cloudinary si el usuario seleccionó una
+            // Determinar URL final: GIF directo o imagen subida a Cloudinary
             let finalImageUrl = null;
-            if (image) {
+            if (mediaType === 'gif' && gifUrl.trim()) {
+                finalImageUrl = gifUrl.trim();
+            } else if (mediaType === 'image' && image) {
                 const formData = new FormData();
                 const uri = image;
                 const ext = (uri?.split('.')?.pop() || 'jpg').toLowerCase();
@@ -360,24 +367,96 @@ export default function NewFlashCard() {
                         </TouchableOpacity>
                     </Modal>
 
-                    {/* Image Upload */}
-                    <Text style={stylesNFC.label}>Añadir Imagen</Text>
-                    <TouchableOpacity 
-                        style={[stylesNFC.imageUploadBox, image ? { padding: 0, overflow: 'hidden', borderWidth: 0 } : {}]} 
-                        onPress={pickImage}
-                    >
-                        {image ? (
-                            <Image source={{ uri: image }} style={{ width: '100%', height: 160, resizeMode: 'cover', borderRadius: 16 }} />
-                        ) : (
-                            <>
-                                <View style={stylesNFC.imageUploadCircle}>
-                                    <Aperture color="#086B67" size={24} />
+                    {/* Media Upload - Image or GIF */}
+                    <Text style={stylesNFC.label}>Añadir Media</Text>
+                    
+                    {/* Toggle Buttons */}
+                    <View style={{ flexDirection: 'row', gap: 10, marginBottom: 16 }}>
+                        <TouchableOpacity
+                            style={[
+                                { flex: 1, paddingVertical: 10, paddingHorizontal: 16, borderRadius: 12, borderWidth: 2, alignItems: 'center' },
+                                mediaType === 'image'
+                                    ? { borderColor: '#12B5B0', backgroundColor: '#E0F7F6' }
+                                    : { borderColor: '#D1D5DB', backgroundColor: '#F9FAFB' }
+                            ]}
+                            onPress={() => {
+                                setMediaType('image');
+                                setGifUrl('');
+                            }}
+                        >
+                            <Text style={[
+                                { fontWeight: '600', fontSize: 14 },
+                                mediaType === 'image' ? { color: '#12B5B0' } : { color: '#6B7280' }
+                            ]}>
+                                Imagen
+                            </Text>
+                        </TouchableOpacity>
+                        
+                        <TouchableOpacity
+                            style={[
+                                { flex: 1, paddingVertical: 10, paddingHorizontal: 16, borderRadius: 12, borderWidth: 2, alignItems: 'center' },
+                                mediaType === 'gif'
+                                    ? { borderColor: '#12B5B0', backgroundColor: '#E0F7F6' }
+                                    : { borderColor: '#D1D5DB', backgroundColor: '#F9FAFB' }
+                            ]}
+                            onPress={() => {
+                                setMediaType('gif');
+                                setImage(null);
+                            }}
+                        >
+                            <Text style={[
+                                { fontWeight: '600', fontSize: 14 },
+                                mediaType === 'gif' ? { color: '#12B5B0' } : { color: '#6B7280' }
+                            ]}>
+                                GIF
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+                    
+                    {/* Image Section */}
+                    {mediaType === 'image' && (
+                        <TouchableOpacity 
+                            style={[stylesNFC.imageUploadBox, image ? { padding: 0, overflow: 'hidden', borderWidth: 0 } : {}]} 
+                            onPress={pickImage}
+                        >
+                            {image ? (
+                                <Image source={{ uri: image }} style={{ width: '100%', height: 160, resizeMode: 'cover', borderRadius: 16 }} />
+                            ) : (
+                                <>
+                                    <View style={stylesNFC.imageUploadCircle}>
+                                        <Aperture color="#086B67" size={24} />
+                                    </View>
+                                    <Text style={stylesNFC.imageUploadTitle}>Subir una referencia visual</Text>
+                                    <Text style={stylesNFC.imageUploadSub}>JPG, PNG hasta 5MB</Text>
+                                </>
+                            )}
+                        </TouchableOpacity>
+                    )}
+                    
+                    {/* GIF Section */}
+                    {mediaType === 'gif' && (
+                        <View>
+                            <Text style={[stylesNFC.label, { marginTop: 8, marginBottom: 8 }]}>URL del GIF</Text>
+                            <View style={stylesNFC.inputContainer}>
+                                <TextInput
+                                    style={stylesNFC.inputField}
+                                    placeholder="https://ejemplo.com/animation.gif"
+                                    placeholderTextColor="#A1CFC9"
+                                    value={gifUrl}
+                                    onChangeText={setGifUrl}
+                                />
+                            </View>
+                            {gifUrl && (
+                                <View style={{ marginTop: 12, borderRadius: 12, overflow: 'hidden', backgroundColor: '#F0F9F8', padding: 8 }}>
+                                    <Image 
+                                        source={{ uri: gifUrl }} 
+                                        style={{ width: '100%', height: 160, resizeMode: 'cover', borderRadius: 8 }}
+                                        onError={() => Alert.alert('Error', 'No se pudo cargar el GIF. Verifica la URL.')}
+                                    />
                                 </View>
-                                <Text style={stylesNFC.imageUploadTitle}>Subir una referencia visual</Text>
-                                <Text style={stylesNFC.imageUploadSub}>JPG, PNG hasta 5MB</Text>
-                            </>
-                        )}
-                    </TouchableOpacity>
+                            )}
+                        </View>
+                    )}
 
                     {/* Tip Block */}
                     <View style={stylesNFC.tipBlock}>

@@ -14,22 +14,6 @@ import * as Haptics from 'expo-haptics';
 import SoundManager from '../config/sounds';
 import { Image } from 'react-native';
 
-/*
-	Componente reutilizable de Quiz.
-	Props esperadas:
-	- questions: Array de objetos { id, question, options: [{ id, text, correct }] }
-		Debe contener exactamente 5 preguntas y cada una 4 opciones (requisito actual de negocio).
-	- heading: Texto que aparece junto al botón volver.
-	- onBack: función para manejar acción de volver.
-	- instructionText: texto secundario debajo de la pregunta.
-	- onFinish: callback(score, total) cuando finaliza el quiz antes de cerrar modal.
-
-	Notas:
-	- Si en el futuro cambia el número de preguntas u opciones, solo se debe ajustar validación.
-	- Se mantiene lógica simple: verificar -> siguiente -> mostrar resultados.
-	- Evitar duplicación: otras pantallas solo definen su arreglo de preguntas y usan este componente.
-*/
-
 export default function Quiz({
 	questions = [],
 	heading = '',
@@ -212,7 +196,11 @@ export default function Quiz({
 								onPress={() => {
 									try {
 										Speech.stop();
-										Speech.speak(option.text, { language: 'en-US', rate: 1.0, pitch: 1.0 });
+										Speech.speak(option.text, {
+											language: 'en-US',
+											rate: 1.0,
+											pitch: 1.0
+										});
 									} catch (e) { }
 									handleOptionSelect(option.id);
 								}}

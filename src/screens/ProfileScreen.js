@@ -8,7 +8,7 @@ import { Avatar } from '@rneui/themed';
 import { LogOut, Pencil, Check, X, Trash2, Settings, BookOpen, GraduationCap, Target, Flame, Calendar, Trophy, Zap, Lock, ChevronRight, Moon, Star, Award, Sun } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { config } from '../config/api';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
 
 export default function ProfileScreen() {
   const { theme, toggleTheme } = useAppTheme();
@@ -272,11 +272,12 @@ export default function ProfileScreen() {
   };
 
   return (
-    <ScrollView 
-      style={stylesProfile.container}
-      contentContainerStyle={{ paddingTop: insets.top, paddingBottom: insets.bottom + 20 }}
-      showsVerticalScrollIndicator={false}
-    >
+    <SafeAreaView style={[stylesProfile.container, { paddingTop: insets.top }]}> 
+      <ScrollView 
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingTop: 10, paddingBottom: insets.bottom + 20 }}
+        showsVerticalScrollIndicator={false}
+      >
       {/* Top Bar */}
       <View style={stylesProfile.topBar}>
         <View style={{flexDirection: 'row', alignItems: 'center', gap: 8}}>
@@ -484,6 +485,7 @@ export default function ProfileScreen() {
           </View>
         </View>
       </Modal>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }

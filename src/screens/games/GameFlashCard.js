@@ -35,6 +35,7 @@ export default function GameFlashCard({ navigation, route }) {
 
   const total = cards.length;
   const current = cards[index];
+  const isSystemGame = Boolean(quiz);
 
   // Animación del toast
   useEffect(() => {
@@ -115,7 +116,17 @@ export default function GameFlashCard({ navigation, route }) {
         
         {cards.length > 0 ? (
           <>
-            <FlashCard key={index} item={current} styles={styles} frontLabel="English" backLabel="Español" />
+            <FlashCard
+              key={index}
+              item={current}
+              styles={styles}
+              frontLabel={isSystemGame ? 'English' : 'Español'}
+              backLabel={isSystemGame ? 'Español' : 'English'}
+              frontKey={isSystemGame ? 'english' : 'translation'}
+              backKey={isSystemGame ? 'spanish' : 'word'}
+              langFront={isSystemGame ? 'en-US' : 'es-ES'}
+              langBack={isSystemGame ? 'es-ES' : 'en-US'}
+            />
 
             <View style={styles.dotsRow}>
               {cards.map((_, i) => (

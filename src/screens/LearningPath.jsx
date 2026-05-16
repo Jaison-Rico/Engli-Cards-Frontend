@@ -142,9 +142,14 @@ export default function LearningPath() {
   const handleLessonPress = (item) => {
     if (item.is_locked) return;
     
-    // Usar datos locales si el backend no tiene flashcards
+    // Para mazos de juego del learning path, priorizar data local fija.
+    // Si existe data local (ej. imagesFruits.json), no debe ser reemplazada por
+    // tarjetas sueltas creadas por el usuario en el backend.
     const deckName = item.deck_name;
-    const cards = (item.flashcards && item.flashcards.length > 0) ? item.flashcards : localData[deckName];
+    const localCards = localData[deckName];
+    const cards = (localCards && localCards.length > 0)
+      ? localCards
+      : ((item.flashcards && item.flashcards.length > 0) ? item.flashcards : []);
     const quiz = quizScreens[deckName];
 
     if ((cards && cards.length > 0) || quiz) {

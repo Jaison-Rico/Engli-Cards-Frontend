@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from "react-native";
 import { ProgressChart, BarChart } from "react-native-chart-kit";
 import { Dimensions } from "react-native";
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
 import { tokens, shadows } from '../styles/theme';
 import * as SecureStore from 'expo-secure-store';
 import { config } from '../config/api';
@@ -124,11 +124,12 @@ export default function StatsScreen() {
 	const studyMinutes = Math.floor((totalSeconds % 3600) / 60);
 
 	return (
-		<ScrollView 
-			style={[styles.container, { backgroundColor: bgLight }]}
-			contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 80 }]}
-			showsVerticalScrollIndicator={false}
-		>
+		<SafeAreaView style={[styles.container, { backgroundColor: bgLight, paddingTop: insets.top }]}> 
+			<ScrollView 
+				style={{ flex: 1 }}
+				contentContainerStyle={[styles.scrollContent, { paddingTop: 20, paddingBottom: insets.bottom + 80 }]}
+				showsVerticalScrollIndicator={false}
+			>
 			<View style={styles.header}>
 				<Text style={[styles.title, { color: textColor }]}>Estadísticas</Text>
 			</View>
@@ -233,6 +234,7 @@ export default function StatsScreen() {
 				<TrendingUp color={bgSecondary} size={24} style={{ opacity: 0.8 }} />
 			</View>
 		</ScrollView>
+	</SafeAreaView>
 	);
 }
 

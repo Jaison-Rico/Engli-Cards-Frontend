@@ -36,9 +36,9 @@ export default function Fruits({ route }) {
     },
     {
       id: 4,
-      question: 'Patilla - Zandia',
+      question: 'Patilla - Sandia',
       options: [
-        { id: 1, text: 'Hello', correct: false },
+        { id: 1, text: 'Grapes', correct: false },
         { id: 2, text: 'Watermelon', correct: true },
         { id: 3, text: 'Peach', correct: false },
         { id: 4, text: 'Mango', correct: false }
