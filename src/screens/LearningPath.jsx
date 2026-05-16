@@ -61,7 +61,7 @@ export default function LearningPath() {
           const token = await SecureStore.getItemAsync('token');
           const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
 
-          const url = `${config.BASE_URL}/decks/${userId}`;
+          const url = `${config.BASE_URL}/decks/${userId}?includeSystem=true`;
           const resp = await axios.get(url, { headers });
           const data = Array.isArray(resp.data) ? resp.data : (resp.data?.decks ?? []);
 

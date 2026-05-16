@@ -56,8 +56,9 @@ export default function StatsScreen() {
 						if (sessionsRes.ok) setSessions(await sessionsRes.json());
 						if (decksRes.ok) {
 							const decksData = await decksRes.json();
-							setTotalDecks(decksData.length);
-							const cardsCount = decksData.reduce((acc, deck) => acc + (deck.flashcards?.length || 0), 0);
+							const personalDecks = decksData.filter(d => !d.is_system);
+							setTotalDecks(personalDecks.length);
+							const cardsCount = personalDecks.reduce((acc, deck) => acc + (deck.flashcards?.length || 0), 0);
 							setTotalCards(cardsCount);
 						}
 					}

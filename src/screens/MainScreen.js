@@ -91,7 +91,7 @@ export default function MainScreen({ route }) {
                     const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
 
                     // 4) Llamada al backend
-                    const url = `${config.BASE_URL}/decks/${userId}`;
+                    const url = `${config.BASE_URL}/decks/${userId}?includeSystem=false`;
                     const resp = await axios.get(url, { headers });
                     const data = Array.isArray(resp.data) ? resp.data : (resp.data?.decks ?? []);
 

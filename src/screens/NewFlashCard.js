@@ -103,7 +103,7 @@ export default function NewFlashCard() {
                     const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
 
                     // Llamada al backend para obtener los mazos
-                    const url = `${config.BASE_URL}/decks/${userId}`;
+                    const url = `${config.BASE_URL}/decks/${userId}?includeSystem=false`;
                     const resp = await axios.get(url, { headers });
                     const data = Array.isArray(resp.data) ? resp.data : (resp.data?.decks ?? []);
 
