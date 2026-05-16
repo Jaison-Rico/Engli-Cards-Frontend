@@ -272,7 +272,7 @@ export default function ProfileScreen() {
   };
 
   return (
-    <SafeAreaView style={[stylesProfile.container, { paddingTop: insets.top }]}> 
+    <SafeAreaView style={[stylesProfile.container, { paddingTop: insets.top + 8 }]}> 
       <ScrollView 
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingTop: 10, paddingBottom: insets.bottom + 20 }}
@@ -315,31 +315,37 @@ export default function ProfileScreen() {
           </View>
         </View>
         
-        {isEditingName ? (
-          <View style={stylesProfile.nameEditContainer}>
-            <TextInput
-              style={stylesProfile.nameInput}
-              value={newName}
-              onChangeText={setNewName}
-              autoFocus
-              placeholder="Tu nombre"
-              placeholderTextColor="rgba(0,0,0,0.3)"
-            />
-            <TouchableOpacity onPress={handleSaveName} style={stylesProfile.editIconButton}>
-              <Check color={primaryColor} size={24} />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => setIsEditingName(false)} style={stylesProfile.editIconButton}>
-              <X color="#dc3545" size={24} />
-            </TouchableOpacity>
+        <View style={stylesProfile.nameEditContainer}>
+          <View style={stylesProfile.centeredNameContainer}>
+            {isEditingName ? (
+              <TextInput
+                style={stylesProfile.nameInput}
+                value={newName}
+                onChangeText={setNewName}
+                autoFocus
+                placeholder="Tu nombre"
+                placeholderTextColor="rgba(0,0,0,0.3)"
+              />
+            ) : (
+              <Text style={stylesProfile.profileTitle}>{userData?.name || 'Usuario Anónimo'}</Text>
+            )}
           </View>
-        ) : (
-          <View style={stylesProfile.nameEditContainer}>
-            <Text style={stylesProfile.profileTitle}>{userData?.name || 'Usuario Anónimo'}</Text>
-            <TouchableOpacity onPress={() => { setIsEditingName(true); setNewName(userData?.name || ''); }} style={stylesProfile.editIconButton}>
-              <Pencil color={theme.colors.mutedForeground} size={16} />
+
+          {isEditingName ? (
+            <View style={stylesProfile.actionIcons}>
+              <TouchableOpacity onPress={handleSaveName} style={stylesProfile.editIconButton}>
+                <Check color={primaryColor} size={24} />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => setIsEditingName(false)} style={stylesProfile.editIconButton}>
+                <X color="#dc3545" size={24} />
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <TouchableOpacity onPress={() => { setIsEditingName(true); setNewName(userData?.name || ''); }} style={stylesProfile.editIconAbsolute}>
+              <Pencil color={theme.colors.mutedForeground} size={18} />
             </TouchableOpacity>
-          </View>
-        )}
+          )}
+        </View>
 
         <View style={stylesProfile.pointsContainer}>
           <View style={{backgroundColor: primaryColor, borderRadius: 10, padding: 2}}>

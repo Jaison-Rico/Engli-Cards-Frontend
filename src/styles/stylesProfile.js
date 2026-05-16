@@ -23,12 +23,12 @@ const get_stylesProfile = (theme) => StyleSheet.create({
     marginHorizontal: 20,
     borderRadius: theme.tokens.radius.lg,
     paddingVertical: 24,
-    marginBottom: 20,
-    marginTop: 10,
+    marginBottom: 12,
+    marginTop: 4,
   },
   avatarContainer: {
     position: 'relative',
-    marginBottom: 10,
+    marginBottom: 6,
   },
   avatarBadge: {
     position: 'absolute',
@@ -62,8 +62,27 @@ const get_stylesProfile = (theme) => StyleSheet.create({
   nameEditContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    position: 'relative',
+    width: '100%',
     gap: 10,
     marginBottom: 4,
+    paddingHorizontal: 20,
+  },
+  centeredNameContainer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  editIconAbsolute: {
+    marginLeft: 'auto',
+    padding: 6,
+  },
+  actionIcons: {
+    marginLeft: 'auto',
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   nameInput: {
     backgroundColor: theme.colors.surfaceContainerLow,
