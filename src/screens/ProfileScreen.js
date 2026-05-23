@@ -3,25 +3,26 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Alert, TextInput, ActivityIndicator, Modal } from 'react-native';
 import get_stylesProfile from '../styles/stylesProfile';
 import { CommonActions, useNavigation, useFocusEffect } from '@react-navigation/native';
-import * as SecureStore from 'expo-secure-store';
+import { useAuth, getUserId } from '../context/AuthContext';
+import { getUserStats, getUserAchievements, updateUserName, uploadProfileImage, deleteUser } from '../services/users.service';
 import { Avatar } from '@rneui/themed';
 import { LogOut, Pencil, Check, X, Trash2, Settings, BookOpen, GraduationCap, Target, Flame, Calendar, Trophy, Zap, Lock, ChevronRight, Moon, Star, Award, Sun } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { config } from '../config/api';
 import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
 
 export default function ProfileScreen() {
   const { theme, toggleTheme } = useAppTheme();
   const stylesProfile = get_stylesProfile(theme);
+  const { user: authUser, logout, updateUser } = useAuth();
+  const userId = getUserId(authUser);
 
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
-  const [userData, setUserData] = useState(null);
+  const [userData, setUserData] = useState(authUser);
   const [userStats, setUserStats] = useState(null);
   const [userAchievements, setUserAchievements] = useState([]);
   const [isLoadingStats, setIsLoadingStats] = useState(true);
   const [error, setError] = useState(null);
-  const [userId, setUserId] = useState(null);
   const [isEditingName, setIsEditingName] = useState(false);
   const [newName, setNewName] = useState('');
   const [showAllAchievements, setShowAllAchievements] = useState(false);
@@ -40,60 +41,25 @@ export default function ProfileScreen() {
       let isActive = true;
 
       const fetchUserData = async () => {
+        if (!userId) {
+          if (isActive) setError('No se encontró el ID de usuario. Inicia sesión nuevamente.');
+          return;
+        }
+        if (isActive) setUserData(authUser);
         try {
-          const storedUser = await SecureStore.getItemAsync('userInfo');
-          if (!storedUser) {
-            if (isActive) setError('No se encontró información del usuario. Inicia sesión nuevamente.');
-            return;
-          }
-
-          const user = JSON.parse(storedUser);
-          const userIdValue = user?.user_id ?? user?._id ?? user?.id ?? user?.userId;
-
-          if (!userIdValue) {
-            if (isActive) {
-              setError('No se encontró el ID de usuario.');
-              setUserData(null);
-            }
-            return;
-          }
-
+          setIsLoadingStats(true);
+          const [statsData, achData] = await Promise.all([
+            getUserStats(userId),
+            getUserAchievements(userId),
+          ]);
           if (isActive) {
-            setUserId(userIdValue);
-            setUserData(user);
+            setUserStats(statsData);
+            setUserAchievements(achData);
           }
-
-          // Fetch stats from backend
-          const token = await SecureStore.getItemAsync('token');
-          const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
-          
-          try {
-            setIsLoadingStats(true);
-            const [statsRes, achRes] = await Promise.all([
-              fetch(`${config.BASE_URL}/users/${userIdValue}/stats`, { headers }),
-              fetch(`${config.BASE_URL}/users/${userIdValue}/achievements`, { headers })
-            ]);
-
-            if (statsRes.ok) {
-              const statsData = await statsRes.json();
-              if (isActive) setUserStats(statsData);
-            }
-
-            if (achRes.ok) {
-              const achData = await achRes.json();
-              if (isActive) setUserAchievements(achData);
-            }
-          } catch (e) {
-            console.error('Error fetching stats or achievements:', e);
-          } finally {
-            if (isActive) setIsLoadingStats(false);
-          }
-
-        } catch (error) {
-          if (isActive) {
-            setError('Error al obtener la información del usuario.');
-            setUserData(null);
-          }
+        } catch (e) {
+          console.error('Error fetching stats or achievements:', e);
+        } finally {
+          if (isActive) setIsLoadingStats(false);
         }
       };
 
@@ -111,10 +77,9 @@ export default function ProfileScreen() {
       {
         text: 'Cerrar Sesión', style: 'destructive', onPress: async () => {
           try {
-            await SecureStore.deleteItemAsync('userInfo');
-            await SecureStore.deleteItemAsync('token');
+            await logout();
             navigation.dispatch(CommonActions.reset({ index: 0, routes: [{ name: 'Home' }] }));
-          } catch (error) {
+          } catch {
             Alert.alert('Error', 'Hubo un problema al cerrar sesión. Intenta de nuevo.');
           }
         }
@@ -125,24 +90,17 @@ export default function ProfileScreen() {
   const handleDeleteProfile = async () => {
     Alert.alert(
       'Eliminar Cuenta',
-      '¿Estás absolutamente seguro de que quieres eliminar tu cuenta? Esta acción es irreversible.',
+      '¿Estás absolutamente seguro? Esta acción es irreversible.',
       [
         { text: 'Cancelar', style: 'cancel' },
         {
           text: 'Sí, Eliminar Todo', style: 'destructive', onPress: async () => {
             try {
-              const token = await SecureStore.getItemAsync('token');
-              const deleteUrl = `${config.BASE_URL}/users/${userId}`;
-              const response = await fetch(deleteUrl, {
-                method: 'DELETE',
-                headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-              });
-              if (!response.ok) throw new Error('Error al eliminar cuenta');
-              await SecureStore.deleteItemAsync('userInfo');
-              await SecureStore.deleteItemAsync('token');
+              await deleteUser(userId);
+              await logout();
               Alert.alert('Cuenta Eliminada', 'Tu cuenta ha sido eliminada exitosamente.');
               navigation.dispatch(CommonActions.reset({ index: 0, routes: [{ name: 'Home' }] }));
-            } catch (error) {
+            } catch {
               Alert.alert('Error', 'Hubo un problema al eliminar tu cuenta. Intenta de nuevo.');
             }
           }
@@ -153,41 +111,20 @@ export default function ProfileScreen() {
 
   const uploadImage = async (asset) => {
     try {
-      const formData = new FormData();
-      const uri = asset.uri;
-      const ext = (uri?.split('.')?.pop() || 'jpg').toLowerCase();
-      const mime = asset.mimeType || (ext === 'png' ? 'image/png' : ext === 'heic' ? 'image/heic' : 'image/jpeg');
-      const name = asset.fileName || `avatar.${ext}`;
-
-      formData.append('avatar', { uri, name, type: mime });
-      if (userId) formData.append('userId', String(userId));
-
-      const token = await SecureStore.getItemAsync('token');
-      const uploadUrl = `${config.BASE_URL}/cloudinary/upload-profile`;
-      
-      const response = await fetch(uploadUrl, {
-        method: 'POST',
-        body: formData,
-        headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-      });
-
-      if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
-      const data = await response.json();
+      const data = await uploadProfileImage(userId, asset);
       const imageUrl = data.imageUrl || data.url || data.secure_url || data.image_url;
-
       if (imageUrl) {
-        const nextUser = { ...userData, avatar_url: imageUrl };
-        setUserData(nextUser);
-        try { await SecureStore.setItemAsync('userInfo', JSON.stringify(nextUser)); } catch {}
+        await updateUser({ avatar_url: imageUrl });
+        setUserData((prev) => ({ ...prev, avatar_url: imageUrl }));
       } else if (data.user) {
+        await updateUser(data.user);
         setUserData(data.user);
-        try { await SecureStore.setItemAsync('userInfo', JSON.stringify(data.user)); } catch {}
       }
       Alert.alert('Éxito', 'Foto de perfil actualizada correctamente.');
-    } catch (error) {
+    } catch {
       Alert.alert('Error', 'Hubo un problema al cambiar la foto de perfil. Intenta de nuevo.');
     }
-  }
+  };
 
   const handleEditProfile = async () => {
     Alert.alert('Editar Perfil', '¿Quieres cambiar la foto de perfil?', [
@@ -209,26 +146,15 @@ export default function ProfileScreen() {
   }
 
   const handleSaveName = async () => {
-    if (!newName.trim() || newName.trim().length < 3) return Alert.alert('Error', 'El nombre debe tener al menos 3 caracteres.');
+    if (!newName.trim() || newName.trim().length < 3)
+      return Alert.alert('Error', 'El nombre debe tener al menos 3 caracteres.');
     try {
-      const token = await SecureStore.getItemAsync('token');
-      const response = await fetch(`${config.BASE_URL}/users/${userId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({ name: newName.trim() }),
-      });
-
-      if (!response.ok) throw new Error('Error al actualizar nombre');
-      const updatedUser = await response.json();
-      const nextUser = { ...userData, name: updatedUser.name || newName.trim() };
-      setUserData(nextUser);
-      try { await SecureStore.setItemAsync('userInfo', JSON.stringify(nextUser)); } catch {}
-      
+      const updatedUser = await updateUserName(userId, newName.trim());
+      const nextName = updatedUser.name || newName.trim();
+      await updateUser({ name: nextName });
+      setUserData((prev) => ({ ...prev, name: nextName }));
       setIsEditingName(false);
-    } catch (error) {
+    } catch {
       Alert.alert('Error', 'Hubo un problema al actualizar el nombre. Intenta de nuevo.');
     }
   };
@@ -351,7 +277,7 @@ export default function ProfileScreen() {
           <View style={{backgroundColor: primaryColor, borderRadius: 10, padding: 2}}>
             <Trophy color="#fff" size={12} />
           </View>
-          <Text style={stylesProfile.points}>{displayStats.puntos.toLocaleString()} Total Points</Text>
+          <Text style={stylesProfile.points}>{displayStats.puntos.toLocaleString()} Puntos totales</Text>
         </View>
       </View>
 

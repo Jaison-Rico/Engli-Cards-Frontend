@@ -38,7 +38,19 @@ const paletteDark = {
 	accent: 'hsl(185, 65%, 55%)',
 	muted: 'hsla(0,0%,100%,0.06)',
 	mutedForeground: 'hsl(210, 20%, 70%)',
-	border: 'hsla(0,0%,100%,0.12)'
+	border: 'hsla(0,0%,100%,0.12)',
+	// Tokens adicionales para dark mode
+	primaryDark: '#CBEBE8',
+	primaryLight: '#12B5B0',
+	primaryContainer: 'hsl(195, 30%, 20%)',
+	mintBackground: 'hsl(210, 25%, 13%)',
+	surfaceContainer: 'hsl(210, 25%, 18%)',
+	surfaceContainerLow: 'hsl(210, 25%, 16%)',
+	surfaceLowest: 'hsl(210, 30%, 10%)',
+	inputIcon: 'hsl(195, 20%, 55%)',
+	onSurface: 'hsl(210, 30%, 90%)',
+	onSurfaceVariant: 'hsl(210, 20%, 65%)',
+	outlineVariant: 'hsla(0,0%,100%,0.12)',
 };
 
 // Tokens

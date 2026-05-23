@@ -1,28 +1,20 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, ActivityIndicator, Alert, TextInput, Modal } from "react-native";
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import React, { useState, useCallback } from "react";
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, ActivityIndicator, Alert, TextInput, Modal, Share } from "react-native";
+import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { ArrowLeft, MoreVertical, Edit2, Share2, Volume2, ChevronRight, Plus, Image as ImageIcon, Search } from "lucide-react-native";
-import axios from "axios";
-import { config } from "../config/api";
-import * as SecureStore from 'expo-secure-store';
+import { ArrowLeft, MoreVertical, Edit2, Volume2, ChevronRight, Plus, Image as ImageIcon, Search } from "lucide-react-native";
 import * as Speech from 'expo-speech';
-
-// Mockup styling details
-const colors = {
-  headerBg: "#E6F9F9",
-  white: "#FFFFFF",
-  primaryText: "#08302E",
-  primarySoftText: "#4A6E6C",
-  accent: "#12B5B0", 
-  lightCyan: "#CFF5F2",
-  grayBorder: "#F0F0F0",
-  newBadgeBg: "#E0F2F1",
-  newBadgeText: "#00695C"
-};
+import { useAppTheme } from '../context/ThemeContext';
+import { useAuth, getUserId } from '../context/AuthContext';
+import { getDeckFlashcards, updateDeck, deleteDeck } from '../services/decks.service';
 
 export default function DeckDetailsScreen({ route, navigation }) {
-    const { deck } = route.params; 
+    const { deck } = route.params;
+    const { theme } = useAppTheme();
+    const { user } = useAuth();
+    const userId = getUserId(user);
+    const colors = getDeckColors(theme);
+    const styles = get_stylesDeckDetails(theme);
     const insets = useSafeAreaInsets();
     
     // Data State
@@ -46,11 +38,8 @@ export default function DeckDetailsScreen({ route, navigation }) {
         setLoading(true);
         setError(null);
         try {
-            const token = await SecureStore.getItemAsync('token');
-            const headers = token ? { Authorization: `Bearer ${token}` } : {};
-            
-            const resp = await axios.get(`${config.BASE_URL}/decks/${deck.deck_id}/flashcards`, { headers });
-            setFlashcards(resp.data);
+            const data = await getDeckFlashcards(deck.deck_id);
+            setFlashcards(data);
         } catch (err) {
             console.error(err);
             setError("No se pudieron cargar las flashcards.");
@@ -59,8 +48,40 @@ export default function DeckDetailsScreen({ route, navigation }) {
         }
     };
 
-    const handleShare = () => {
-        console.log("share clicked"); 
+    const handleShare = async () => {
+        if (flashcards.length === 0) {
+            Alert.alert("Sin contenido", "Agrega tarjetas al mazo antes de compartirlo.");
+            return;
+        }
+        const lines = flashcards.map((c) => `• ${c.word} → ${c.translation}`).join('\n');
+        await Share.share({
+            title: `Mazo: ${deckName}`,
+            message: `📚 Mazo de vocabulario: ${deckName}\n\n${lines}\n\n(Compartido desde Engli-Cards)`,
+        });
+    };
+
+    // Abre el menú de opciones desde ⋮: renombrar, compartir o eliminar (acciones separadas)
+    const handleOptionsMenu = () => {
+        Alert.alert(
+            deckName,
+            "¿Qué deseas hacer con este mazo?",
+            [
+                {
+                    text: "Renombrar",
+                    onPress: () => { setEditNameInput(deckName); setEditModalVisible(true); },
+                },
+                {
+                    text: "Compartir",
+                    onPress: handleShare,
+                },
+                {
+                    text: "Eliminar mazo",
+                    style: "destructive",
+                    onPress: handleDeleteDeck,
+                },
+                { text: "Cancelar", style: "cancel" },
+            ]
+        );
     };
 
     const handleSpeak = (word) => {
@@ -71,24 +92,10 @@ export default function DeckDetailsScreen({ route, navigation }) {
 
     // EDICIÓN / ELIMINACIÓN DE MAZO
     const handleSaveDeckName = async () => {
-        if(!editNameInput.trim()) return;
+        if (!editNameInput.trim()) return;
+        if (!userId) { Alert.alert("Error", "No se encontró tu ID de usuario."); return; }
         try {
-            const token = await SecureStore.getItemAsync('token');
-            const headers = token ? { Authorization: `Bearer ${token}` } : {};
-            let userStr = await SecureStore.getItemAsync('userInfo');
-            let parsedUser = userStr ? JSON.parse(userStr) : null;
-            const userId = parsedUser?.user_id ?? parsedUser?._id ?? parsedUser?.id ?? parsedUser?.userId ?? deck.user_id;
-
-            if (!userId) {
-                Alert.alert("Error", "No se encontró tu ID de usuario.");
-                return;
-            }
-
-            await axios.patch(`${config.BASE_URL}/decks/${deck.deck_id}`, {
-                name: editNameInput,
-                userId: userId
-            }, { headers });
-
+            await updateDeck(deck.deck_id, editNameInput, userId);
             setDeckName(editNameInput);
             setEditModalVisible(false);
             Alert.alert("Éxito", "Mazo actualizado correctamente");
@@ -104,28 +111,15 @@ export default function DeckDetailsScreen({ route, navigation }) {
             "¿Estás seguro que deseas eliminar este mazo? También se eliminarán las palabras asociadas.",
             [
                 { text: "Cancelar", style: "cancel" },
-                { 
-                    text: "Eliminar", 
+                {
+                    text: "Eliminar",
                     style: "destructive",
                     onPress: async () => {
+                        if (!userId) { Alert.alert("Error", "No se encontró tu ID de usuario."); return; }
                         try {
-                            const token = await SecureStore.getItemAsync('token');
-                            const headers = token ? { Authorization: `Bearer ${token}` } : {};
-                            let userStr = await SecureStore.getItemAsync('userInfo');
-                            let parsedUser = userStr ? JSON.parse(userStr) : null;
-                            const userId = parsedUser?.user_id ?? parsedUser?._id ?? parsedUser?.id ?? parsedUser?.userId ?? deck.user_id;
-                            
-                            if (!userId) {
-                                Alert.alert("Error", "No se encontró tu ID de usuario.");
-                                return;
-                            }
-
-                            await axios.delete(`${config.BASE_URL}/decks?deckId=${deck.deck_id}&userId=${userId}`, { headers });
+                            await deleteDeck(deck.deck_id, userId);
                             Alert.alert("Éxito", "Mazo eliminado correctamente", [
-                                { text: "OK", onPress: () => {
-                                    setEditModalVisible(false);
-                                    navigation.goBack();
-                                }}
+                                { text: "OK", onPress: () => { setEditModalVisible(false); navigation.goBack(); } }
                             ]);
                         } catch (err) {
                             console.error(err);
@@ -196,10 +190,6 @@ export default function DeckDetailsScreen({ route, navigation }) {
                             <Text style={styles.modalBtnPrimaryText}>Guardar</Text>
                         </TouchableOpacity>
 
-                        <TouchableOpacity style={styles.modalBtnDestructive} onPress={handleDeleteDeck}>
-                            <Text style={styles.modalBtnDestructiveText}>Eliminar Mazo</Text>
-                        </TouchableOpacity>
-
                         <TouchableOpacity style={styles.modalBtnCancel} onPress={() => setEditModalVisible(false)}>
                             <Text style={styles.modalBtnCancelText}>Cancelar</Text>
                         </TouchableOpacity>
@@ -216,7 +206,7 @@ export default function DeckDetailsScreen({ route, navigation }) {
                         <ArrowLeft color={colors.primaryText} size={24} />
                     </TouchableOpacity>
                     <Text style={styles.navbarTitle}>Mazo de Estudio</Text>
-                    <TouchableOpacity>
+                    <TouchableOpacity onPress={handleOptionsMenu} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                         <MoreVertical color={colors.primaryText} size={24} />
                     </TouchableOpacity>
                 </View>
@@ -224,17 +214,17 @@ export default function DeckDetailsScreen({ route, navigation }) {
                 {/* Info Container */}
                 <View style={styles.infoContainer}>
                     <View style={styles.pillContainer}>
-                        <Text style={styles.pillText}>VOCABULARY SET</Text>
+                        <Text style={styles.pillText}>MAZO DE VOCABULARIO</Text>
                     </View>
                     <Text style={styles.deckTitle}>{deckName}</Text>
                     <Text style={styles.deckSubtitle}>{flashcards.length || deck.cardCount || 0} Tarjetas en este mazo</Text>
                     
                     <View style={styles.actionRow}>
-                        <TouchableOpacity style={styles.actionButton} onPress={() => setEditModalVisible(true)}>
+                        <TouchableOpacity
+                            style={styles.actionButton}
+                            onPress={() => { setEditNameInput(deckName); setEditModalVisible(true); }}
+                        >
                             <Edit2 color={colors.primaryText} size={18} />
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.actionButton} onPress={handleShare}>
-                            <Share2 color={colors.primaryText} size={18} />
                         </TouchableOpacity>
 
                         {flashcards.length >= 5 && (
@@ -302,13 +292,27 @@ export default function DeckDetailsScreen({ route, navigation }) {
     );
 }
 
-const styles = StyleSheet.create({
+const getDeckColors = (theme) => ({
+    headerBg: theme.colors.surfaceContainerLow || '#E6F9F9',
+    white: theme.colors.card,
+    primaryText: theme.colors.primaryDark || theme.colors.foreground,
+    primarySoftText: theme.colors.onSurfaceVariant || theme.colors.mutedForeground,
+    accent: theme.colors.primaryLight || theme.colors.primary,
+    lightCyan: theme.colors.primaryContainer || '#CFF5F2',
+    grayBorder: theme.colors.border,
+    newBadgeBg: theme.colors.primaryContainer || '#E0F2F1',
+    newBadgeText: theme.colors.primaryDark || theme.colors.foreground,
+});
+
+const get_stylesDeckDetails = (theme) => {
+    const c = getDeckColors(theme);
+    return StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: colors.white
+        backgroundColor: theme.colors.background,
     },
     headerArea: {
-        backgroundColor: colors.headerBg,
+        backgroundColor: c.headerBg,
         paddingHorizontal: 20,
         paddingBottom: 25,
     },
@@ -321,20 +325,20 @@ const styles = StyleSheet.create({
     navbarTitle: {
         fontSize: 18,
         fontWeight: "bold",
-        color: colors.primaryText,
+        color: c.primaryText,
     },
     infoContainer: {
         alignItems: "flex-start",
     },
     pillContainer: {
-        backgroundColor: colors.lightCyan,
+        backgroundColor: c.lightCyan,
         paddingHorizontal: 12,
         paddingVertical: 5,
         borderRadius: 20,
         marginBottom: 10,
     },
     pillText: {
-        color: colors.accent,
+        color: c.accent,
         fontSize: 10,
         fontWeight: "bold",
         letterSpacing: 1,
@@ -342,12 +346,12 @@ const styles = StyleSheet.create({
     deckTitle: {
         fontSize: 34,
         fontWeight: "bold",
-        color: colors.primaryText,
+        color: c.primaryText,
         marginBottom: 5,
     },
     deckSubtitle: {
         fontSize: 16,
-        color: colors.primarySoftText,
+        color: c.primarySoftText,
         marginBottom: 15,
     },
     actionRow: {
@@ -355,7 +359,7 @@ const styles = StyleSheet.create({
         gap: 12,
     },
     actionButton: {
-        backgroundColor: colors.lightCyan,
+        backgroundColor: c.lightCyan,
         width: 40,
         height: 40,
         borderRadius: 20,
@@ -376,16 +380,16 @@ const styles = StyleSheet.create({
     listTitle: {
         fontSize: 18,
         fontWeight: "bold",
-        color: colors.primaryText,
+        color: c.primaryText,
     },
     listSubtitle: {
         fontSize: 12,
-        color: colors.primarySoftText,
+        color: c.primarySoftText,
     },
     searchContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: colors.grayBorder,
+        backgroundColor: c.grayBorder,
         borderRadius: 12,
         paddingHorizontal: 15,
         marginBottom: 15,
@@ -395,7 +399,7 @@ const styles = StyleSheet.create({
         flex: 1,
         marginLeft: 10,
         fontSize: 16,
-        color: colors.primaryText,
+        color: c.primaryText,
     },
     flatListContent: {
         paddingBottom: 100, 
@@ -403,7 +407,7 @@ const styles = StyleSheet.create({
     cardContainer: {
         flexDirection: "row",
         alignItems: "center",
-        backgroundColor: colors.white,
+        backgroundColor: c.white,
         padding: 15,
         marginBottom: 10,
         borderRadius: 16,
@@ -413,7 +417,7 @@ const styles = StyleSheet.create({
         shadowRadius: 5,
         elevation: 2, 
         borderWidth: 1,
-        borderColor: colors.grayBorder
+        borderColor: c.grayBorder
     },
     cardImageContainer: {
         width: 50,
@@ -436,11 +440,11 @@ const styles = StyleSheet.create({
     cardWord: {
         fontSize: 16,
         fontWeight: "bold",
-        color: colors.primaryText,
+        color: c.primaryText,
     },
     cardTranslation: {
         fontSize: 14,
-        color: colors.primarySoftText,
+        color: c.primarySoftText,
     },
     volumeButton: {
         padding: 10,
@@ -455,7 +459,7 @@ const styles = StyleSheet.create({
     },
     emptyText: {
         textAlign: "center",
-        color: colors.primarySoftText,
+        color: c.primarySoftText,
         marginTop: 20,
         fontStyle: "italic"
     },
@@ -463,9 +467,9 @@ const styles = StyleSheet.create({
 
     addMoreCard: {
         width: "100%",
-        backgroundColor: colors.white,
+        backgroundColor: c.white,
         borderWidth: 2,
-        borderColor: colors.lightCyan,
+        borderColor: c.lightCyan,
         borderStyle: 'dashed',
         borderRadius: 20,
         padding: 20,
@@ -477,7 +481,7 @@ const styles = StyleSheet.create({
         width: 50,
         height: 50,
         borderRadius: 25,
-        backgroundColor: colors.lightCyan,
+        backgroundColor: c.lightCyan,
         alignItems: "center",
         justifyContent: "center",
         marginBottom: 10,
@@ -485,17 +489,17 @@ const styles = StyleSheet.create({
     addMoreTitle: {
         fontSize: 16,
         fontWeight: "bold",
-        color: colors.primaryText,
+        color: c.primaryText,
         marginBottom: 5,
     },
     addMoreSubtitle: {
         fontSize: 12,
-        color: colors.primarySoftText,
+        color: c.primarySoftText,
         textAlign: "center",
         paddingHorizontal: 10,
     },
     studyButton: {
-        backgroundColor: colors.accent,
+        backgroundColor: c.accent,
         width: "70%",
         height: 55,
         borderRadius: 30,
@@ -503,14 +507,14 @@ const styles = StyleSheet.create({
         bottom: 10, 
         alignItems: "center",
         justifyContent: "center",
-        shadowColor: colors.accent,
+        shadowColor: c.accent,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
         shadowRadius: 5,
         elevation: 5,
     },
     studyButtonText: {
-        color: colors.white,
+        color: c.white,
         fontSize: 18,
         fontWeight: "bold"
     },
@@ -525,7 +529,7 @@ const styles = StyleSheet.create({
     },
     modalContent: {
         width: '100%',
-        backgroundColor: colors.white,
+        backgroundColor: c.white,
         borderRadius: 16,
         padding: 20,
         shadowColor: '#000',
@@ -537,35 +541,35 @@ const styles = StyleSheet.create({
     modalTitle: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: colors.primaryText,
+        color: c.primaryText,
         marginBottom: 15,
         textAlign: 'center'
     },
     modalLabel: {
         fontSize: 14,
-        color: colors.primarySoftText,
+        color: c.primarySoftText,
         marginBottom: 5,
     },
     modalInput: {
         borderWidth: 1,
-        borderColor: colors.grayBorder,
+        borderColor: c.grayBorder,
         borderRadius: 10,
         paddingHorizontal: 15,
         height: 45,
         fontSize: 16,
-        color: colors.primaryText,
+        color: c.primaryText,
         marginBottom: 20,
         backgroundColor: '#FCFCFC'
     },
     modalBtnPrimary: {
-        backgroundColor: colors.accent,
+        backgroundColor: c.accent,
         paddingVertical: 12,
         borderRadius: 10,
         alignItems: 'center',
         marginBottom: 10,
     },
     modalBtnPrimaryText: {
-        color: colors.white,
+        color: c.white,
         fontSize: 16,
         fontWeight: 'bold',
     },
@@ -582,14 +586,15 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     modalBtnCancel: {
-        backgroundColor: colors.grayBorder,
+        backgroundColor: c.grayBorder,
         paddingVertical: 12,
         borderRadius: 10,
         alignItems: 'center',
     },
     modalBtnCancelText: {
-        color: colors.primarySoftText,
+        color: c.primarySoftText,
         fontSize: 16,
         fontWeight: 'bold',
     }
-});
+    });
+};

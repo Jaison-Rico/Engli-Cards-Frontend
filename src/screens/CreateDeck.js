@@ -3,14 +3,15 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Modal, TextInput, TouchableOpacity, ActivityIndicator, Animated, Platform } from 'react-native';
 import { CheckCircle, AlertCircle, Layers } from 'lucide-react-native';
 import { BlurView } from 'expo-blur';
-import * as SecureStore from 'expo-secure-store';
-import axios from 'axios';
-import { config } from '../config/api';
+import { useAuth, getUserId } from '../context/AuthContext';
+import { createDeck } from '../services/decks.service';
 import get_stylesMS from '../styles/stylesMS';
 
 export default function CreateDeck({ visible, onClose, onCreateDeck }) {
-  const { theme, toggleTheme } = useAppTheme();
+  const { theme } = useAppTheme();
   const stylesMS = get_stylesMS(theme);
+  const { user } = useAuth();
+  const userId = getUserId(user);
 
 	const [deckName, setDeckName] = useState("");
 	const [loading, setLoading] = useState(false);
@@ -48,50 +49,21 @@ export default function CreateDeck({ visible, onClose, onCreateDeck }) {
 			return;
 		}
 
+		if (!userId) {
+			showToast('No se encontró el ID de usuario', 'error');
+			return;
+		}
 		setLoading(true);
-
 		try {
-			const storedUser = await SecureStore.getItemAsync('userInfo');
-			if (!storedUser) {
-				showToast('No se encontró información del usuario', 'error');
-				setLoading(false);
-				return;
-			}
-
-			const user = JSON.parse(storedUser);
-			const userId = user?.user_id ?? user?._id ?? user?.id ?? user?.userId;
-
-			if (!userId) {
-				showToast('No se encontró el ID de usuario', 'error');
-				setLoading(false);
-				return;
-			}
-
-			const token = await SecureStore.getItemAsync('token');
-			const headers = token ? { Authorization: `Bearer ${token}` } : {};
-
-			const response = await axios.post(
-				`${config.BASE_URL}/decks`,
-				{
-					name: deckName.trim(),
-					user_id: userId
-				},
-				{ headers }
-			);
-
+			const response = await createDeck(deckName.trim(), userId);
 			showToast(`¡Mazo "${deckName}" creado exitosamente!`, 'success');
-			
 			setTimeout(() => {
-				if (onCreateDeck) {
-					onCreateDeck(response.data);
-				}
-				setDeckName("");
+				if (onCreateDeck) onCreateDeck(response);
+				setDeckName('');
 				onClose();
 			}, 1500);
-
 		} catch (err) {
-			const errorMessage = err?.response?.data?.message || err?.message || 'Error al crear el mazo';
-			showToast(errorMessage, 'error');
+			showToast(err?.response?.data?.message || err?.message || 'Error al crear el mazo', 'error');
 		} finally {
 			setLoading(false);
 		}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, TouchableOpacity, Text, Animated, ActivityIndicator } from 'react-native';
+import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import { useAppTheme } from '../../context/ThemeContext';
 import get_styleGameFlashCard from '../../styles/styleGameFlashCard';
 import { ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react-native';
@@ -71,7 +72,16 @@ export default function GameFlashCard({ navigation, route }) {
   const goPrev = () => setIndex((i) => (i > 0 ? i - 1 : i));
   const goNext = () => setIndex((i) => (i < total - 1 ? i + 1 : i));
 
+  const swipeGesture = Gesture.Pan()
+    .runOnJS(true)
+    .activeOffsetX([-20, 20])
+    .onEnd((event) => {
+      if (event.translationX < -40) goNext();
+      else if (event.translationX > 40) goPrev();
+    });
+
   return (
+    <GestureDetector gesture={swipeGesture}>
     <View style={{...styles.screen, paddingTop: insets.top + 10}}>
       <View style={{ 
         flexDirection: 'row', 
@@ -198,5 +208,6 @@ export default function GameFlashCard({ navigation, route }) {
 					</Animated.View>
 				)}
     </View>
+    </GestureDetector>
   );
 }

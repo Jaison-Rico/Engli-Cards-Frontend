@@ -3,9 +3,8 @@ import React, { useState } from "react";
 import { View, Text, FlatList, TouchableOpacity, SafeAreaView, ActivityIndicator, Alert, StatusBar } from "react-native";
 import { Play, Lock, Sparkles, BookOpen, Apple, Users, Briefcase, School, Plane, Palette, Dog } from "lucide-react-native";
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import axios from 'axios';
-import * as SecureStore from 'expo-secure-store';
-import { config } from '../config/api';
+import { useAuth, getUserId } from '../context/AuthContext';
+import { getDecks } from '../services/decks.service';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import get_stylesLP from '../styles/stylesLearningPath';
 
@@ -33,6 +32,8 @@ const localData = {
 export default function LearningPath() {
   const { theme } = useAppTheme();
   const stylesLP = get_stylesLP(theme);
+  const { user } = useAuth();
+  const userId = getUserId(user);
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
 
@@ -45,41 +46,20 @@ export default function LearningPath() {
       let isActive = true;
 
       const fetchSystemDecks = async () => {
+        if (!userId) {
+          setError('No se encontró el ID de usuario.');
+          return;
+        }
         setLoading(true);
         setError(null);
         try {
-          let user = null;
-          const storedUser = await SecureStore.getItemAsync('userInfo');
-          if (storedUser) user = JSON.parse(storedUser);
-
-          const userId = user?.user_id ?? user?._id ?? user?.id ?? user?.userId;
-          if (!userId) {
-            if (isActive) setError('No se encontró el ID de usuario.');
-            return;
-          }
-
-          const token = await SecureStore.getItemAsync('token');
-          const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
-
-          const url = `${config.BASE_URL}/decks/${userId}?includeSystem=true`;
-          const resp = await axios.get(url, { headers });
-          const data = Array.isArray(resp.data) ? resp.data : (resp.data?.decks ?? []);
-
+          const data = await getDecks(userId, true);
           if (isActive) {
-            const normalized = data.filter(d => d.is_system).map((d) => ({
-              deck_id: d.deck_id ?? d.id ?? d._id ?? d.deckId ?? String(Math.random()),
-              deck_name: d.deck_name ?? d.name ?? d.title ?? 'Deck',
-              cardCount: d.cardCount ?? d.cardsCount ?? (Array.isArray(d.flashcards) ? d.flashcards.length : (Array.isArray(d.cards) ? d.cards.length : 0)),
-              flashcards: d.flashcards,
-              is_system: d.is_system ?? false,
-              order_index: d.order_index ?? 0,
-              is_locked: d.is_locked ?? false,
-              best_accuracy: d.best_accuracy ?? 0,
-              min_accuracy: d.min_accuracy ?? 0.9,
-              icon: getIconForDeck(d.deck_name)
-            })).sort((a, b) => a.order_index - b.order_index);
-
-            setSystemDecks(normalized);
+            const systemDecksNormalized = data
+              .filter((d) => d.is_system)
+              .map((d) => ({ ...d, icon: getIconForDeck(d.deck_name) }))
+              .sort((a, b) => a.order_index - b.order_index);
+            setSystemDecks(systemDecksNormalized);
           }
         } catch (err) {
           if (isActive) setError(err?.response?.data?.message || err?.message || 'Error al cargar el progreso');
@@ -191,35 +171,44 @@ export default function LearningPath() {
           const isLocked = item.is_locked;
           
           return (
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={() => handleLessonPress(item)}
               disabled={isLocked}
               activeOpacity={0.8}
-              style={[
-                stylesLP.cardContainer,
-                isLocked && stylesLP.cardLocked
-              ]}
+              style={[stylesLP.cardContainer, isLocked && stylesLP.cardLocked]}
             >
               <View style={[
-                stylesLP.iconContainer, 
-                isLocked ? stylesLP.iconLocked : stylesLP.iconAvailable
+                stylesLP.iconContainer,
+                isLocked ? stylesLP.iconLocked : stylesLP.iconAvailable,
               ]}>
-                {renderIcon(item.icon, isLocked ? theme.colors.mutedForeground : theme.colors.primary)}
+                {renderIcon(item.icon, isLocked ? theme.colors.mutedForeground : '#FFFFFF')}
               </View>
 
               <View style={stylesLP.textContainer}>
-                <Text style={[
-                  stylesLP.cardTitle,
-                  isLocked && stylesLP.cardTitleLocked
-                ]}>
+                <Text style={[stylesLP.cardTitle, isLocked && stylesLP.cardTitleLocked]}>
                   {item.deck_name}
                 </Text>
-                <Text style={[
-                  stylesLP.cardStatus,
-                  isLocked && stylesLP.cardStatusLocked
-                ]}>
-                  {isLocked ? "Bloqueado" : "Jugar ahora"}
-                </Text>
+
+                {/* Barra de progreso — solo si hay precisión registrada */}
+                {!isLocked && item.best_accuracy > 0 ? (
+                  <View style={{ marginTop: 6 }}>
+                    <View style={stylesLP.progressBarBg}>
+                      <View
+                        style={[
+                          stylesLP.progressBarFill,
+                          { width: `${Math.round(item.best_accuracy * 100)}%` },
+                        ]}
+                      />
+                    </View>
+                    <Text style={[stylesLP.cardStatus, { marginTop: 3, fontSize: 12 }]}>
+                      {Math.round(item.best_accuracy * 100)}% precisión
+                    </Text>
+                  </View>
+                ) : (
+                  <Text style={[stylesLP.cardStatus, isLocked && stylesLP.cardStatusLocked]}>
+                    {isLocked ? "Bloqueado" : "Jugar ahora"}
+                  </Text>
+                )}
               </View>
 
               {isLocked ? (

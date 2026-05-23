@@ -1,22 +1,25 @@
 import React, { useEffect } from 'react';
-import AppNavigator from './src/navigation/AppNavigator';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import AppNavigator from './src/navigation/AppNavigator';
 import { ThemeProvider } from './src/context/ThemeContext';
-import { registerForPushNotificationsAsync, scheduleDailyStudyReminder } from './src/config/notifications';
+import { AuthProvider } from './src/context/AuthContext';
+import { scheduleDailyStudyReminder } from './src/config/notifications';
 
 export default function App() {
   useEffect(() => {
-    // registerForPushNotificationsAsync(); // Comentado para evitar error en Expo Go SDK 53+
     scheduleDailyStudyReminder();
   }, []);
 
   return (
-    <SafeAreaProvider>
-      <ThemeProvider>
-        <AppNavigator />
-      </ThemeProvider>
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <AppNavigator />
+          </AuthProvider>
+        </ThemeProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
-
-
