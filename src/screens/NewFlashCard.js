@@ -5,14 +5,15 @@ import { Picker } from '@react-native-picker/picker'; //componente para crear li
 import { Camera, Save, ArrowLeft, ChevronDown, CheckCircle, Type, Globe, Lightbulb, Aperture, User } from 'lucide-react-native'; //import de icons
 import React, { useState, useEffect } from 'react';
 import { CommonActions, useNavigation, useFocusEffect } from '@react-navigation/native';
-import * as SecureStore from 'expo-secure-store';
-import axios from 'axios';
-import { config } from '../config/api';
+import { useAuth, getUserId } from '../context/AuthContext';
+import client from '../services/client';
 import * as ImagePicker from 'expo-image-picker';
 
 export default function NewFlashCard() {
-  const { theme, toggleTheme } = useAppTheme();
+  const { theme } = useAppTheme();
   const stylesNFC = get_stylesNFC(theme);
+  const { user } = useAuth();
+  const userId = getUserId(user);
 
     const navigation = useNavigation();
     const [selectedMazo, setSelectedMazo] = useState("");
@@ -74,53 +75,16 @@ export default function NewFlashCard() {
             let isActive = true;
 
             const fetchDecks = async () => {
+                if (!userId) { setError('No se encontró el ID de usuario.'); return; }
                 setLoadingDecks(true);
                 setError(null);
                 try {
-                    // Obtener el userInfo desde SecureStore
-                    const storedUser = await SecureStore.getItemAsync('userInfo');
-                    if (!storedUser) {
-                        if (isActive) {
-                            setError('No se encontró información del usuario. Inicia sesión nuevamente.');
-                            setDecks([]);
-                        }
-                        return;
-                    }
-
-                    const user = JSON.parse(storedUser);
-                    const userId = user?.user_id ?? user?._id ?? user?.id ?? user?.userId;
-
-                    if (!userId) {
-                        if (isActive) {
-                            setError('No se encontró el ID de usuario.');
-                            setDecks([]);
-                        }
-                        return;
-                    }
-
-                    // Obtener token si existe
-                    const token = await SecureStore.getItemAsync('token');
-                    const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
-
-                    // Llamada al backend para obtener los mazos
-                    const url = `${config.BASE_URL}/decks/${userId}?includeSystem=false`;
-                    const resp = await axios.get(url, { headers });
-                    const data = Array.isArray(resp.data) ? resp.data : (resp.data?.decks ?? []);
-
-                    if (isActive) {
-                        // Normalizar los mazos y filtrar solo los mazos personalizados (no del sistema)
-                        const normalizedDecks = data
-                            .filter(d => !d.is_system)
-                            .map((d) => ({
-                                deck_id: d.deck_id ?? d.id ?? d._id ?? d.deckId,
-                                deck_name: d.deck_name ?? d.name ?? d.title ?? 'Deck sin nombre'
-                            }));
-                        setDecks(normalizedDecks);
-                    }
+                    const { getDecks } = await import('../services/decks.service');
+                    const data = await getDecks(userId, false);
+                    if (isActive) setDecks(data.filter((d) => !d.is_system));
                 } catch (err) {
-                    const serverMessage = err?.response?.data?.message || err?.message || 'Error al cargar mazos';
                     if (isActive) {
-                        setError(serverMessage);
+                        setError(err?.response?.data?.message || err?.message || 'Error al cargar mazos');
                         setDecks([]);
                     }
                 } finally {
@@ -146,10 +110,6 @@ export default function NewFlashCard() {
         setError(null);
 
         try {
-            const storedUser = await SecureStore.getItemAsync('userInfo');
-            const user = JSON.parse(storedUser);
-            const userId = user?.user_id ?? user?._id ?? user?.id ?? user?.userId;
-            
             // Determinar URL final: GIF directo o imagen subida a Cloudinary
             let finalImageUrl = null;
             if (mediaType === 'gif' && gifUrl.trim()) {
@@ -159,34 +119,20 @@ export default function NewFlashCard() {
                 const uri = image;
                 const ext = (uri?.split('.')?.pop() || 'jpg').toLowerCase();
                 const mime = ext === 'png' ? 'image/png' : ext === 'heic' ? 'image/heic' : 'image/jpeg';
-                const name = `flashcard.${ext}`;
-
-                formData.append('image', { uri, name, type: mime });
-
-                const token = await SecureStore.getItemAsync('token');
-                const uploadUrl = `${config.BASE_URL}/cloudinary/upload-flashcard`;
-                
-                const uploadResponse = await axios.post(
-                    uploadUrl,
-                    formData,
-                    {
-                        headers: {
-                            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-                            'Content-Type': 'multipart/form-data',
-                        },
-                        timeout: 30000,
-                    }
-                );
-                
+                formData.append('image', { uri, name: `flashcard.${ext}`, type: mime });
+                const uploadResponse = await client.post('/cloudinary/upload-flashcard', formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' },
+                    timeout: 30000,
+                });
                 finalImageUrl = uploadResponse.data.imageUrl;
             }
 
-            const response = await axios.post(`${config.BASE_URL}/flashcards`, {
+            const response = await client.post('/flashcards', {
                 word: englishWord,
                 translation: spanishTranslation,
                 image_url: finalImageUrl,
                 user_id: +userId,
-                deck_id: +selectedMazo
+                deck_id: +selectedMazo,
             });
             
             console.log('Flashcard created successfully: - NewFlashCard.js:152', response.data);

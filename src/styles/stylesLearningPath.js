@@ -138,14 +138,15 @@ export default function get_stylesLearningPath(theme) {
       color: theme.colors.primary,
     },
     progressBarBg: {
-      height: 8,
+      height: 6,
       backgroundColor: theme.colors.border,
       borderRadius: 4,
       overflow: 'hidden',
+      width: '100%',
     },
     progressBarFill: {
       height: '100%',
-      backgroundColor: theme.colors.primary,
+      backgroundColor: theme.colors.primaryLight || theme.colors.primary,
       borderRadius: 4,
     },
     pathNodeContainer: {

@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, ActivityIndicator, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import Quiz from '../components/Quiz';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { config } from '../config/api';
-import * as SecureStore from 'expo-secure-store';
+import { getDeckQuiz } from '../services/decks.service';
 import { useAppTheme } from '../context/ThemeContext';
 
 export default function DeckQuizScreen({ route, navigation }) {
@@ -24,22 +23,10 @@ export default function DeckQuizScreen({ route, navigation }) {
     const fetchQuiz = async () => {
         try {
             setLoading(true);
-            const token = await SecureStore.getItemAsync('token');
-            const res = await fetch(`${config.BASE_URL}/decks/${deckId}/quiz`, {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            });
-
-            if (!res.ok) {
-                const errData = await res.json();
-                throw new Error(errData.message || 'Error al generar el quiz');
-            }
-
-            const data = await res.json();
+            const data = await getDeckQuiz(deckId);
             setQuizData(data);
         } catch (err) {
-            setError(err.message);
+            setError(err?.response?.data?.message || err.message);
         } finally {
             setLoading(false);
         }

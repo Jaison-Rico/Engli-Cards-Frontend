@@ -4,9 +4,10 @@ import { ProgressChart, BarChart } from "react-native-chart-kit";
 import { Dimensions } from "react-native";
 import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
 import { tokens, shadows } from '../styles/theme';
-import * as SecureStore from 'expo-secure-store';
-import { config } from '../config/api';
 import { useFocusEffect } from '@react-navigation/native';
+import { useAuth, getUserId } from '../context/AuthContext';
+import { getUserStats, getQuizSessions } from '../services/users.service';
+import { getDecks } from '../services/decks.service';
 import { Layers, Layout, Clock, TrendingUp } from 'lucide-react-native';
 
 import { useAppTheme } from '../context/ThemeContext';
@@ -15,6 +16,8 @@ const screenWidth = Dimensions.get("window").width;
 
 export default function StatsScreen() {
 	const { theme } = useAppTheme();
+	const { user } = useAuth();
+	const userId = getUserId(user);
 	const insets = useSafeAreaInsets();
 	const [isLoading, setIsLoading] = useState(true);
 	const [stats, setStats] = useState(null);
@@ -33,37 +36,25 @@ export default function StatsScreen() {
 			let isActive = true;
 
 			const fetchData = async () => {
+				if (!userId) return;
 				try {
 					setIsLoading(true);
-					const storedUser = await SecureStore.getItemAsync('userInfo');
-					const token = await SecureStore.getItemAsync('token');
-					if (!storedUser || !token) return;
-
-					const user = JSON.parse(storedUser);
-					const userId = user?.user_id ?? user?._id ?? user?.id ?? user?.userId;
-					if (!userId) return;
-
-					const headers = { Authorization: `Bearer ${token}` };
-
-					const [statsRes, sessionsRes, decksRes] = await Promise.all([
-						fetch(`${config.BASE_URL}/users/${userId}/stats`, { headers }),
-						fetch(`${config.BASE_URL}/users/${userId}/quiz-sessions?days=7`, { headers }),
-						fetch(`${config.BASE_URL}/decks/${userId}`, { headers })
+					const [statsData, sessionsData, decksData] = await Promise.all([
+						getUserStats(userId),
+						getQuizSessions(userId, 7),
+						getDecks(userId, false),
 					]);
-
 					if (isActive) {
-						if (statsRes.ok) setStats(await statsRes.json());
-						if (sessionsRes.ok) setSessions(await sessionsRes.json());
-						if (decksRes.ok) {
-							const decksData = await decksRes.json();
-							const personalDecks = decksData.filter(d => !d.is_system);
-							setTotalDecks(personalDecks.length);
-							const cardsCount = personalDecks.reduce((acc, deck) => acc + (deck.flashcards?.length || 0), 0);
-							setTotalCards(cardsCount);
-						}
+						setStats(statsData);
+						setSessions(sessionsData);
+						const personalDecks = decksData.filter((d) => !d.is_system);
+						setTotalDecks(personalDecks.length);
+						setTotalCards(
+							personalDecks.reduce((acc, deck) => acc + (deck.flashcards?.length || 0), 0)
+						);
 					}
 				} catch (error) {
-					console.error("Error fetching stats data:", error);
+					console.error('Error fetching stats data:', error);
 				} finally {
 					if (isActive) setIsLoading(false);
 				}
