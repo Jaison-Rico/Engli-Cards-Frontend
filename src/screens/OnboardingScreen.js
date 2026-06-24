@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   StatusBar,
   Platform,
+  Image,
 } from 'react-native';
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -16,6 +17,17 @@ import { useAuth } from '../context/AuthContext';
 import { useAppTheme } from '../context/ThemeContext';
 import { getCategories, completeOnboarding } from '../services/onboarding.service';
 import { getUserId } from '../context/AuthContext';
+
+const CATEGORY_GIFS = {
+  saludos: 'https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExcjR3aG9oZzNqZnluNjBteGplaWxkb3hxamN6bGdvd2o1dHk0dzNmZSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/IThjAlJnD9WNO/giphy.gif',
+  viajes:  null,
+  trabajo: null,
+  familia: null,
+  escuela: null,
+  frutas:  null,
+  comida:  null,
+  colores: null,
+};
 
 export default function OnboardingScreen() {
   const { theme } = useAppTheme();
@@ -75,7 +87,15 @@ export default function OnboardingScreen() {
             <CheckCircle2 size={18} color={theme.colors.primary} />
           </View>
         )}
-        <Text style={styles.categoryEmoji}>{item.emoji}</Text>
+        {CATEGORY_GIFS[item.key] ? (
+          <Image
+            source={{ uri: CATEGORY_GIFS[item.key] }}
+            style={styles.categoryGif}
+            resizeMode="cover"
+          />
+        ) : (
+          <Text style={styles.categoryEmoji}>{item.emoji}</Text>
+        )}
         <Text style={[styles.categoryName, isSelected && { color: theme.colors.primary }]}>
           {item.name}
         </Text>
@@ -203,6 +223,12 @@ const getStyles = (theme) =>
       position: 'absolute',
       top: 10,
       right: 10,
+    },
+    categoryGif: {
+      width: 56,
+      height: 56,
+      borderRadius: 8,
+      marginBottom: 8,
     },
     categoryEmoji: {
       fontSize: 36,
