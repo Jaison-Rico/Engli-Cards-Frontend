@@ -1,7 +1,7 @@
 import { useAppTheme } from '../context/ThemeContext';
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Alert, TextInput, ActivityIndicator, Modal } from 'react-native';
-import get_stylesProfile from '../styles/stylesProfile';
+import get_stylesProfile from '../styles/profile.styles';
 import { CommonActions, useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useAuth, getUserId } from '../context/AuthContext';
 import { getUserStats, getUserAchievements, updateUserName, uploadProfileImage, deleteUser } from '../services/users.service';

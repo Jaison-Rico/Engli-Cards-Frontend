@@ -4,9 +4,9 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ArrowLeft, MoreVertical, Edit2, Volume2, ChevronRight, Plus, Image as ImageIcon, Search } from "lucide-react-native";
 import * as Speech from 'expo-speech';
-import { useAppTheme } from '../context/ThemeContext';
-import { useAuth, getUserId } from '../context/AuthContext';
-import { getDeckFlashcards, updateDeck, deleteDeck } from '../services/decks.service';
+import { useAppTheme } from '../../context/ThemeContext';
+import { useAuth, getUserId } from '../../context/AuthContext';
+import { getDeckFlashcards, updateDeck, deleteDeck } from '../../services/decks.service';
 
 export default function DeckDetailsScreen({ route, navigation }) {
     const { deck } = route.params;

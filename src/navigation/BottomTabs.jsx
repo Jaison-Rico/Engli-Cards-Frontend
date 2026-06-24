@@ -2,9 +2,8 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Home, Gamepad2, BarChart3, User } from "lucide-react-native";
 import MainScreen from "../screens/MainScreen";
 import StatsScreen from "../screens/StatsScreen";
-import NewFlashCard from "../screens/NewFlashCard";
 import ProfileScreen from "../screens/ProfileScreen";
-import LearningPath from "../screens/LearningPath";
+import LearningPathScreen from "../screens/LearningPathScreen";
 
 import { useAppTheme } from "../context/ThemeContext";
 
@@ -39,7 +38,7 @@ export default function BottomTabs() {
 
         <Tab.Screen
           name="Jugar"
-          component={LearningPath}
+          component={LearningPathScreen}
           options={{
             tabBarIcon: ({ color }) => <Gamepad2 color={color} size={22} />,
           }}

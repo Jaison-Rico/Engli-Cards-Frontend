@@ -2,10 +2,10 @@ import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, ScrollView, Platform, StatusBar } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { config } from '../config/api';
+import { config } from '../../config/api';
 import { ArrowLeft, Lock, ShieldCheck, Eye, EyeOff, RotateCcw } from "lucide-react-native";
-import { get_loginStyles } from "../styles/loginStyles";
-import { useAppTheme } from '../context/ThemeContext';
+import { get_loginStyles } from "../../styles/auth.styles";
+import { useAppTheme } from '../../context/ThemeContext';
 
 export default function NewPasswordScreen() {
     const { theme } = useAppTheme();

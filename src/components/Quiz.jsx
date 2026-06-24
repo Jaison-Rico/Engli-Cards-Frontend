@@ -9,7 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as SecureStore from 'expo-secure-store';
 import { config } from '../config/api';
 import { useAppTheme } from '../context/ThemeContext';
-import get_stylesQG from '../styles/stylesTestQuiz/StylesQGreetings';
+import get_stylesQG from '../styles/quiz.styles';
 import * as Haptics from 'expo-haptics';
 import SoundManager from '../config/sounds';
 import { Image } from 'react-native';

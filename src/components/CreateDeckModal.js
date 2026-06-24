@@ -5,7 +5,7 @@ import { CheckCircle, AlertCircle, Layers } from 'lucide-react-native';
 import { BlurView } from 'expo-blur';
 import { useAuth, getUserId } from '../context/AuthContext';
 import { createDeck } from '../services/decks.service';
-import get_stylesMS from '../styles/stylesMS';
+import get_stylesMS from '../styles/mainScreen.styles';
 
 export default function CreateDeck({ visible, onClose, onCreateDeck }) {
   const { theme } = useAppTheme();

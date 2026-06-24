@@ -1,12 +1,12 @@
-import { useAppTheme } from '../context/ThemeContext';
+import { useAppTheme } from '../../context/ThemeContext';
 import { View, Text, TextInput, TouchableOpacity, Modal, Platform, ActivityIndicator, ScrollView, Alert, Image } from "react-native";
-import get_stylesNFC from '../styles/styleNFC';
+import get_stylesNFC from '../../styles/flashCard.styles';
 import { Picker } from '@react-native-picker/picker'; //componente para crear listas desplegables
 import { Camera, Save, ArrowLeft, ChevronDown, CheckCircle, Type, Globe, Lightbulb, Aperture, User } from 'lucide-react-native'; //import de icons
 import React, { useState, useEffect } from 'react';
 import { CommonActions, useNavigation, useFocusEffect } from '@react-navigation/native';
-import { useAuth, getUserId } from '../context/AuthContext';
-import client from '../services/client';
+import { useAuth, getUserId } from '../../context/AuthContext';
+import client from '../../services/client';
 import * as ImagePicker from 'expo-image-picker';
 
 export default function NewFlashCard() {

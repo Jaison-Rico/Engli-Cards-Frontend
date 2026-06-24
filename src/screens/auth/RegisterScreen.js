@@ -4,10 +4,10 @@ import { useNavigation } from "@react-navigation/native";
 import { CommonActions } from '@react-navigation/native';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { User, Mail, Lock, ShieldCheck, Zap, Trophy } from "lucide-react-native";
-import { get_loginStyles } from "../styles/loginStyles";
-import { useAppTheme } from '../context/ThemeContext';
-import { useAuth } from '../context/AuthContext';
-import { registerUser } from '../services/auth.service';
+import { get_loginStyles } from "../../styles/auth.styles";
+import { useAppTheme } from '../../context/ThemeContext';
+import { useAuth } from '../../context/AuthContext';
+import { registerUser } from '../../services/auth.service';
 
 export default function RegisterScreen() {
     const { theme } = useAppTheme();
@@ -79,7 +79,7 @@ export default function RegisterScreen() {
                 <View style={styles.registerHeader}>
                     <View style={styles.logoContainer}>
                         <Image 
-                            source={require('../../assets/logo.png')} 
+                            source={require('../../../assets/logo.png')} 
                             style={{ width: 100, height: 100, borderRadius: 16 }} 
                             resizeMode="contain"
                         />

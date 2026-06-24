@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { View, TouchableOpacity, Text, Animated, ActivityIndicator } from 'react-native';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import { useAppTheme } from '../../context/ThemeContext';
-import get_styleGameFlashCard from '../../styles/styleGameFlashCard';
+import get_styleGameFlashCard from '../../styles/gameFlashCard.styles';
 import { ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react-native';
 import FlashCard from '../../components/FlashCard';
 import { Ionicons } from '@expo/vector-icons';
 import QuizStartButton from '../../components/QuizStartButton';
-import get_stylesMS from '../../styles/stylesMS';
+import get_stylesMS from '../../styles/mainScreen.styles';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 

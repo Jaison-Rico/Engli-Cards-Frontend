@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { View, ActivityIndicator, StyleSheet, Text, TouchableOpacity } from 'react-native';
-import Quiz from '../components/Quiz';
+import Quiz from '../../components/Quiz';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { getDeckQuiz } from '../services/decks.service';
-import { useAppTheme } from '../context/ThemeContext';
+import { getDeckQuiz } from '../../services/decks.service';
+import { useAppTheme } from '../../context/ThemeContext';
 
 export default function DeckQuizScreen({ route, navigation }) {
     const { theme } = useAppTheme();

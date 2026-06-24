@@ -1,6 +1,6 @@
 import { useAppTheme } from '../context/ThemeContext';
 import { useAuth, getUserId } from '../context/AuthContext';
-import get_stylesMS from '../styles/stylesMS';
+import get_stylesMS from '../styles/mainScreen.styles';
 import { View, Text, TouchableOpacity, FlatList, ActivityIndicator, TextInput, StatusBar, Alert } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import React, { useState } from 'react';
@@ -10,7 +10,7 @@ import SoundManager from '../config/sounds';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getDecks } from '../services/decks.service';
 import { getUserStats } from '../services/users.service';
-import CreateDeck from './CreateDeck';
+import CreateDeck from '../components/CreateDeckModal';
 
 export default function MainScreen() {
   const { theme } = useAppTheme();

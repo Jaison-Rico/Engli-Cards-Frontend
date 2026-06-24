@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { useNavigation } from "@react-navigation/native";
-import { config } from '../config/api';
+import { config } from '../../config/api';
 import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, ScrollView, Platform, StatusBar } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ArrowLeft, Mail, Send, RotateCcw } from "lucide-react-native";
-import { get_loginStyles } from "../styles/loginStyles";
-import { useAppTheme } from '../context/ThemeContext';
+import { get_loginStyles } from "../../styles/auth.styles";
+import { useAppTheme } from '../../context/ThemeContext';
 
 export default function RenewPassword() {
     const { theme } = useAppTheme();

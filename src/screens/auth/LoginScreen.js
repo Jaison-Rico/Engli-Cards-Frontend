@@ -6,10 +6,10 @@ import { useState } from 'react';
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Mail, Lock, Eye, EyeOff, LogIn } from 'lucide-react-native';
-import { get_loginStyles } from '../styles/loginStyles';
-import { useAppTheme } from '../context/ThemeContext';
-import { useAuth } from '../context/AuthContext';
-import { loginUser } from '../services/auth.service';
+import { get_loginStyles } from '../../styles/auth.styles';
+import { useAppTheme } from '../../context/ThemeContext';
+import { useAuth } from '../../context/AuthContext';
+import { loginUser } from '../../services/auth.service';
 
 export default function LoginScreen() {
   const { theme } = useAppTheme();
@@ -72,7 +72,7 @@ export default function LoginScreen() {
         <View style={styles.headerSection}>
           <View style={styles.logoContainer}>
             <Image
-              source={require('../../assets/logo.png')}
+              source={require('../../../assets/logo.png')}
               style={{ width: 100, height: 100, borderRadius: 16 }}
               resizeMode="contain"
             />

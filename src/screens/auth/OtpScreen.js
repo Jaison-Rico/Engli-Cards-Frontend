@@ -2,10 +2,10 @@ import React, { useState, useEffect, useRef } from "react";
 import { View, Text, TouchableOpacity, KeyboardAvoidingView, ScrollView, Platform, StatusBar, TextInput } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { config } from '../config/api';
+import { config } from '../../config/api';
 import { ArrowLeft, Mail, CheckCircle2, Timer } from "lucide-react-native";
-import { get_loginStyles } from "../styles/loginStyles";
-import { useAppTheme } from '../context/ThemeContext';
+import { get_loginStyles } from "../../styles/auth.styles";
+import { useAppTheme } from '../../context/ThemeContext';
 
 export default function OtpScreen() {
     const { theme } = useAppTheme();
@@ -15,7 +15,7 @@ export default function OtpScreen() {
     const insets = useSafeAreaInsets();
     const { email } = route.params || { email: "usuario@ejemplo.com" };
 
-    const [otp, setOtp] = useState(["", "", "", ""]);
+    const [otp, setOtp] = useState(["", "", "", "", "", ""]);
     const [timer, setTimer] = useState(300); // 5 minutes
     const inputs = useRef([]);
 
@@ -37,7 +37,7 @@ export default function OtpScreen() {
         newOtp[index] = value;
         setOtp(newOtp);
 
-        if (value && index < 3) {
+        if (value && index < 5) {
             inputs.current[index + 1].focus();
         }
     };
@@ -50,7 +50,7 @@ export default function OtpScreen() {
 
     const handleValidate = async () => {
         const fullOtp = otp.join("");
-        if (fullOtp.length < 4) {
+        if (fullOtp.length < 6) {
             alert("Por favor ingresa el código completo");
             return;
         }

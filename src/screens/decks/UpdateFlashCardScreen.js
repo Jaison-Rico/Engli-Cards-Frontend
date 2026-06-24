@@ -1,12 +1,12 @@
-import { useAppTheme } from '../context/ThemeContext';
+import { useAppTheme } from '../../context/ThemeContext';
 import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, TouchableOpacity, Modal, ActivityIndicator, ScrollView, Alert, Image, StatusBar } from "react-native";
-import get_stylesNFC from '../styles/styleNFC'; // Reusing styles from NewFlashCard
+import get_stylesNFC from '../../styles/flashCard.styles'; // Reusing styles from NewFlashCard
 import { Trash2, Save, ArrowLeft, Type, Globe, Aperture, CheckCircle } from 'lucide-react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import * as SecureStore from 'expo-secure-store';
 import axios from 'axios';
-import { config } from '../config/api';
+import { config } from '../../config/api';
 import * as ImagePicker from 'expo-image-picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 

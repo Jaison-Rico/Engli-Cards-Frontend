@@ -6,7 +6,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useAuth, getUserId } from '../context/AuthContext';
 import { getDecks } from '../services/decks.service';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import get_stylesLP from '../styles/stylesLearningPath';
+import get_stylesLP from '../styles/learningPath.styles';
 
 // Fallback data
 import greetingsData from '../data/images/greetings.json';

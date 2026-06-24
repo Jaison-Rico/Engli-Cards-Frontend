@@ -1,7 +1,7 @@
 import { useAppTheme } from '../context/ThemeContext';
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import get_stylesLP from '../styles/stylesLearningPath';
+import get_stylesLP from '../styles/learningPath.styles';
 import { Lock, Check, Sparkles, Apple, Users, Briefcase, School, Plane, Palette, Dog, BookOpen } from 'lucide-react-native';
 
 const PathNode = ({ deck, onPress, index }) => {
