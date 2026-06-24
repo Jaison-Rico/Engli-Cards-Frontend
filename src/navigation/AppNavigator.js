@@ -7,7 +7,7 @@ import HomeScreen from "../screens/HomeScreen";
 import MainScreen from "../screens/MainScreen";
 import NewFlashCard from "../screens/NewFlashCard";
 import StatsScreen from "../screens/StatsScreen";
-import BottomTabs from "../screens/BottomTabs";
+import BottomTabs from "./BottomTabs";
 import ProfileScreen from "../screens/ProfileScreen";
 import Greetings from "../screens/games/Greetings";
 import Fruits from "../screens/games/Fruits";

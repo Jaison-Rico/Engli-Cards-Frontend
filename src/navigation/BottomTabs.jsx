@@ -4,7 +4,7 @@ import MainScreen from "../screens/MainScreen";
 import StatsScreen from "../screens/StatsScreen";
 import NewFlashCard from "../screens/NewFlashCard";
 import ProfileScreen from "../screens/ProfileScreen";
-import LearningPath from "./LearningPath";
+import LearningPath from "../screens/LearningPath";
 
 import { useAppTheme } from "../context/ThemeContext";
 

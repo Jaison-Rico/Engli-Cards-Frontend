@@ -9,12 +9,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import get_stylesLP from '../styles/stylesLearningPath';
 
 // Fallback data
-import greetingsData from './games/imagesGreetings.json';
-import FruitsData from './games/imagesFruits.json';
-import familyData from './games/imagesFamily.json';
-import workData from './games/imagesWork.json';
-import schoolData from './games/imagesSchool.json';
-import travelData from './games/imagesTravel.json';
+import greetingsData from '../data/images/greetings.json';
+import FruitsData from '../data/images/fruits.json';
+import familyData from '../data/images/family.json';
+import workData from '../data/images/work.json';
+import schoolData from '../data/images/school.json';
+import travelData from '../data/images/travel.json';
 
 const localData = {
   'Greetings': greetingsData,
