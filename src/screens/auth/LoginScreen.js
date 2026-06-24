@@ -32,8 +32,9 @@ export default function LoginScreen() {
     try {
       const { token, user } = await loginUser(email, password);
       await login(token, user);
+      const destination = user.onboarding_completed ? 'BottomTabs' : 'Onboarding';
       navigation.dispatch(
-        CommonActions.reset({ index: 0, routes: [{ name: 'BottomTabs' }] })
+        CommonActions.reset({ index: 0, routes: [{ name: destination }] })
       );
     } catch (error) {
       if (!error.response) {

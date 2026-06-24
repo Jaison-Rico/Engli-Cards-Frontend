@@ -39,7 +39,7 @@ export default function RegisterScreen() {
             const { token, user } = await registerUser(name, email, password);
             await login(token, user);
             navigation.dispatch(
-                CommonActions.reset({ index: 0, routes: [{ name: 'BottomTabs' }] })
+                CommonActions.reset({ index: 0, routes: [{ name: 'Onboarding' }] })
             );
         } catch (error) {
             const status = error.response?.status;

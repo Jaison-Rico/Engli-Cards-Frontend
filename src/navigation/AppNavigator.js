@@ -9,6 +9,9 @@ import ForgotPasswordScreen from "../screens/auth/ForgotPasswordScreen";
 import OtpScreen from "../screens/auth/OtpScreen";
 import NewPasswordScreen from "../screens/auth/NewPasswordScreen";
 
+// Onboarding
+import OnboardingScreen from "../screens/OnboardingScreen";
+
 // Main
 import HomeScreen from "../screens/HomeScreen";
 import MainScreen from "../screens/MainScreen";
@@ -39,6 +42,7 @@ export default function AppNavigator(){
         <NavigationContainer>
             <Stack.Navigator initialRouteName="Home">
                 <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
+                <Stack.Screen name="Onboarding" component={OnboardingScreen} options={{ headerShown: false }} />
                 <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
                 <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />
                 <Stack.Screen name="ResetPassword" component={ForgotPasswordScreen} options={{ headerShown: false }} />
