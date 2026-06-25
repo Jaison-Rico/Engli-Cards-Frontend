@@ -1,0 +1,26 @@
+@import 'tailwindcss';
+@import 'uniwind';
+@import 'heroui-native/styles';
+
+/* Scan heroui-native component classes */
+@source './node_modules/heroui-native/lib';
+
+/* Override accent/primary with Engli-Cards teal palette */
+@layer theme {
+  :root {
+    @variant light {
+      --accent: oklch(0.67 0.10 192);
+      --accent-foreground: oklch(0.98 0 0);
+      --focus: oklch(0.67 0.10 192);
+      --link: oklch(0.67 0.10 192);
+      --background: oklch(0.985 0.005 210);
+      --surface: oklch(1 0 0);
+    }
+    @variant dark {
+      --accent: oklch(0.63 0.09 192);
+      --accent-foreground: oklch(0.98 0 0);
+      --focus: oklch(0.63 0.09 192);
+      --link: oklch(0.63 0.09 192);
+    }
+  }
+}

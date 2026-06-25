@@ -1,82 +1,69 @@
-import { useAppTheme } from '../context/ThemeContext';
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
-import get_stylesLP from '../styles/learningPath.styles';
+import { View } from 'react-native';
 import { Lock, Check, Sparkles, Apple, Users, Briefcase, School, Plane, Palette, Dog, BookOpen } from 'lucide-react-native';
+import { useAppTheme } from '../context/ThemeContext';
+import { Button, Typography } from 'heroui-native';
 
-const PathNode = ({ deck, onPress, index }) => {
-  const { theme, toggleTheme } = useAppTheme();
-  const stylesLP = get_stylesLP(theme);
+const ICON_COMPS = { Sparkles, Apple, Users, Briefcase, School, Plane, Palette, Dog, BookOpen };
+const DECK_ICONS = {
+  Greetings: Sparkles, Fruits: Apple, Familia: Users, Trabajo: Briefcase,
+  Escuela: School, Viajes: Plane, Colores: Palette, Animales: Dog,
+};
+
+const PathNode = ({ deck, onPress }) => {
+  const { theme } = useAppTheme();
 
   const isLocked = deck.is_locked;
   const isCompleted = deck.best_accuracy >= (deck.min_accuracy || 0.9);
   const isActive = !isLocked && !isCompleted;
 
-  const renderIcon = (size, color) => {
-    const iconName = deck.deck_name;
-    const props = { size, color, strokeWidth: 2 };
-    
-    switch(iconName) {
-      case 'Greetings': return <Sparkles {...props} />;
-      case 'Fruits': return <Apple {...props} />;
-      case 'Familia': return <Users {...props} />;
-      case 'Trabajo': return <Briefcase {...props} />;
-      case 'Escuela': return <School {...props} />;
-      case 'Viajes': return <Plane {...props} />;
-      case 'Colores': return <Palette {...props} />;
-      case 'Animales': return <Dog {...props} />;
-      default: return <BookOpen {...props} />;
-    }
-  };
+  const IconComp = DECK_ICONS[deck.deck_name] || BookOpen;
 
   return (
-    <View style={stylesLP.pathNodeContainer}>
+    <View className="items-center my-2">
       {isCompleted && (
-        <View style={{ alignItems: 'center' }}>
-          <TouchableOpacity 
-            activeOpacity={0.8} 
+        <View className="items-center">
+          <Button
+            isIconOnly
+            className="w-20 h-20 rounded-full bg-success relative"
             onPress={onPress}
-            style={stylesLP.circleCompleted}
           >
-            <View style={stylesLP.masteredBadge}>
-              <Text style={stylesLP.masteredText}>MASTERED</Text>
+            <View className="absolute -top-1 -right-1 bg-yellow-400 px-1.5 py-0.5 rounded-full">
+              <Typography type="body-xs" weight="bold" className="text-white text-[8px]">MASTERED</Typography>
             </View>
-            {renderIcon(40, "#fff")}
-          </TouchableOpacity>
-          <View style={stylesLP.pillCompleted}>
-            <Text style={stylesLP.pillCompletedText}>{deck.deck_name}</Text>
+            <IconComp size={36} color="#fff" strokeWidth={2} />
+          </Button>
+          <View className="mt-2 bg-success/20 px-4 py-1 rounded-full">
+            <Typography type="body-xs" weight="bold" className="text-success">{deck.deck_name}</Typography>
           </View>
         </View>
       )}
 
       {isActive && (
-        <View style={{ alignItems: 'center' }}>
-          <TouchableOpacity 
-            activeOpacity={0.8} 
+        <View className="items-center">
+          <Button
+            isIconOnly
+            className="w-20 h-20 rounded-full bg-accent shadow-lg"
             onPress={onPress}
-            style={stylesLP.circleActive}
           >
-            {renderIcon(45, theme.colors.primary)}
-          </TouchableOpacity>
-          <View style={stylesLP.pillActive}>
-            <Text style={stylesLP.pillActiveText}>{deck.deck_name}</Text>
+            <IconComp size={40} color="#fff" strokeWidth={2} />
+          </Button>
+          <View className="mt-2 bg-accent/15 px-4 py-1 rounded-full">
+            <Typography type="body-xs" weight="bold" className="text-accent">{deck.deck_name}</Typography>
           </View>
-          <View style={stylesLP.pillContinue}>
-            <Text style={stylesLP.pillContinueText}>CONTINUE LEARNING</Text>
+          <View className="mt-1 bg-accent px-3 py-0.5 rounded-full">
+            <Typography type="body-xs" weight="bold" className="text-white text-[9px]">CONTINUE LEARNING</Typography>
           </View>
         </View>
       )}
 
       {isLocked && (
-        <View style={{ alignItems: 'center' }}>
-          <TouchableOpacity 
-            activeOpacity={1} 
-            style={stylesLP.circleLocked}
-          >
+        <View className="items-center">
+          <View className="w-20 h-20 rounded-full bg-default items-center justify-center border-2 border-border">
             <Lock color="#CBD5E1" size={28} />
-          </TouchableOpacity>
-          <View style={stylesLP.pillLocked}>
-            <Text style={stylesLP.pillLockedText}>{deck.deck_name}</Text>
+          </View>
+          <View className="mt-2 bg-default px-4 py-1 rounded-full">
+            <Typography type="body-xs" color="muted">{deck.deck_name}</Typography>
           </View>
         </View>
       )}

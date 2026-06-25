@@ -1,19 +1,15 @@
-import {
-  View, Text, TextInput, TouchableOpacity, ActivityIndicator,
-  StatusBar, KeyboardAvoidingView, Platform, ScrollView, Image,
-} from 'react-native';
+import { View, KeyboardAvoidingView, Platform, ScrollView, Image, StatusBar } from 'react-native';
 import { useState } from 'react';
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Mail, Lock, Eye, EyeOff, LogIn } from 'lucide-react-native';
-import { get_loginStyles } from '../../styles/auth.styles';
+import { Button, Input, Spinner, Typography } from 'heroui-native';
 import { useAppTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
 import { loginUser } from '../../services/auth.service';
 
 export default function LoginScreen() {
   const { theme } = useAppTheme();
-  const styles = get_loginStyles(theme);
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { login } = useAuth();
@@ -55,106 +51,106 @@ export default function LoginScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1 }}
+      className="flex-1 bg-background"
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <StatusBar
         barStyle={theme.mode === 'dark' ? 'light-content' : 'dark-content'}
-        backgroundColor={theme.colors.background}
+        backgroundColor="transparent"
+        translucent
       />
       <ScrollView
-        contentContainerStyle={[
-          styles.scrollContainer,
-          { paddingTop: insets.top + 40, paddingBottom: insets.bottom + 20 },
-        ]}
+        contentContainerStyle={{ paddingTop: insets.top + 40, paddingBottom: insets.bottom + 20, paddingHorizontal: 28, alignItems: 'center' }}
         keyboardShouldPersistTaps="handled"
       >
         {/* Header */}
-        <View style={styles.headerSection}>
-          <View style={styles.logoContainer}>
+        <View className="items-center mb-8">
+          <View className="w-20 h-20 rounded-full bg-surface items-center justify-center mb-4 shadow-surface">
             <Image
               source={require('../../../assets/logo.png')}
               style={{ width: 100, height: 100, borderRadius: 16 }}
               resizeMode="contain"
             />
           </View>
-          <Text style={styles.appTitle}>Engli-Cards</Text>
-          <Text style={styles.appSubtitle}>Eleva tu inglés con cada tarjeta.</Text>
+          <Typography type="h1" weight="bold" className="tracking-tight mb-1">Engli-Cards</Typography>
+          <Typography type="body-sm" color="muted">Eleva tu inglés con cada tarjeta.</Typography>
         </View>
 
-        {/* Form */}
-        <View style={styles.formCard}>
-          <Text style={styles.welcomeText}>Bienvenido de nuevo</Text>
+        {/* Form Card */}
+        <View className="w-full bg-surface rounded-3xl px-6 py-7 shadow-surface mb-7">
+          <Typography type="h3" weight="bold" className="mb-6">Bienvenido de nuevo</Typography>
 
-          <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>CORREO ELECTRÓNICO</Text>
-            <View style={styles.inputContainer}>
-              <Mail color={theme.colors.mutedForeground} size={18} style={styles.inputIcon} />
-              <TextInput
-                style={styles.textInput}
+          {/* Email */}
+          <View className="mb-5">
+            <Typography type="body-sm" weight="bold" className="uppercase tracking-widest mb-2 text-foreground">
+              Correo electrónico
+            </Typography>
+            <View className="flex-row items-center bg-background rounded-full border border-border px-4 h-[52px]">
+              <Mail color={theme.colors.mutedForeground} size={18} style={{ marginRight: 10 }} />
+              <Input
+                className="flex-1 bg-transparent"
                 value={email}
                 onChangeText={setEmail}
                 placeholder="nombre@ejemplo.com"
-                placeholderTextColor={theme.colors.mutedForeground}
                 keyboardType="email-address"
                 autoCapitalize="none"
               />
             </View>
           </View>
 
-          <View style={styles.fieldGroup}>
-            <View style={styles.passwordLabelRow}>
-              <Text style={styles.fieldLabel}>CONTRASEÑA</Text>
-              <TouchableOpacity onPress={() => navigation.navigate('ResetPassword')}>
-                <Text style={styles.forgotText}>¿Olvidaste tu contraseña?</Text>
-              </TouchableOpacity>
+          {/* Password */}
+          <View className="mb-6">
+            <View className="flex-row justify-between items-center mb-2">
+              <Typography type="body-sm" weight="bold" className="uppercase tracking-widest text-foreground">
+                Contraseña
+              </Typography>
+              <Button variant="ghost" size="sm" onPress={() => navigation.navigate('ResetPassword')} className="p-0 h-auto">
+                <Typography type="body-sm" className="text-accent">¿Olvidaste tu contraseña?</Typography>
+              </Button>
             </View>
-            <View style={styles.inputContainer}>
-              <Lock color={theme.colors.mutedForeground} size={18} style={styles.inputIcon} />
-              <TextInput
-                style={styles.textInput}
+            <View className="flex-row items-center bg-background rounded-full border border-border px-4 h-[52px]">
+              <Lock color={theme.colors.mutedForeground} size={18} style={{ marginRight: 10 }} />
+              <Input
+                className="flex-1 bg-transparent"
                 value={password}
                 onChangeText={setPassword}
                 placeholder="••••••••"
-                placeholderTextColor={theme.colors.mutedForeground}
                 secureTextEntry={!showPassword}
               />
-              <TouchableOpacity
-                onPress={() => setShowPassword(!showPassword)}
-                style={styles.eyeButton}
-              >
-                {showPassword ? (
-                  <EyeOff color={theme.colors.mutedForeground} size={18} />
-                ) : (
-                  <Eye color={theme.colors.mutedForeground} size={18} />
-                )}
-              </TouchableOpacity>
+              <Button isIconOnly variant="ghost" size="sm" onPress={() => setShowPassword(!showPassword)}>
+                {showPassword
+                  ? <EyeOff color={theme.colors.mutedForeground} size={18} />
+                  : <Eye color={theme.colors.mutedForeground} size={18} />
+                }
+              </Button>
             </View>
           </View>
 
-          <TouchableOpacity
+          {/* Login Button */}
+          <Button
             onPress={handleLogin}
-            style={styles.loginButton}
-            disabled={loading}
-            activeOpacity={0.85}
+            isDisabled={loading}
+            size="lg"
+            className="w-full rounded-full h-[52px]"
           >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <View style={styles.loginButtonContent}>
-                <Text style={styles.loginButtonText}>Iniciar Sesión</Text>
-                <LogIn color="#fff" size={18} style={{ marginLeft: 8 }} />
-              </View>
-            )}
-          </TouchableOpacity>
+            {loading
+              ? <Spinner color="white" size="sm" />
+              : (
+                <View className="flex-row items-center gap-2">
+                  <Button.Label>Iniciar Sesión</Button.Label>
+                  <LogIn color="#fff" size={18} />
+                </View>
+              )
+            }
+          </Button>
         </View>
 
         {/* Footer */}
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>¿No tienes cuenta? </Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-            <Text style={styles.footerLink}>Crear cuenta</Text>
-          </TouchableOpacity>
+        <View className="flex-row items-center">
+          <Typography type="body-sm" color="muted">¿No tienes cuenta? </Typography>
+          <Button variant="ghost" size="sm" onPress={() => navigation.navigate('Register')} className="p-0 h-auto">
+            <Typography type="body-sm" weight="bold" className="text-accent">Crear cuenta</Typography>
+          </Button>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>

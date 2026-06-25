@@ -1,27 +1,26 @@
-import { useAppTheme } from '../context/ThemeContext';
-import { useAuth, getUserId } from '../context/AuthContext';
-import get_stylesMS from '../styles/mainScreen.styles';
-import { View, Text, TouchableOpacity, FlatList, ActivityIndicator, TextInput, StatusBar, Alert } from 'react-native';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import React, { useState } from 'react';
+import { View, FlatList, StatusBar, Alert } from 'react-native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { BookOpen, Activity, Plus, Flame } from 'lucide-react-native';
+import { Button, Input, Card, Spinner, Typography } from 'heroui-native';
 import * as Haptics from 'expo-haptics';
 import SoundManager from '../config/sounds';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAppTheme } from '../context/ThemeContext';
+import { useAuth, getUserId } from '../context/AuthContext';
 import { getDecks } from '../services/decks.service';
 import { getUserStats } from '../services/users.service';
 import CreateDeck from '../components/CreateDeckModal';
 
 export default function MainScreen() {
   const { theme } = useAppTheme();
-  const stylesMS = get_stylesMS(theme);
   const { user } = useAuth();
   const userId = getUserId(user);
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
 
   const [search, setSearch] = useState('');
   const [decks, setDecks] = useState([]);
-  const insets = useSafeAreaInsets();
   const [isOffline, setIsOffline] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -69,94 +68,93 @@ export default function MainScreen() {
   const personalDecks = decks.filter((d) => !d.is_system);
 
   return (
-    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+    <View className="flex-1 bg-background">
       <StatusBar
         barStyle={theme.mode === 'dark' ? 'light-content' : 'dark-content'}
-        backgroundColor={theme.colors.background}
+        backgroundColor="transparent"
+        translucent
       />
 
-      <View style={{ ...stylesMS.containerMCTop, paddingTop: insets.top + 10 }}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <View style={{ flex: 1, paddingRight: 10 }}>
-            <Text style={stylesMS.titlesMC}>Engli cards</Text>
-            <Text style={stylesMS.subtitlesMC}>
+      {/* Top Section */}
+      <View className="bg-surface px-5 pb-4 shadow-surface" style={{ paddingTop: insets.top + 10 }}>
+        <View className="flex-row justify-between items-start mb-4">
+          <View className="flex-1 pr-3">
+            <Typography type="h2" weight="bold">Engli cards</Typography>
+            <Typography type="body-sm" color="muted">
               ¡Hola! {user?.name?.split(' ')[0] || 'amigo'} Continúa aprendiendo
-            </Text>
+            </Typography>
           </View>
 
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            <View style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              backgroundColor: theme.colors.surfaceContainerLow || '#E8F5F0',
-              paddingHorizontal: 12,
-              paddingVertical: 6,
-              borderRadius: 20,
-            }}>
+          <View className="flex-row items-center gap-2">
+            <View className="flex-row items-center bg-default px-3 py-1.5 rounded-full gap-1">
               <Flame color="#F97316" size={20} fill="#F97316" />
-              <Text style={{ marginLeft: 4, fontWeight: '800', color: '#C2410C' }}>{streak}</Text>
+              <Typography type="body-sm" weight="bold" className="text-[#C2410C]">{streak}</Typography>
             </View>
 
-            <TouchableOpacity
+            <Button
+              variant="secondary"
+              size="sm"
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                 navigation.push('StatsScreen');
               }}
-              style={stylesMS.buttonStats}
             >
-              <Activity color="#08302E" size={18} strokeWidth={2.5} />
-              <Text style={stylesMS.textButtonMCStats}>Stats</Text>
-            </TouchableOpacity>
+              <Activity color="#08302E" size={16} strokeWidth={2.5} />
+              <Button.Label className="text-foreground">Stats</Button.Label>
+            </Button>
           </View>
         </View>
 
-        <View style={stylesMS.searchContainerTop}>
-          <TextInput
-            style={stylesMS.searchInputTop}
+        <View className="flex-row items-center bg-background-secondary rounded-xl px-4 h-11 gap-2">
+          <Input
+            className="flex-1 bg-transparent"
             placeholder="Nombre del deck"
-            placeholderTextColor="#A1CFC9"
             value={search}
             onChangeText={setSearch}
           />
         </View>
       </View>
 
-      <View style={stylesMS.containerMCBottonsMain}>
-        <TouchableOpacity
+      {/* Action Buttons */}
+      <View className="flex-row px-4 py-3 gap-3">
+        <Button
+          variant="secondary"
+          className="flex-1 h-[72px] rounded-2xl"
           onPress={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
             SoundManager.play('click');
             setModalVisible(true);
           }}
-          style={stylesMS.buttonCDeck}
-          activeOpacity={0.8}
         >
-          <Plus color="#08302E" size={32} strokeWidth={2} />
-          <Text style={stylesMS.buttonCardText}>Crear Deck</Text>
-        </TouchableOpacity>
+          <Plus color="#08302E" size={30} strokeWidth={2} />
+          <Button.Label className="text-foreground text-base font-bold">+ Crear Deck</Button.Label>
+        </Button>
 
-        <TouchableOpacity
+        <Button
+          variant="secondary"
+          className="flex-1 h-[72px] rounded-2xl"
           onPress={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
             SoundManager.play('click');
             navigation.push('NewFlashCard');
           }}
-          style={stylesMS.buttonCFlashcard}
-          activeOpacity={0.8}
         >
-          <BookOpen color="#08302E" size={30} strokeWidth={2} />
-          <Text style={stylesMS.buttonCardText}>Crear Flashcard</Text>
-        </TouchableOpacity>
+          <BookOpen color="#08302E" size={28} strokeWidth={2} />
+          <Button.Label className="text-foreground text-base font-bold">Crear Flashcard</Button.Label>
+        </Button>
       </View>
 
-      <View style={stylesMS.deckListContainer}>
+      {/* Deck List */}
+      <View className="flex-1 px-4">
         {isOffline && (
-          <Text style={{ margin: 10, textAlign: 'center', color: 'orange' }}>
+          <Typography type="body-sm" className="text-warning text-center my-2">
             Modo offline — sin conexión al servidor
-          </Text>
+          </Typography>
         )}
         {loading ? (
-          <ActivityIndicator size="large" color="#12B5B0" />
+          <View className="flex-1 items-center justify-center">
+            <Spinner size="lg" />
+          </View>
         ) : (
           <FlatList
             style={{ flex: 1 }}
@@ -168,43 +166,44 @@ export default function MainScreen() {
             }
             showsVerticalScrollIndicator={false}
             ListHeaderComponent={() => (
-              <Text style={[stylesMS.misMazosTitle, { marginLeft: 0, marginTop: 10, marginBottom: 16 }]}>
-                Mis Mazos
-              </Text>
+              <Typography type="h5" weight="bold" className="mt-2 mb-4">Mis Mazos</Typography>
             )}
             renderItem={({ item }) => (
-              <TouchableOpacity
-                style={stylesMS.deckCard}
-                activeOpacity={0.7}
+              <Card
+                className="mb-2"
                 onPress={() => navigation.navigate('DeckDetails', { deck: item })}
               >
-                <View style={stylesMS.deckCardLeft}>
-                  <Text style={stylesMS.deckTitle}>{item.deck_name}</Text>
-                  <Text style={stylesMS.deckCount}>{item.cardCount ?? 0} tarjetas</Text>
-                </View>
-                <TouchableOpacity
-                  style={stylesMS.deckCardRight}
-                  onPress={(e) => {
-                    e.stopPropagation();
-                    if (item.flashcards && item.flashcards.length > 0) {
-                      navigation.navigate('GameFlashCard', {
-                        sampleCards: item.flashcards,
-                        deckId: item.deck_id,
-                        deckName: item.deck_name,
-                      });
-                    } else {
-                      Alert.alert('Mazo vacío', 'Agrega algunas flashcards antes de estudiar.');
-                    }
-                  }}
-                >
-                  <BookOpen size={20} color="#ffffff" strokeWidth={2.5} />
-                </TouchableOpacity>
-              </TouchableOpacity>
+                <Card.Body className="flex-row items-center justify-between py-2.5 px-4">
+                  <View className="flex-1">
+                    <Typography type="body" weight="semibold">{item.deck_name}</Typography>
+                    <Typography type="body-sm" color="muted">{item.cardCount ?? 0} tarjetas</Typography>
+                  </View>
+                  <Button
+                    isIconOnly
+                    variant="primary"
+                    size="sm"
+                    className="rounded-xl"
+                    onPress={() => {
+                      if (item.flashcards && item.flashcards.length > 0) {
+                        navigation.navigate('GameFlashCard', {
+                          sampleCards: item.flashcards,
+                          deckId: item.deck_id,
+                          deckName: item.deck_name,
+                        });
+                      } else {
+                        Alert.alert('Mazo vacío', 'Agrega algunas flashcards antes de estudiar.');
+                      }
+                    }}
+                  >
+                    <BookOpen size={18} color="#ffffff" strokeWidth={2.5} />
+                  </Button>
+                </Card.Body>
+              </Card>
             )}
             ListEmptyComponent={() => (
-              <Text style={{ margin: 20, textAlign: 'center', color: '#527F7C' }}>
+              <Typography type="body" color="muted" align="center" className="my-5">
                 {error ? `Error: ${error}` : 'No tienes mazos personales aún'}
-              </Text>
+              </Typography>
             )}
             contentContainerStyle={
               personalDecks.length === 0 ? { flexGrow: 1 } : { paddingBottom: 40 }

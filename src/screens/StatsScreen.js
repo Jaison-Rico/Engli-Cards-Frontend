@@ -1,374 +1,215 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from "react-native";
-import { ProgressChart, BarChart } from "react-native-chart-kit";
-import { Dimensions } from "react-native";
-import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
-import { tokens, shadows } from '../styles/theme';
+import React, { useState } from 'react';
+import { View, ScrollView, Dimensions } from 'react-native';
+import { ProgressChart, BarChart } from 'react-native-chart-kit';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAuth, getUserId } from '../context/AuthContext';
 import { getUserStats, getQuizSessions } from '../services/users.service';
 import { getDecks } from '../services/decks.service';
 import { Layers, Layout, Clock, TrendingUp } from 'lucide-react-native';
-
+import { Card, Spinner, Typography } from 'heroui-native';
 import { useAppTheme } from '../context/ThemeContext';
 
-const screenWidth = Dimensions.get("window").width;
+const screenWidth = Dimensions.get('window').width;
 
 export default function StatsScreen() {
-	const { theme } = useAppTheme();
-	const { user } = useAuth();
-	const userId = getUserId(user);
-	const insets = useSafeAreaInsets();
-	const [isLoading, setIsLoading] = useState(true);
-	const [stats, setStats] = useState(null);
-	const [sessions, setSessions] = useState([]);
-	const [totalDecks, setTotalDecks] = useState(0);
-	const [totalCards, setTotalCards] = useState(0);
+  const { theme } = useAppTheme();
+  const { user } = useAuth();
+  const userId = getUserId(user);
+  const insets = useSafeAreaInsets();
+  const [isLoading, setIsLoading] = useState(true);
+  const [stats, setStats] = useState(null);
+  const [sessions, setSessions] = useState([]);
+  const [totalDecks, setTotalDecks] = useState(0);
+  const [totalCards, setTotalCards] = useState(0);
 
-	const primaryColor = theme.colors.primaryLight || theme.colors.primary;
-	const cardColor = theme.colors.card;
-	const bgSecondary = theme.colors.surfaceContainerLow || '#CBEBE8';
-	const bgLight = theme.colors.background;
-	const textColor = theme.colors.foreground;
+  const primaryColor = theme.colors.primaryLight || theme.colors.primary;
+  const cardColor = theme.colors.card;
+  const bgLight = theme.colors.background;
 
-	useFocusEffect(
-		React.useCallback(() => {
-			let isActive = true;
+  useFocusEffect(
+    React.useCallback(() => {
+      let isActive = true;
+      const fetchData = async () => {
+        if (!userId) return;
+        try {
+          setIsLoading(true);
+          const [statsData, sessionsData, decksData] = await Promise.all([
+            getUserStats(userId),
+            getQuizSessions(userId, 7),
+            getDecks(userId, false),
+          ]);
+          if (isActive) {
+            setStats(statsData);
+            setSessions(sessionsData);
+            const personalDecks = decksData.filter((d) => !d.is_system);
+            setTotalDecks(personalDecks.length);
+            setTotalCards(personalDecks.reduce((acc, deck) => acc + (deck.flashcards?.length || 0), 0));
+          }
+        } catch (error) {
+          console.error('Error fetching stats:', error);
+        } finally {
+          if (isActive) setIsLoading(false);
+        }
+      };
+      fetchData();
+      return () => { isActive = false; };
+    }, [])
+  );
 
-			const fetchData = async () => {
-				if (!userId) return;
-				try {
-					setIsLoading(true);
-					const [statsData, sessionsData, decksData] = await Promise.all([
-						getUserStats(userId),
-						getQuizSessions(userId, 7),
-						getDecks(userId, false),
-					]);
-					if (isActive) {
-						setStats(statsData);
-						setSessions(sessionsData);
-						const personalDecks = decksData.filter((d) => !d.is_system);
-						setTotalDecks(personalDecks.length);
-						setTotalCards(
-							personalDecks.reduce((acc, deck) => acc + (deck.flashcards?.length || 0), 0)
-						);
-					}
-				} catch (error) {
-					console.error('Error fetching stats data:', error);
-				} finally {
-					if (isActive) setIsLoading(false);
-				}
-			};
+  if (isLoading) {
+    return (
+      <View className="flex-1 bg-background items-center justify-center">
+        <Spinner size="lg" />
+      </View>
+    );
+  }
 
-			fetchData();
+  const todayStr = new Date().toISOString().split('T')[0];
+  const quizzesToday = sessions.filter((s) => s.completed_at.startsWith(todayStr)).length;
+  const dailyGoalPercent = Math.min(quizzesToday / 3, 1);
 
-			return () => { isActive = false; };
-		}, [])
-	);
+  const totalAnswers = stats ? (stats.correct_answers_total + stats.wrong_answers_total) : 0;
+  const dominionPercent = totalAnswers > 0 ? (stats.correct_answers_total / totalAnswers) : 0;
+  const progressPercent = stats ? (100 - stats.next_level_points) / 100 : 0;
+  const streakPercent = stats ? Math.min(stats.streak_current / 7, 1) : 0;
 
-	if (isLoading) {
-		return (
-			<View style={[styles.container, { backgroundColor: bgLight, justifyContent: 'center', alignItems: 'center' }]}>
-				<ActivityIndicator size="large" color={primaryColor} />
-			</View>
-		);
-	}
+  const daysMap = { 0: 'D', 1: 'L', 2: 'M', 3: 'X', 4: 'J', 5: 'V', 6: 'S' };
+  const last7DaysData = [0, 0, 0, 0, 0, 0, 0];
+  const last7DaysLabels = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    last7DaysLabels.push(daysMap[d.getDay()]);
+    const dateStr = d.toISOString().split('T')[0];
+    last7DaysData[6 - i] = sessions.filter((s) => s.completed_at.startsWith(dateStr)).length;
+  }
 
-	// === Cálculos Dinámicos ===
-	// Daily Goal: Asumimos meta diaria de 3 quizzes (hoy).
-	const todayStr = new Date().toISOString().split('T')[0];
-	const quizzesToday = sessions.filter(s => s.completed_at.startsWith(todayStr)).length;
-	const dailyGoalPercent = Math.min(quizzesToday / 3, 1);
+  const barData = { labels: last7DaysLabels, datasets: [{ data: last7DaysData }] };
 
-	// Dominio
-	const totalAnswers = stats ? (stats.correct_answers_total + stats.wrong_answers_total) : 0;
-	const dominionPercent = totalAnswers > 0 ? (stats.correct_answers_total / totalAnswers) : 0;
+  const totalSeconds = stats?.study_time_total_seconds || 0;
+  const studyHours = Math.floor(totalSeconds / 3600);
+  const studyMinutes = Math.floor((totalSeconds % 3600) / 60);
 
-	// Progress general (Basado en nivel de puntos)
-	const progressPercent = stats ? (100 - stats.next_level_points) / 100 : 0;
+  return (
+    <View className="flex-1 bg-background" style={{ paddingTop: insets.top }}>
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: insets.bottom + 80 }}
+        showsVerticalScrollIndicator={false}
+      >
+        <Typography type="h3" weight="bold" align="center" className="mb-8">Estadísticas</Typography>
 
-	// Racha
-	const streakPercent = stats ? Math.min(stats.streak_current / 7, 1) : 0; // Porcentaje sobre meta de 7 días
+        {/* Circular Progress */}
+        <View className="items-center justify-center h-[220px] mb-8">
+          <View className="absolute items-center justify-center z-10">
+            <Typography type="h1" weight="bold" className="text-accent" style={{ fontSize: 42 }}>
+              {Math.round(dailyGoalPercent * 100)}%
+            </Typography>
+            <Typography type="body-sm" weight="semibold" className="text-accent -mt-1">Meta Diaria</Typography>
+          </View>
+          <ProgressChart
+            data={{ data: [dailyGoalPercent] }}
+            width={screenWidth}
+            height={220}
+            strokeWidth={20}
+            radius={80}
+            chartConfig={{
+              backgroundGradientFrom: bgLight,
+              backgroundGradientTo: bgLight,
+              color: () => primaryColor,
+              labelColor: () => 'transparent',
+            }}
+            hideLegend
+            style={{ position: 'absolute' }}
+          />
+        </View>
 
-	// Actividad Semanal
-	const daysMap = { 0: 'D', 1: 'L', 2: 'M', 3: 'X', 4: 'J', 5: 'V', 6: 'S' };
-	const last7DaysData = [0, 0, 0, 0, 0, 0, 0];
-	const last7DaysLabels = [];
-	
-	for (let i = 6; i >= 0; i--) {
-		const d = new Date();
-		d.setDate(d.getDate() - i);
-		last7DaysLabels.push(daysMap[d.getDay()]);
-		
-		const dateStr = d.toISOString().split('T')[0];
-		const daySessions = sessions.filter(s => s.completed_at.startsWith(dateStr));
-		last7DaysData[6 - i] = daySessions.length;
-	}
+        {/* 3 Boxes */}
+        <View className="flex-row justify-between mb-8 gap-2">
+          {[
+            { label: 'PROGRESO', value: `${Math.round(progressPercent * 100)}%` },
+            { label: 'RACHA', value: `${Math.round(streakPercent * 100)}%` },
+            { label: 'DOMINIO', value: `${Math.round(dominionPercent * 100)}%` },
+          ].map((item) => (
+            <Card key={item.label} className="flex-1 py-4 items-center">
+              <Card.Body className="items-center">
+                <Typography type="body-xs" weight="bold" color="muted" className="uppercase tracking-wider mb-1">{item.label}</Typography>
+                <Typography type="h4" weight="bold" className="text-accent">{item.value}</Typography>
+              </Card.Body>
+            </Card>
+          ))}
+        </View>
 
-	const barData = {
-		labels: last7DaysLabels,
-		datasets: [{ data: last7DaysData }],
-	};
+        {/* Weekly Activity */}
+        <View className="mb-8">
+          <View className="flex-row justify-between items-center mb-4">
+            <Typography type="h5" weight="bold">Actividad Semanal</Typography>
+            <Typography type="body-sm" weight="semibold" className="text-accent">Esta Semana</Typography>
+          </View>
+          <Card>
+            <Card.Body className="py-3">
+              <BarChart
+                data={barData}
+                width={screenWidth - 40}
+                height={180}
+                yAxisLabel=""
+                withHorizontalLabels={false}
+                withInnerLines={false}
+                chartConfig={{
+                  backgroundGradientFrom: cardColor,
+                  backgroundGradientTo: cardColor,
+                  fillShadowGradientFrom: primaryColor,
+                  fillShadowGradientFromOpacity: 1,
+                  fillShadowGradientTo: primaryColor,
+                  fillShadowGradientToOpacity: 0.6,
+                  color: () => primaryColor,
+                  labelColor: () => primaryColor,
+                  barPercentage: 0.4,
+                  barRadius: 6,
+                }}
+                style={{ borderRadius: 24, paddingRight: 0 }}
+              />
+            </Card.Body>
+          </Card>
+        </View>
 
-	// Study Time
-	const totalSeconds = stats?.study_time_total_seconds || 0;
-	const studyHours = Math.floor(totalSeconds / 3600);
-	const studyMinutes = Math.floor((totalSeconds % 3600) / 60);
+        {/* Decks & Cards */}
+        <View className="flex-row justify-between mb-5 gap-3">
+          <Card className="flex-1">
+            <Card.Body className="p-5">
+              <View className="w-9 h-9 rounded-full bg-default items-center justify-center mb-4">
+                <Layers color={primaryColor} size={20} />
+              </View>
+              <Typography type="h3" weight="bold" className="mb-1">{totalDecks}</Typography>
+              <Typography type="body-sm" color="muted">Mazos creados</Typography>
+            </Card.Body>
+          </Card>
+          <Card className="flex-1">
+            <Card.Body className="p-5">
+              <View className="w-9 h-9 rounded-full bg-default items-center justify-center mb-4">
+                <Layout color={primaryColor} size={20} />
+              </View>
+              <Typography type="h3" weight="bold" className="mb-1">{totalCards}</Typography>
+              <Typography type="body-sm" color="muted">Tarjetas totales</Typography>
+            </Card.Body>
+          </Card>
+        </View>
 
-	return (
-		<SafeAreaView style={[styles.container, { backgroundColor: bgLight, paddingTop: insets.top }]}> 
-			<ScrollView 
-				style={{ flex: 1 }}
-				contentContainerStyle={[styles.scrollContent, { paddingTop: 20, paddingBottom: insets.bottom + 80 }]}
-				showsVerticalScrollIndicator={false}
-			>
-			<View style={styles.header}>
-				<Text style={[styles.title, { color: textColor }]}>Estadísticas</Text>
-			</View>
-
-			{/* Main Circular Progress */}
-			<View style={styles.circleContainer}>
-				<View style={styles.circleInnerContent}>
-					<Text style={[styles.circlePercent, { color: primaryColor }]}>{Math.round(dailyGoalPercent * 100)}%</Text>
-					<Text style={[styles.circleLabel, { color: primaryColor }]}>Meta Diaria</Text>
-				</View>
-				<ProgressChart
-					data={{ data: [dailyGoalPercent] }}
-					width={screenWidth}
-					height={220}
-					strokeWidth={20}
-					radius={80}
-					chartConfig={{
-						backgroundGradientFrom: bgLight,
-						backgroundGradientTo: bgLight,
-						color: (opacity = 1) => primaryColor, 
-						labelColor: () => 'transparent',
-					}}
-					hideLegend={true}
-					style={{ position: 'absolute' }}
-				/>
-			</View>
-
-			{/* 3 Horizontal Boxes */}
-			<View style={styles.threeBoxesRow}>
-				<View style={[styles.smallBox, { backgroundColor: cardColor, ...shadows.soft }]}>
-					<Text style={[styles.smallBoxLabel, { color: theme.colors.mutedForeground }]}>PROGRESO</Text>
-					<Text style={[styles.smallBoxValue, { color: primaryColor }]}>{Math.round(progressPercent * 100)}%</Text>
-				</View>
-				<View style={[styles.smallBox, { backgroundColor: cardColor, ...shadows.soft }]}>
-					<Text style={[styles.smallBoxLabel, { color: theme.colors.mutedForeground }]}>RACHA</Text>
-					<Text style={[styles.smallBoxValue, { color: primaryColor }]}>{Math.round(streakPercent * 100)}%</Text>
-				</View>
-				<View style={[styles.smallBox, { backgroundColor: cardColor, ...shadows.soft }]}>
-					<Text style={[styles.smallBoxLabel, { color: theme.colors.mutedForeground }]}>DOMINIO</Text>
-					<Text style={[styles.smallBoxValue, { color: primaryColor }]}>{Math.round(dominionPercent * 100)}%</Text>
-				</View>
-			</View>
-
-			{/* Weekly Activity */}
-			<View style={styles.weeklySection}>
-				<View style={styles.weeklyHeader}>
-					<Text style={[styles.weeklyTitle, { color: textColor }]}>Actividad Semanal</Text>
-					<Text style={[styles.weeklySubtitle, { color: primaryColor }]}>Esta Semana</Text>
-				</View>
-				<View style={[styles.barChartContainer, { backgroundColor: cardColor, ...shadows.card }]}>
-					<BarChart
-						data={barData}
-						width={screenWidth - 40}
-						height={180}
-						yAxisLabel=""
-						withHorizontalLabels={false}
-						withInnerLines={false}
-						chartConfig={{
-							backgroundGradientFrom: cardColor,
-							backgroundGradientTo: cardColor,
-							fillShadowGradientFrom: primaryColor,
-							fillShadowGradientFromOpacity: 1,
-							fillShadowGradientTo: primaryColor,
-							fillShadowGradientToOpacity: 0.6,
-							color: (opacity = 1) => primaryColor,
-							labelColor: () => primaryColor,
-							barPercentage: 0.4,
-							barRadius: 6,
-						}}
-						style={styles.barChart}
-					/>
-				</View>
-			</View>
-
-			{/* Decks & Cards Row */}
-			<View style={styles.twoBoxesRow}>
-				<View style={[styles.mediumBox, { backgroundColor: cardColor, ...shadows.soft }]}>
-					<View style={[styles.iconCircle, { backgroundColor: bgSecondary }]}>
-						<Layers color={primaryColor} size={20} />
-					</View>
-					<Text style={[styles.mediumBoxValue, { color: textColor }]}>{totalDecks}</Text>
-					<Text style={[styles.mediumBoxLabel, { color: theme.colors.mutedForeground }]}>Mazos creados</Text>
-				</View>
-				<View style={[styles.mediumBox, { backgroundColor: cardColor, ...shadows.soft }]}>
-					<View style={[styles.iconCircle, { backgroundColor: bgSecondary }]}>
-						<Layout color={primaryColor} size={20} />
-					</View>
-					<Text style={[styles.mediumBoxValue, { color: textColor }]}>{totalCards}</Text>
-					<Text style={[styles.mediumBoxLabel, { color: theme.colors.mutedForeground }]}>Tarjetas totales</Text>
-				</View>
-			</View>
-
-			{/* Study Time Banner */}
-			<View style={[styles.timeBanner, { backgroundColor: primaryColor }]}>
-				<View style={styles.timeIconWrap}>
-					<Clock color="#FFF" size={24} />
-				</View>
-				<View style={styles.timeTextWrap}>
-					<Text style={styles.timeValue}>{studyHours}h {studyMinutes}m</Text>
-					<Text style={[styles.timeLabel, { color: bgSecondary }]}>Tiempo Estudiado</Text>
-				</View>
-				<TrendingUp color={bgSecondary} size={24} style={{ opacity: 0.8 }} />
-			</View>
-		</ScrollView>
-	</SafeAreaView>
-	);
+        {/* Study Time Banner */}
+        <View className="bg-accent rounded-3xl p-6 flex-row items-center">
+          <View className="w-11 h-11 rounded-full bg-white/20 items-center justify-center mr-4">
+            <Clock color="#FFF" size={24} />
+          </View>
+          <View className="flex-1">
+            <Typography type="h4" weight="bold" className="text-accent-foreground mb-0.5">
+              {studyHours}h {studyMinutes}m
+            </Typography>
+            <Typography type="body-sm" className="text-accent-foreground/70">Tiempo Estudiado</Typography>
+          </View>
+          <TrendingUp color="rgba(255,255,255,0.7)" size={24} />
+        </View>
+      </ScrollView>
+    </View>
+  );
 }
-
-const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-	},
-	scrollContent: {
-		flexGrow: 1,
-		paddingHorizontal: 20,
-	},
-	header: {
-		flexDirection: 'row',
-		justifyContent: 'center',
-		alignItems: 'center',
-		marginBottom: 30,
-	},
-	title: {
-		fontSize: 22,
-		fontWeight: '800',
-	},
-	circleContainer: {
-		alignItems: 'center',
-		justifyContent: 'center',
-		height: 220,
-		marginBottom: 30,
-	},
-	circleInnerContent: {
-		position: 'absolute',
-		alignItems: 'center',
-		justifyContent: 'center',
-		zIndex: 10,
-	},
-	circlePercent: {
-		fontSize: 42,
-		fontWeight: '900',
-	},
-	circleLabel: {
-		fontSize: 14,
-		fontWeight: '600',
-		marginTop: -5,
-	},
-	threeBoxesRow: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		marginBottom: 30,
-	},
-	smallBox: {
-		width: '31%',
-		paddingVertical: 16,
-		borderRadius: 16,
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-	smallBoxLabel: {
-		fontSize: 10,
-		fontWeight: '700',
-		marginBottom: 6,
-		letterSpacing: 0.5,
-	},
-	smallBoxValue: {
-		fontSize: 20,
-		fontWeight: '900',
-	},
-	weeklySection: {
-		marginBottom: 30,
-	},
-	weeklyHeader: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		alignItems: 'center',
-		marginBottom: 15,
-	},
-	weeklyTitle: {
-		fontSize: 18,
-		fontWeight: '800',
-	},
-	weeklySubtitle: {
-		fontSize: 14,
-		fontWeight: '600',
-	},
-	barChartContainer: {
-		borderRadius: 24,
-		paddingVertical: 10,
-	},
-	barChart: {
-		borderRadius: 24,
-		paddingRight: 0,
-	},
-	twoBoxesRow: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		marginBottom: 20,
-	},
-	mediumBox: {
-		width: '48%',
-		padding: 20,
-		borderRadius: 24,
-	},
-	iconCircle: {
-		width: 36,
-		height: 36,
-		borderRadius: 18,
-		alignItems: 'center',
-		justifyContent: 'center',
-		marginBottom: 16,
-	},
-	mediumBoxValue: {
-		fontSize: 24,
-		fontWeight: '900',
-		marginBottom: 4,
-	},
-	mediumBoxLabel: {
-		fontSize: 13,
-		fontWeight: '500',
-	},
-	timeBanner: {
-		borderRadius: 24,
-		padding: 24,
-		flexDirection: 'row',
-		alignItems: 'center',
-	},
-	timeIconWrap: {
-		backgroundColor: 'rgba(255,255,255,0.2)',
-		width: 44,
-		height: 44,
-		borderRadius: 22,
-		alignItems: 'center',
-		justifyContent: 'center',
-		marginRight: 16,
-	},
-	timeTextWrap: {
-		flex: 1,
-	},
-	timeValue: {
-		fontSize: 20,
-		fontWeight: '800',
-		color: '#FFF',
-		marginBottom: 2,
-	},
-	timeLabel: {
-		fontSize: 13,
-		fontWeight: '500',
-	},
-});

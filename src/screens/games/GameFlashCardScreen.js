@@ -1,73 +1,44 @@
 import React, { useState, useEffect } from 'react';
-import { View, TouchableOpacity, Text, Animated, ActivityIndicator } from 'react-native';
+import { View, Animated } from 'react-native';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
-import { useAppTheme } from '../../context/ThemeContext';
-import get_styleGameFlashCard from '../../styles/gameFlashCard.styles';
 import { ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react-native';
-import FlashCard from '../../components/FlashCard';
 import { Ionicons } from '@expo/vector-icons';
-import QuizStartButton from '../../components/QuizStartButton';
-import get_stylesMS from '../../styles/mainScreen.styles';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-
-// Pantalla exportada por defecto (usada por el Navigator)
+import { Button, Spinner, Typography } from 'heroui-native';
+import FlashCard from '../../components/FlashCard';
+import QuizStartButton from '../../components/QuizStartButton';
 export default function GameFlashCard({ navigation, route }) {
-  const { theme } = useAppTheme();
-  const styles = get_styleGameFlashCard(theme);
-  const stylesMS = get_stylesMS(theme);
-  const { sampleCards, quiz } = route.params
+  const { sampleCards, quiz } = route.params;
+  const insets = useSafeAreaInsets();
+
   const [index, setIndex] = useState(0);
   const [cards, setCards] = useState([]);
-  const insets = useSafeAreaInsets(); 
   const [toast, setToast] = useState({ visible: false, message: '', type: '' });
   const [toastAnim] = useState(new Animated.Value(0));
 
   useEffect(() => {
-    if (sampleCards && sampleCards.length > 0) {
-      let preparedCards = [...sampleCards];
-      // Solo barajar si NO es un mini-juego (no hay quiz)
-      if (!quiz) {
-        preparedCards = preparedCards.sort(() => Math.random() - 0.5);
-      }
-      setCards(preparedCards);
+    if (sampleCards?.length > 0) {
+      let prepared = [...sampleCards];
+      if (!quiz) prepared = prepared.sort(() => Math.random() - 0.5);
+      setCards(prepared);
     }
   }, [sampleCards, quiz]);
+
+  useEffect(() => {
+    if (toast.visible) {
+      Animated.sequence([
+        Animated.spring(toastAnim, { toValue: 1, useNativeDriver: true, tension: 50, friction: 7 }),
+        Animated.delay(2500),
+        Animated.timing(toastAnim, { toValue: 0, duration: 300, useNativeDriver: true }),
+      ]).start(() => setToast({ visible: false, message: '', type: '' }));
+    }
+  }, [toast.visible]);
+
+  const showToast = (message, type) => setToast({ visible: true, message, type });
 
   const total = cards.length;
   const current = cards[index];
   const isSystemGame = Boolean(quiz);
-
-  // Animación del toast
-  useEffect(() => {
-    if (toast.visible) {
-      Animated.sequence([
-        Animated.spring(toastAnim, {
-          toValue: 1,
-          useNativeDriver: true,
-          tension: 50,
-          friction: 7
-        }),
-        Animated.delay(2500),
-        Animated.timing(toastAnim, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true
-        })
-      ]).start(() => {
-        setToast({ visible: false, message: '', type: '' });
-      });
-    }
-  }, [toast.visible]);
-
-  const showToast = (message, type) => {
-    setToast({ visible: true, message, type });
-  };
-
-
-
-
-
 
   const goPrev = () => setIndex((i) => (i > 0 ? i - 1 : i));
   const goNext = () => setIndex((i) => (i < total - 1 ? i + 1 : i));
@@ -82,132 +53,122 @@ export default function GameFlashCard({ navigation, route }) {
 
   return (
     <GestureDetector gesture={swipeGesture}>
-    <View style={{...styles.screen, paddingTop: insets.top + 10}}>
-      <View style={{ 
-        flexDirection: 'row', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
-        paddingHorizontal: 20, 
-        width: '100%',
-        marginBottom: 30
-      }}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 8 }}>
-          <ArrowLeft color="#12B5B0" size={28} />
-        </TouchableOpacity>
-        
-        <QuizStartButton
-          onPress={() => {
-            if (quiz) {
-              navigation.navigate(quiz, { 
-                deckId: route.params.deckId, 
-                deckName: route.params.deckName 
-              });
-            } else if (route.params.deckId) {
-              if (total >= 5) {
-                navigation.navigate('DeckQuiz', { 
-                  deckId: route.params.deckId, 
-                  deckName: route.params.deckName || 'Quiz' 
-                });
+      <View className="flex-1 bg-background items-center" style={{ paddingTop: insets.top + 10 }}>
+
+        {/* Top Row */}
+        <View className="flex-row justify-between items-center w-full px-5 mb-8">
+          <Button isIconOnly variant="ghost" onPress={() => navigation.goBack()}>
+            <ArrowLeft color="#12B5B0" size={28} />
+          </Button>
+          <QuizStartButton
+            onPress={() => {
+              if (quiz) {
+                navigation.navigate(quiz, { deckId: route.params.deckId, deckName: route.params.deckName });
+              } else if (route.params.deckId) {
+                if (total >= 5) {
+                  navigation.navigate('DeckQuiz', { deckId: route.params.deckId, deckName: route.params.deckName || 'Quiz' });
+                } else {
+                  showToast('Necesitas al menos 5 tarjetas en este mazo para hacer un quiz.', 'error');
+                }
               } else {
-                showToast('Necesitas al menos 5 tarjetas en este mazo para hacer un quiz.', 'error');
+                showToast('No hay prueba disponible para este conjunto de tarjetas.', 'error');
               }
-            } else {
-              showToast('No hay prueba disponible para este conjunto de tarjetas.', 'error');
-            }
-          }}
-          buttonStyle={styles.quizBtn}
-          textStyle={styles.btnText}
-          label="Comenzar Prueba"
-          iconName="play-outline"
-        />
-      </View>
-      <View style={{ flex: 1, width: '100%', alignItems: 'center', justifyContent: 'center', paddingBottom: 40 }}>
-        <Text style={styles.counter}>Tarjeta {index + 1} de {total}</Text>
-        
-        {cards.length > 0 ? (
-          <>
-            <FlashCard
-              key={index}
-              item={current}
-              styles={styles}
-              frontLabel={isSystemGame ? 'English' : 'Español'}
-              backLabel={isSystemGame ? 'Español' : 'English'}
-              frontKey={isSystemGame ? 'english' : 'translation'}
-              backKey={isSystemGame ? 'spanish' : 'word'}
-              langFront={isSystemGame ? 'en-US' : 'es-ES'}
-              langBack={isSystemGame ? 'es-ES' : 'en-US'}
-            />
-
-            <View style={styles.dotsRow}>
-              {cards.map((_, i) => (
-                <View key={i} style={[styles.dot, i === index && styles.dotActive]} />
-              ))}
-            </View>
-          </>
-        ) : (
-          <View style={{ alignItems: 'center', padding: 20 }}>
-            {quiz ? (
-              <>
-                <Ionicons name="book-outline" size={60} color="#12B5B0" style={{ marginBottom: 20 }} />
-                <Text style={[styles.btnText, { color: theme.colors.foreground, textAlign: 'center' }]}>
-                  Este nivel no tiene tarjetas de estudio aún, pero puedes saltar directamente a la prueba.
-                </Text>
-              </>
-            ) : (
-              <ActivityIndicator size="large" color="#12B5B0" />
-            )}
-          </View>
-        )}
-
-        <View style={styles.controls}>
-          <TouchableOpacity onPress={goPrev} disabled={index === 0} style={[styles.btn, index === 0 && styles.btnDisabled]}>
-            <Ionicons name="chevron-back" size={18} color="#fff" />
-            <Text style={styles.btnText}>Anterior</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={goNext} disabled={index === total - 1} style={[styles.btn, index === total - 1 && styles.btnDisabled]}>
-            <Text style={styles.btnText}>Siguiente</Text>
-            <Ionicons name="chevron-forward" size={18} color="#fff" />
-          </TouchableOpacity>
+            }}
+            label="Comenzar Prueba"
+            iconName="play-outline"
+          />
         </View>
-      </View>
 
-      
-				{/* Toast personalizado */}
-				{toast.visible && (
-					<Animated.View
-						style={[
-							stylesMS.toastContainer,
-							{
-								backgroundColor: toast.type === 'success' ? '#10b981' : '#ef4444',
-								transform: [
-									{
-										translateY: toastAnim.interpolate({
-											inputRange: [0, 1],
-											outputRange: [-100, 50]
-										})
-									},
-									{
-										scale: toastAnim.interpolate({
-											inputRange: [0, 1],
-											outputRange: [0.8, 1]
-										})
-									}
-								],
-								opacity: toastAnim
-							}
-						]}
-					>
-						<View style={stylesMS.toastContent}>
-							{toast.type === 'success' ? (
-								<CheckCircle size={24} color="white" />
-							) : (
-								<AlertCircle size={24} color="white" />
-							)}
-							<Text style={stylesMS.toastText}>{toast.message}</Text>
-						</View>
-					</Animated.View>
-				)}
-    </View>
+        {/* Card Area */}
+        <View className="flex-1 w-full items-center justify-center pb-10">
+          <Typography type="body-sm" color="muted" className="mb-4">
+            Tarjeta {index + 1} de {total}
+          </Typography>
+
+          {cards.length > 0 ? (
+            <>
+              <FlashCard
+                key={index}
+                item={current}
+                frontLabel={isSystemGame ? 'English' : 'Español'}
+                backLabel={isSystemGame ? 'Español' : 'English'}
+                frontKey={isSystemGame ? 'english' : 'translation'}
+                backKey={isSystemGame ? 'spanish' : 'word'}
+                langFront={isSystemGame ? 'en-US' : 'es-ES'}
+                langBack={isSystemGame ? 'es-ES' : 'en-US'}
+              />
+
+              {/* Dots */}
+              <View className="flex-row justify-center mt-5 gap-1.5">
+                {cards.map((_, i) => (
+                  <View
+                    key={i}
+                    className={`h-2 rounded-full ${i === index ? 'w-5 bg-accent' : 'w-2 bg-border'}`}
+                  />
+                ))}
+              </View>
+            </>
+          ) : (
+            <View className="items-center px-5 gap-4">
+              {quiz ? (
+                <>
+                  <Ionicons name="book-outline" size={60} color="#12B5B0" />
+                  <Typography type="body" align="center" className="text-foreground">
+                    Este nivel no tiene tarjetas de estudio aún, pero puedes saltar directamente a la prueba.
+                  </Typography>
+                </>
+              ) : (
+                <Spinner size="lg" />
+              )}
+            </View>
+          )}
+
+          {/* Controls */}
+          <View className="flex-row justify-center gap-4 mt-6">
+            <Button
+              variant="primary"
+              size="lg"
+              className="px-6"
+              onPress={goPrev}
+              isDisabled={index === 0}
+            >
+              <Ionicons name="chevron-back" size={18} color="#fff" />
+              <Button.Label>Anterior</Button.Label>
+            </Button>
+            <Button
+              variant="primary"
+              size="lg"
+              className="px-6"
+              onPress={goNext}
+              isDisabled={index === total - 1}
+            >
+              <Button.Label>Siguiente</Button.Label>
+              <Ionicons name="chevron-forward" size={18} color="#fff" />
+            </Button>
+          </View>
+        </View>
+
+        {/* Toast */}
+        {toast.visible && (
+          <Animated.View
+            className="absolute top-0 self-center rounded-2xl px-4 py-3 flex-row items-center gap-3"
+            style={{
+              backgroundColor: toast.type === 'success' ? '#10b981' : '#ef4444',
+              transform: [
+                { translateY: toastAnim.interpolate({ inputRange: [0, 1], outputRange: [-100, 50] }) },
+                { scale: toastAnim.interpolate({ inputRange: [0, 1], outputRange: [0.8, 1] }) },
+              ],
+              opacity: toastAnim,
+            }}
+          >
+            {toast.type === 'success'
+              ? <CheckCircle size={22} color="white" />
+              : <AlertCircle size={22} color="white" />
+            }
+            <Typography type="body-sm" weight="semibold" className="text-white">{toast.message}</Typography>
+          </Animated.View>
+        )}
+      </View>
     </GestureDetector>
   );
 }

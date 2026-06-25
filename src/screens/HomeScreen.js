@@ -1,24 +1,18 @@
 import React, { useEffect, useRef } from 'react';
-import { View, StyleSheet } from 'react-native';
-
+import { View } from 'react-native';
 import LottieView from 'lottie-react-native';
 
-import { useAppTheme } from '../context/ThemeContext';
-
 export default function HomeScreen({ navigation }) {
-  const { theme } = useAppTheme();
   const animation = useRef(null);
 
   useEffect(() => {
     animation.current?.play?.();
-    const timer = setTimeout(() => {
-      navigation.replace('Login'); 
-    }, 4000);
+    const timer = setTimeout(() => { navigation.replace('Login'); }, 4000);
     return () => clearTimeout(timer);
   }, [navigation]);
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <View className="flex-1 items-center justify-center bg-background">
       <LottieView
         ref={animation}
         source={require('../assets/animations/logoApp.json')}
@@ -29,11 +23,3 @@ export default function HomeScreen({ navigation }) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
