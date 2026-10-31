@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, FlatList, StatusBar, Image, Text } from 'react-native';
+import { View, FlatList, StatusBar, Image, Text, TouchableOpacity } from 'react-native';
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CheckCircle2 } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 import { useAppTheme } from '../context/ThemeContext';
 import { getCategories, completeOnboarding } from '../services/onboarding.service';
-import { getUserId } from '../context/AuthContext';
 import { Button, Card, Spinner, Typography } from 'heroui-native';
 
 const CATEGORY_GIFS = {
@@ -54,7 +53,8 @@ export default function OnboardingScreen() {
       await completeOnboarding(Array.from(selected));
       await updateUser({ onboarding_completed: true });
       navigation.dispatch(CommonActions.reset({ index: 0, routes: [{ name: 'BottomTabs' }] }));
-    } catch {
+    } catch (err) {
+      console.log('Error completing onboarding:', err);
       alert('Hubo un error al configurar tu cuenta. Intenta de nuevo.');
     } finally {
       setSubmitting(false);
@@ -66,36 +66,65 @@ export default function OnboardingScreen() {
   const renderCategory = ({ item }) => {
     const isSelected = selected.has(item.key);
     return (
-      <Card
-        className={`w-[48%] mb-3 border-2 ${isSelected ? 'border-accent' : 'border-transparent'}`}
+      <TouchableOpacity
+        style={{ width: '48%', marginBottom: 12 }}
+        activeOpacity={0.7}
         onPress={() => toggleCategory(item.key)}
-        animation="disable-all"
       >
-        <Card.Body className="p-4 relative">
-          {isSelected && (
-            <View className="absolute top-2.5 right-2.5 z-10">
-              <CheckCircle2 size={18} color={theme.colors.primary} />
+        <Card
+          className="w-full"
+          style={{
+            height: 180,
+            borderWidth: 2,
+            borderColor: isSelected ? theme.colors.primary : 'transparent',
+            borderRadius: 20,
+          }}
+          animation="disable-all"
+        >
+          <Card.Body className="p-4 relative flex-1 justify-between">
+            {isSelected && (
+              <View className="absolute top-3 right-3 z-10">
+                <CheckCircle2 size={20} color={theme.colors.primary} />
+              </View>
+            )}
+
+            {/* Contenedor de icono/GIF con altura fija para alineación perfecta */}
+            <View style={{ height: 56, justifyContent: 'center' }}>
+              {CATEGORY_GIFS[item.key] ? (
+                <Image
+                  source={{ uri: CATEGORY_GIFS[item.key] }}
+                  style={{ width: 50, height: 50, borderRadius: 10 }}
+                  resizeMode="cover"
+                />
+              ) : (
+                <Text style={{ fontSize: 38 }}>{item.emoji}</Text>
+              )}
             </View>
-          )}
-          {CATEGORY_GIFS[item.key] ? (
-            <Image
-              source={{ uri: CATEGORY_GIFS[item.key] }}
-              style={{ width: 56, height: 56, borderRadius: 8, marginBottom: 8 }}
-              resizeMode="cover"
-            />
-          ) : (
-            <Text style={{ fontSize: 36, marginBottom: 8 }}>{item.emoji}</Text>
-          )}
-          <Typography
-            type="body"
-            weight="bold"
-            className={`mb-1 ${isSelected ? 'text-accent' : 'text-foreground'}`}
-          >
-            {item.name}
-          </Typography>
-          <Typography type="body-xs" color="muted">{item.description}</Typography>
-        </Card.Body>
-      </Card>
+
+            {/* Contenedor de textos alineados */}
+            <View>
+              <Typography
+                type="body"
+                weight="bold"
+                style={{
+                  color: isSelected ? theme.colors.primary : undefined,
+                  marginBottom: 4,
+                }}
+              >
+                {item.name}
+              </Typography>
+              <Typography
+                type="body-xs"
+                color="muted"
+                numberOfLines={2}
+                style={{ lineHeight: 16 }}
+              >
+                {item.description}
+              </Typography>
+            </View>
+          </Card.Body>
+        </Card>
+      </TouchableOpacity>
     );
   };
 
@@ -124,6 +153,7 @@ export default function OnboardingScreen() {
           data={categories}
           keyExtractor={(item) => item.key}
           renderItem={renderCategory}
+          extraData={Array.from(selected)}
           numColumns={2}
           contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}
           columnWrapperStyle={{ justifyContent: 'space-between' }}
