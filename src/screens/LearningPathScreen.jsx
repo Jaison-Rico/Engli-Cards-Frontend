@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, FlatList, Alert, StatusBar } from 'react-native';
+import { View, FlatList, Alert, StatusBar, TouchableOpacity } from 'react-native';
 import { Play, Lock, Sparkles, BookOpen, Apple, Users, Briefcase, School, Plane, Palette, Dog } from 'lucide-react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useAuth, getUserId } from '../context/AuthContext';
@@ -146,59 +146,65 @@ export default function LearningPath() {
           const isLocked = item.is_locked;
           const IconComp = ICON_MAP[item.iconName] || BookOpen;
           return (
-            <Card
-              className={`mb-3 ${isLocked ? 'opacity-60' : ''}`}
+            <TouchableOpacity
               onPress={() => handleLessonPress(item)}
-              animation={isLocked ? 'disable-all' : undefined}
+              activeOpacity={isLocked ? 1 : 0.7}
+              disabled={isLocked}
+              style={{ marginBottom: 12 }}
             >
-              <Card.Body className="flex-row items-center px-4 py-4 gap-4">
-                {/* Icon */}
-                <View
-                  className={`w-14 h-14 rounded-2xl items-center justify-center ${
-                    isLocked ? 'bg-default' : 'bg-accent'
-                  }`}
-                >
-                  <IconComp
-                    size={28}
-                    color={isLocked ? theme.colors.mutedForeground : '#ffffff'}
-                    strokeWidth={2.5}
-                  />
-                </View>
-
-                {/* Text */}
-                <View className="flex-1">
-                  <Typography type="body" weight="bold" className={isLocked ? 'text-muted' : 'text-foreground'}>
-                    {item.deck_name}
-                  </Typography>
-                  {!isLocked && item.best_accuracy > 0 ? (
-                    <View className="mt-1.5">
-                      <View className="h-1.5 bg-default rounded-full overflow-hidden">
-                        <View
-                          className="h-full bg-accent rounded-full"
-                          style={{ width: `${Math.round(item.best_accuracy * 100)}%` }}
-                        />
-                      </View>
-                      <Typography type="body-xs" color="muted" className="mt-0.5">
-                        {Math.round(item.best_accuracy * 100)}% precisión
-                      </Typography>
-                    </View>
-                  ) : (
-                    <Typography type="body-xs" color="muted">
-                      {isLocked ? 'Bloqueado' : 'Jugar ahora'}
-                    </Typography>
-                  )}
-                </View>
-
-                {/* Action Icon */}
-                {isLocked ? (
-                  <Lock size={22} color={theme.colors.mutedForeground} strokeWidth={2.5} />
-                ) : (
-                  <View className="w-9 h-9 rounded-full bg-accent items-center justify-center">
-                    <Play size={18} color="#ffffff" fill="#ffffff" strokeWidth={2.5} />
+              <Card
+                className={isLocked ? 'opacity-60' : ''}
+                animation="disable-all"
+              >
+                <Card.Body className="flex-row items-center px-4 py-4 gap-4">
+                  {/* Icon */}
+                  <View
+                    className={`w-14 h-14 rounded-2xl items-center justify-center ${
+                      isLocked ? 'bg-default' : 'bg-accent'
+                    }`}
+                  >
+                    <IconComp
+                      size={28}
+                      color={isLocked ? theme.colors.mutedForeground : '#ffffff'}
+                      strokeWidth={2.5}
+                    />
                   </View>
-                )}
-              </Card.Body>
-            </Card>
+
+                  {/* Text */}
+                  <View className="flex-1">
+                    <Typography type="body" weight="bold" className={isLocked ? 'text-muted' : 'text-foreground'}>
+                      {item.deck_name}
+                    </Typography>
+                    {!isLocked && item.best_accuracy > 0 ? (
+                      <View className="mt-1.5">
+                        <View className="h-1.5 bg-default rounded-full overflow-hidden">
+                          <View
+                            className="h-full bg-accent rounded-full"
+                            style={{ width: `${Math.round(item.best_accuracy * 100)}%` }}
+                          />
+                        </View>
+                        <Typography type="body-xs" color="muted" className="mt-0.5">
+                          {Math.round(item.best_accuracy * 100)}% precisión
+                        </Typography>
+                      </View>
+                    ) : (
+                      <Typography type="body-xs" color="muted">
+                        {isLocked ? 'Bloqueado' : 'Jugar ahora'}
+                      </Typography>
+                    )}
+                  </View>
+
+                  {/* Action Icon */}
+                  {isLocked ? (
+                    <Lock size={22} color={theme.colors.mutedForeground} strokeWidth={2.5} />
+                  ) : (
+                    <View className="w-9 h-9 rounded-full bg-accent items-center justify-center">
+                      <Play size={18} color="#ffffff" fill="#ffffff" strokeWidth={2.5} />
+                    </View>
+                  )}
+                </Card.Body>
+              </Card>
+            </TouchableOpacity>
           );
         }}
         ListEmptyComponent={() => (

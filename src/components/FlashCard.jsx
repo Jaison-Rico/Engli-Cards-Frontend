@@ -5,6 +5,30 @@ import { Ionicons } from '@expo/vector-icons';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, interpolate } from 'react-native-reanimated';
 import { Typography, Button } from 'heroui-native';
 
+// Códigos de idioma candidatos en orden de preferencia
+const SPANISH_LANG_CANDIDATES = ['es-419', 'es-ES', 'es-MX', 'es-US', 'es'];
+const ENGLISH_LANG_CANDIDATES = ['en-US', 'en-GB', 'en'];
+
+/**
+ * Encuentra la primera voz disponible para los candidatos de idioma dados.
+ * Si no encuentra ninguna, devuelve el primer candidato como fallback.
+ */
+async function findBestVoice(candidates) {
+  try {
+    const voices = await Speech.getAvailableVoicesAsync();
+    if (!voices || voices.length === 0) return candidates[0];
+    for (const lang of candidates) {
+      const match = voices.find(
+        (v) => v.language && (v.language === lang || v.language.startsWith(lang.split('-')[0]))
+      );
+      if (match) return match.language;
+    }
+  } catch {
+    // Si falla la consulta de voces, usar el primer candidato
+  }
+  return candidates[0];
+}
+
 export default function FlashCard({
   item,
   containerStyle,
@@ -35,15 +59,22 @@ export default function FlashCard({
     setIsFlipped(!isFlipped);
   };
 
-  const handleSpeak = () => {
+  const handleSpeak = async () => {
     if (!speakEnabled) return;
     const text = isFlipped ? item?.[backKey] || item.translation : item?.[frontKey] || item.word;
-    const language = isFlipped ? langBack : langFront;
+    const requestedLang = isFlipped ? langBack : langFront;
     if (!text) return;
     try {
       Speech.stop();
-      Speech.speak(text, { language, pitch: 1.0, rate: 1.0 });
-    } catch {}
+      // Seleccionar los candidatos correctos según el idioma solicitado
+      const isSpanish = requestedLang.startsWith('es');
+      const candidates = isSpanish ? SPANISH_LANG_CANDIDATES : ENGLISH_LANG_CANDIDATES;
+      const bestLang = await findBestVoice(candidates);
+      Speech.speak(text, { language: bestLang, pitch: 1.0, rate: 0.9 });
+    } catch {
+      // Fallback sin opciones de idioma específicas
+      try { Speech.speak(text); } catch {}
+    }
   };
 
   const imgUri = item?.[imageKey] || item?.image_url;
