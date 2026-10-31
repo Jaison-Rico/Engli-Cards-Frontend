@@ -39,7 +39,8 @@
           "cameraPermission": "La app accede a la cámara para tomar fotos para tus tarjetas.",
           "microphonePermission": "La app accede al micrófono al grabar videos."
         }
-      ]
+      ],
+      "expo-status-bar"
     ],
     "extra": {
       "eas": {
