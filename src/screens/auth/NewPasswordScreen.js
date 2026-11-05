@@ -1,154 +1,111 @@
 import React, { useState } from 'react';
-import { View, KeyboardAvoidingView, Platform, ScrollView, StatusBar } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, Lock, ShieldCheck, Eye, EyeOff, RotateCcw } from 'lucide-react-native';
-import { Button, Input, Typography } from 'heroui-native';
-import { config } from '../../config/api';
+import { View } from 'react-native';
+import { CommonActions, useNavigation, useRoute } from '@react-navigation/native';
+import { Lock, ShieldCheck, Eye, EyeOff, KeyRound } from 'lucide-react-native';
+import { Button, Spinner, Typography } from 'heroui-native';
 import { useAppTheme } from '../../context/ThemeContext';
+import { useFeedback } from '../../components/feedback/FeedbackProvider';
+import { resetPassword } from '../../services/auth.service';
+import { getErrorMessage } from '../../utils/errors';
+import AuthScaffold from '../../components/ui/AuthScaffold';
+import FormField from '../../components/ui/FormField';
+import InlineAlert from '../../components/ui/InlineAlert';
+import IconButton from '../../components/ui/IconButton';
+
+const STRENGTH_LABELS = ['Muy débil', 'Débil', 'Aceptable', 'Buena', 'Fuerte'];
+
+const getStrength = (password) => {
+  let strength = 0;
+  if (password.length > 5) strength++;
+  if (password.length >= 8) strength++;
+  if (/[A-Z]/.test(password)) strength++;
+  if (/[0-9]/.test(password)) strength++;
+  return strength;
+};
 
 export default function NewPasswordScreen() {
   const { theme } = useAppTheme();
   const navigation = useNavigation();
   const route = useRoute();
-  const insets = useSafeAreaInsets();
+  const { toast } = useFeedback();
   const { resetToken } = route.params || { resetToken: '' };
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const checkStrength = () => {
-    let strength = 0;
-    if (password.length > 5) strength++;
-    if (password.length >= 8) strength++;
-    if (/[A-Z]/.test(password)) strength++;
-    if (/[0-9]/.test(password)) strength++;
-    return strength;
-  };
-
-  const strength = checkStrength();
+  const strength = getStrength(password);
 
   const handleReset = async () => {
-    if (password.length < 8) {
-      alert('La contraseña debe tener al menos 8 caracteres');
-      return;
-    }
-    if (password !== confirmPassword) {
-      alert('Las contraseñas no coinciden');
-      return;
-    }
+    if (password.length < 8) { setError('La contraseña debe tener al menos 8 caracteres.'); return; }
+    if (password !== confirmPassword) { setError('Las contraseñas no coinciden.'); return; }
+    setLoading(true);
+    setError(null);
     try {
-      const response = await fetch(`${config.BASE_URL}/auth/reset-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ resetToken, newPassword: password }),
-      });
-      const data = await response.json();
-      if (response.ok) {
-        alert('¡Contraseña actualizada con éxito!');
-        navigation.navigate('Login');
-      } else {
-        alert(data.message || 'Error al restablecer la contraseña');
-      }
-    } catch {
-      alert('Error de conexión');
+      await resetPassword(resetToken, password);
+      toast.success('¡Contraseña actualizada!', { message: 'Ya puedes iniciar sesión con tu nueva contraseña.' });
+      navigation.dispatch(CommonActions.reset({ index: 0, routes: [{ name: 'Login' }] }));
+    } catch (err) {
+      setError(getErrorMessage(err, 'No se pudo restablecer la contraseña.'));
+    } finally {
+      setLoading(false);
     }
   };
 
+  const toggle = (visible, setVisible, label) => (
+    <IconButton accessibilityLabel={visible ? `Ocultar ${label}` : `Mostrar ${label}`} onPress={() => setVisible(!visible)} className="-mr-3 h-10 w-10">
+      {visible ? <EyeOff color={theme.colors.muted} size={18} /> : <Eye color={theme.colors.muted} size={18} />}
+    </IconButton>
+  );
+
   return (
-    <KeyboardAvoidingView
-      className="flex-1 bg-background-secondary"
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    <AuthScaffold
+      onBack={() => navigation.goBack()}
+      icon={KeyRound}
+      title="Nueva contraseña"
+      subtitle="Escribe tu nueva contraseña para acceder a tu cuenta."
     >
-      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
-      <ScrollView
-        contentContainerStyle={{ paddingTop: insets.top + 20, paddingBottom: insets.bottom + 20, paddingHorizontal: 28, flexGrow: 1 }}
-        keyboardShouldPersistTaps="handled"
-      >
-        {/* Header Nav */}
-        <View className="flex-row items-center mb-8">
-          <Button isIconOnly variant="ghost" onPress={() => navigation.goBack()}>
-            <ArrowLeft color="#0D4A48" size={24} />
-          </Button>
-          <Typography type="h4" weight="bold" className="ml-4">Reset Password</Typography>
-        </View>
+      <FormField
+        label="Nueva contraseña"
+        icon={Lock}
+        placeholder="••••••••"
+        secureTextEntry={!showPassword}
+        autoComplete="new-password"
+        value={password}
+        onChangeText={(t) => { setPassword(t); setError(null); }}
+        editable={!loading}
+        trailing={toggle(showPassword, setShowPassword, 'contraseña')}
+      />
+      <FormField
+        label="Confirmar contraseña"
+        icon={ShieldCheck}
+        placeholder="••••••••"
+        secureTextEntry={!showConfirm}
+        value={confirmPassword}
+        onChangeText={(t) => { setConfirmPassword(t); setError(null); }}
+        editable={!loading}
+        returnKeyType="go"
+        onSubmitEditing={handleReset}
+        trailing={toggle(showConfirm, setShowConfirm, 'confirmación')}
+      />
 
-        {/* Icon */}
-        <View className="w-20 h-20 rounded-full bg-surface items-center justify-center mb-6 shadow-surface self-center">
-          <RotateCcw color="#00BFA5" size={32} />
-        </View>
+      <View className="mb-1.5 flex-row gap-1.5">
+        {[1, 2, 3, 4].map((i) => (
+          <View key={i} className={`h-1.5 flex-1 rounded-full ${strength >= i ? 'bg-accent' : 'bg-border'}`} />
+        ))}
+      </View>
+      <Typography type="body-xs" color="muted" className="mb-6">
+        {password ? `${STRENGTH_LABELS[strength]} · ` : ''}Usa al menos 8 caracteres con mayúsculas y números.
+      </Typography>
 
-        <Typography type="h2" weight="bold" align="center" className="mt-6 mb-2">Nueva Contraseña</Typography>
-        <Typography type="body-sm" color="muted" align="center" className="mb-8 leading-6">
-          Escribe tu nueva contraseña para acceder a tu cuenta.
-        </Typography>
+      <InlineAlert message={error} className="mb-4" />
 
-        {/* Password Input */}
-        <View className="mb-6">
-          <Typography type="body-xs" weight="bold" className="uppercase tracking-widest mb-2 text-foreground">
-            Escriba contraseña
-          </Typography>
-          <View className="flex-row items-center bg-surface border border-border rounded-full px-4 h-[52px]">
-            <Lock color="#527F7C" size={18} style={{ marginRight: 10 }} />
-            <Input
-              className="flex-1 bg-transparent"
-              placeholder="••••••••"
-              secureTextEntry={!showPassword}
-              value={password}
-              onChangeText={setPassword}
-            />
-            <Button isIconOnly variant="ghost" size="sm" onPress={() => setShowPassword(!showPassword)}>
-              {showPassword ? <EyeOff color="#527F7C" size={20} /> : <Eye color="#527F7C" size={20} />}
-            </Button>
-          </View>
-        </View>
-
-        {/* Confirm Password */}
-        <View className="mb-6">
-          <Typography type="body-xs" weight="bold" className="uppercase tracking-widest mb-2 text-foreground">
-            Confirmar contraseña
-          </Typography>
-          <View className="flex-row items-center bg-surface border border-border rounded-full px-4 h-[52px]">
-            <ShieldCheck color="#527F7C" size={18} style={{ marginRight: 10 }} />
-            <Input
-              className="flex-1 bg-transparent"
-              placeholder="••••••••"
-              secureTextEntry={!showConfirm}
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-            />
-            <Button isIconOnly variant="ghost" size="sm" onPress={() => setShowConfirm(!showConfirm)}>
-              {showConfirm ? <EyeOff color="#527F7C" size={20} /> : <Eye color="#527F7C" size={20} />}
-            </Button>
-          </View>
-        </View>
-
-        {/* Strength Bars */}
-        <View className="flex-row justify-between mb-2 gap-1">
-          {[1, 2, 3, 4].map((i) => (
-            <View
-              key={i}
-              className={`flex-1 h-1 rounded-full ${strength >= i ? 'bg-accent' : 'bg-border'}`}
-            />
-          ))}
-        </View>
-        <Typography type="body-xs" color="muted" align="center" className="mb-8">
-          Usa al menos 8 caracteres con letras y números.
-        </Typography>
-
-        {/* Submit */}
-        <Button onPress={handleReset} size="lg" className="w-full rounded-full h-[52px] mb-10">
-          <Button.Label>Cambiar</Button.Label>
-        </Button>
-
-        <Button variant="ghost" className="self-center">
-          <Typography type="body-sm" weight="bold" className="text-foreground">
-            ¿Necesitas ayuda con tu cuenta?
-          </Typography>
-        </Button>
-      </ScrollView>
-    </KeyboardAvoidingView>
+      <Button onPress={handleReset} isDisabled={loading} size="lg" className="w-full">
+        {loading ? <Spinner color={theme.colors.onPrimary} size="sm" /> : <Button.Label>Cambiar contraseña</Button.Label>}
+      </Button>
+    </AuthScaffold>
   );
 }

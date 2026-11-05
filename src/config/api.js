@@ -13,7 +13,6 @@ const getDevBaseUrl = () => {
   const hostUri = Constants.expoConfig?.hostUri ?? Constants.manifest?.debuggerHost;
   if (hostUri) {
     const host = hostUri.split(':')[0]; // extraer solo la IP/hostname
-    console.log('🚀 [API CONFIG] Expo hostUri detectado:', hostUri, '-> host:', host);
     return `http://${host}:3000`;
   }
 
@@ -34,9 +33,9 @@ const prod = {
 
 export const config = __DEV__ ? dev : prod;
 
-console.log('🚀 [API CONFIG] Platform:', Platform.OS);
-console.log('🚀 [API CONFIG] __DEV__:', __DEV__);
-console.log('🚀 [API CONFIG] Final BASE_URL:', config.BASE_URL);
+if (__DEV__) {
+  console.log('[API CONFIG]', Platform.OS, '->', config.BASE_URL);
+}
 
 // __DEV__ es una variable global de React Native que es true en modo desarrollo
 

@@ -1,221 +1,236 @@
-import React, { useState, useEffect } from 'react';
-import { View, Alert } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { ProgressBar } from 'react-native-paper';
-import QuizResultModal from './QuizResultModal';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { View } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, FadeIn } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, CheckCircle2, XCircle } from 'lucide-react-native';
 import * as Speech from 'expo-speech';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import * as SecureStore from 'expo-secure-store';
+import * as Haptics from 'expo-haptics';
+import { Button, Typography } from 'heroui-native';
+import QuizResultModal from './QuizResultModal';
+import CachedImage from './CachedImage';
+import PressableScale from './ui/PressableScale';
+import IconButton from './ui/IconButton';
 import { submitQuizProgress } from '../services/progress.service';
 import { useAppTheme } from '../context/ThemeContext';
-import * as Haptics from 'expo-haptics';
+import { useAuth, getUserId } from '../context/AuthContext';
+import { useFeedback } from './feedback/FeedbackProvider';
 import SoundManager from '../config/sounds';
-import { Button, Card, Typography } from 'heroui-native';
-import CachedImage from './CachedImage';
+
+const shuffle = (items) => [...items].sort(() => Math.random() - 0.5);
+
+function ProgressTrack({ progress }) {
+  const value = useSharedValue(progress);
+  useEffect(() => { value.value = withTiming(progress, { duration: 350 }); }, [progress, value]);
+  const style = useAnimatedStyle(() => ({ width: `${Math.max(0, Math.min(1, value.value)) * 100}%` }));
+  return (
+    <View className="h-2 overflow-hidden rounded-full bg-default">
+      <Animated.View className="h-full rounded-full bg-accent" style={style} />
+    </View>
+  );
+}
+
+function OptionRow({ option, state, disabled, onPress }) {
+  const { theme } = useAppTheme();
+  const styles = {
+    idle: { container: 'border-border bg-surface', text: 'text-foreground' },
+    selected: { container: 'border-accent bg-accent/10', text: 'text-accent' },
+    correct: { container: 'border-success bg-success/10', text: 'text-success' },
+    incorrect: { container: 'border-danger bg-danger/10', text: 'text-danger' },
+    dimmed: { container: 'border-border bg-surface opacity-50', text: 'text-foreground' },
+  }[state];
+
+  return (
+    <PressableScale
+      onPress={onPress}
+      disabled={disabled}
+      haptic="light"
+      scaleTo={0.98}
+      accessibilityState={{ selected: state === 'selected', disabled }}
+      className={`min-h-14 flex-row items-center justify-between rounded-2xl border-[1.5px] px-4 py-3.5 ${styles.container}`}
+    >
+      <Typography type="body" weight="semibold" className={`flex-1 ${styles.text}`}>{option.text}</Typography>
+      {state === 'correct' ? <CheckCircle2 size={22} color={theme.colors.success} /> : null}
+      {state === 'incorrect' ? <XCircle size={22} color={theme.colors.danger} /> : null}
+    </PressableScale>
+  );
+}
 
 export default function Quiz({
   questions = [],
   heading = '',
-  onBack = () => { },
+  onBack = () => {},
   instructionText = 'Selecciona la traducción correcta',
-  onFinish = () => { },
+  onFinish = () => {},
   deckId = null,
 }) {
   const { theme } = useAppTheme();
-  const primaryColor = theme.colors.primaryLight || theme.colors.primary;
   const insets = useSafeAreaInsets();
+  const { user } = useAuth();
+  const userId = getUserId(user);
+  const { toast } = useFeedback();
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState(null);
   const [isVerified, setIsVerified] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
   const [score, setScore] = useState(0);
-  const [failedQuestions, setFailedQuestions] = useState([]);
+  const [failedCount, setFailedCount] = useState(0);
   const [resultModalVisible, setResultModalVisible] = useState(false);
-  const [startTime, setStartTime] = useState(null);
-  const [shuffledOptions, setShuffledOptions] = useState([]);
+  const [finishing, setFinishing] = useState(false);
+  const [achievement, setAchievement] = useState(null);
+  const [savedOffline, setSavedOffline] = useState(false);
+  const startTime = useRef(Date.now());
 
   const currentQuestion = questions[currentQuestionIndex];
+  const isLastQuestion = currentQuestionIndex >= questions.length - 1;
+  const shuffledOptions = useMemo(
+    () => (currentQuestion?.options ? shuffle(currentQuestion.options) : []),
+    [currentQuestion],
+  );
 
-  useEffect(() => { setStartTime(Date.now()); }, []);
-
-  useEffect(() => {
-    if (currentQuestion?.options) {
-      setShuffledOptions([...currentQuestion.options].sort(() => Math.random() - 0.5));
-    }
-  }, [currentQuestionIndex, questions]);
-
-  const handleOptionSelect = (optionId) => {
-    if (!isVerified) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      setSelectedOption(optionId);
-    }
+  const handleOptionSelect = (option) => {
+    if (isVerified) return;
+    try {
+      Speech.stop();
+      Speech.speak(option.text, { language: 'en-US', rate: 1.0, pitch: 1.0 });
+    } catch { /* la voz es opcional */ }
+    setSelectedOption(option.id);
   };
 
   const handleVerify = () => {
-    if (selectedOption && currentQuestion) {
-      const selected = currentQuestion.options.find((opt) => opt.id === selectedOption);
-      const correct = selected.correct;
-      setIsCorrect(correct);
-      setIsVerified(true);
-      if (correct) {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        SoundManager.play('correct');
-        setScore((prev) => prev + 1);
-      } else {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-        SoundManager.play('wrong');
-        setFailedQuestions((prev) => [...prev, currentQuestion]);
-      }
+    if (!selectedOption || !currentQuestion) return;
+    const selected = currentQuestion.options.find((opt) => opt.id === selectedOption);
+    const correct = Boolean(selected?.correct);
+    setIsCorrect(correct);
+    setIsVerified(true);
+    if (correct) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+      SoundManager.play('correct');
+      setScore((prev) => prev + 1);
+    } else {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(() => {});
+      SoundManager.play('wrong');
+      setFailedCount((prev) => prev + 1);
     }
   };
 
-  const handleNext = async () => {
-    if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
+  const finishQuiz = async () => {
+    setFinishing(true);
+    let unlocked = null;
+    try {
+      if (userId) {
+        const result = await submitQuizProgress(userId, {
+          deckId,
+          totalQuestions: questions.length,
+          correctAnswers: score,
+          timeSpentSeconds: Math.floor((Date.now() - startTime.current) / 1000),
+        });
+        setSavedOffline(Boolean(result.offline));
+        unlocked = result.ok ? result.data?.unlockedAchievements?.[0] : null;
+      }
+    } catch (e) {
+      // Fallo inesperado al guardar el progreso; no debe romper el quiz.
+      console.warn('No se pudo registrar el progreso del quiz:', e?.message ?? e);
+    } finally {
+      setFinishing(false);
+    }
+    onFinish(score, questions.length);
+    // El logro se muestra dentro del modal de resultados (iOS no permite dos
+    // modales superpuestos).
+    setAchievement(unlocked);
+    if (unlocked) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    setResultModalVisible(true);
+  };
+
+  const handleNext = () => {
+    if (!isLastQuestion) {
+      setCurrentQuestionIndex((index) => index + 1);
       setSelectedOption(null);
       setIsVerified(false);
       setIsCorrect(false);
     } else {
-      try {
-        const storedUser = await SecureStore.getItemAsync('userInfo');
-        const token = await SecureStore.getItemAsync('token');
-        if (storedUser && token) {
-          const user = JSON.parse(storedUser);
-          const userId = user?.user_id ?? user?._id ?? user?.id ?? user?.userId;
-          if (userId) {
-            const result = await submitQuizProgress(userId, {
-              deckId,
-              totalQuestions: questions.length,
-              correctAnswers: score,
-              timeSpentSeconds: startTime ? Math.floor((Date.now() - startTime) / 1000) : 0,
-            });
-
-            if (result.ok && result.data?.unlockedAchievements?.length > 0) {
-              const ach = result.data.unlockedAchievements[0];
-              setTimeout(() => {
-                Alert.alert(
-                  '🏆 ¡Nuevo Logro Desbloqueado!',
-                  `¡Has completado: ${ach.title}!\n\n${ach.description}`,
-                  [{ text: '¡Genial!' }]
-                );
-              }, 500);
-            }
-          }
-        }
-      } catch (e) {
-        // Fallo inesperado al guardar el progreso; no debe romper el quiz.
-        console.warn('No se pudo registrar el progreso del quiz:', e?.message ?? e);
-      }
-      onFinish(score, questions.length);
-      setResultModalVisible(true);
+      finishQuiz();
     }
   };
 
+  const optionState = (option) => {
+    const isSelected = selectedOption === option.id;
+    if (!isVerified) return isSelected ? 'selected' : 'idle';
+    if (option.correct) return 'correct';
+    if (isSelected) return 'incorrect';
+    return 'dimmed';
+  };
+
+  const actionLabel = isVerified ? (isLastQuestion ? 'Ver resultados' : 'Siguiente') : 'Verificar';
+  const actionClass = isVerified ? (isCorrect ? 'bg-success' : 'bg-danger') : '';
+
   return (
     <View className="flex-1 bg-background">
-      {/* Header */}
-      <View className="bg-surface" style={{ paddingTop: insets.top }}>
-        <View className="px-5 pb-4">
-          <Button
-            variant="ghost"
-            className="self-start flex-row items-center gap-2 mb-3 -ml-2"
-            onPress={onBack}
-          >
-            <ArrowLeft size={24} color={primaryColor} />
-            <Button.Label className="text-accent font-semibold">{heading}</Button.Label>
-          </Button>
-          <Typography type="body-sm" color="muted" className="mb-2">
-            Pregunta {currentQuestionIndex + 1} de {questions.length}
+      {/* Cabecera */}
+      <View className="border-b border-border bg-surface px-4 pb-4" style={{ paddingTop: insets.top + 4 }}>
+        <View className="mb-2 h-14 flex-row items-center gap-1">
+          <IconButton accessibilityLabel="Salir del quiz" onPress={onBack}>
+            <ArrowLeft size={22} color={theme.colors.foreground} />
+          </IconButton>
+          <Typography type="body" weight="bold" numberOfLines={1} className="flex-1">{heading}</Typography>
+          <Typography type="body-sm" weight="semibold" color="muted">
+            {Math.min(currentQuestionIndex + 1, questions.length)}/{questions.length}
           </Typography>
-          <ProgressBar
-            style={{ height: 8, borderRadius: 4 }}
-            progress={questions.length ? (currentQuestionIndex + 1) / questions.length : 0}
-            color={primaryColor}
-          />
+        </View>
+        <View className="px-1">
+          <ProgressTrack progress={questions.length ? (currentQuestionIndex + (isVerified ? 1 : 0)) / questions.length : 0} />
         </View>
       </View>
 
-      {/* Body */}
+      {/* Pregunta */}
       <View className="flex-1 px-5" style={{ paddingBottom: insets.bottom + 20 }}>
-        {/* Question */}
-        <View className="items-center py-8">
-          {currentQuestion?.image && (
+        <Animated.View key={currentQuestionIndex} entering={FadeIn.duration(220)} className="items-center py-8">
+          {currentQuestion?.image ? (
             <CachedImage
               uri={currentQuestion.image}
-              style={{ width: 120, height: 120, marginBottom: 16, borderRadius: 16 }}
+              style={{ width: 120, height: 120, marginBottom: 16, borderRadius: 20 }}
               contentFit="contain"
             />
-          )}
-          <Typography type="h4" weight="bold" align="center" className="mb-2">
-            {currentQuestion?.question}
+          ) : null}
+          <Typography type="body-xs" weight="bold" className="mb-2 uppercase tracking-widest text-accent">
+            Pregunta {currentQuestionIndex + 1}
           </Typography>
+          <Typography type="h3" weight="bold" align="center" className="mb-2">{currentQuestion?.question}</Typography>
           <Typography type="body-sm" color="muted" align="center">{instructionText}</Typography>
+        </Animated.View>
+
+        <View className="mb-5 gap-2.5">
+          {shuffledOptions.map((option) => (
+            <OptionRow
+              key={option.id}
+              option={option}
+              state={optionState(option)}
+              disabled={isVerified}
+              onPress={() => handleOptionSelect(option)}
+            />
+          ))}
         </View>
 
-        {/* Options */}
-        <View className="gap-3 mb-5">
-          {shuffledOptions.map((option) => {
-            const isSelected = selectedOption === option.id;
-            const showCorrect = isVerified && option.correct;
-            const showIncorrect = isVerified && isSelected && !option.correct;
+        <View className="flex-1" />
 
-            let variant = 'outline';
-            let extraClass = '';
-            if (showCorrect) { variant = 'ghost'; extraClass = 'border-2 border-success bg-success/10'; }
-            else if (showIncorrect) { variant = 'ghost'; extraClass = 'border-2 border-danger bg-danger/10'; }
-            else if (isSelected) { variant = 'primary'; }
+        {isVerified ? (
+          <Animated.View entering={FadeIn.duration(180)} className="mb-3 flex-row items-center justify-center gap-2">
+            {isCorrect
+              ? <CheckCircle2 size={18} color={theme.colors.success} />
+              : <XCircle size={18} color={theme.colors.danger} />}
+            <Typography type="body-sm" weight="semibold" className={isCorrect ? 'text-success' : 'text-danger'}>
+              {isCorrect ? '¡Correcto!' : 'Respuesta incorrecta'}
+            </Typography>
+          </Animated.View>
+        ) : null}
 
-            return (
-              <Button
-                key={option.id}
-                variant={variant}
-                className={`w-full justify-between px-4 h-14 ${extraClass}`}
-                onPress={() => {
-                  try {
-                    Speech.stop();
-                    Speech.speak(option.text, { language: 'en-US', rate: 1.0, pitch: 1.0 });
-                  } catch { }
-                  handleOptionSelect(option.id);
-                }}
-                isDisabled={isVerified}
-              >
-                <Button.Label
-                  className={
-                    showCorrect ? 'text-success font-semibold' :
-                      showIncorrect ? 'text-danger font-semibold' :
-                        isSelected ? 'text-white' : 'text-foreground'
-                  }
-                >
-                  {option.text}
-                </Button.Label>
-                {showCorrect && <CheckCircle2 size={22} color="#10B981" />}
-                {showIncorrect && <XCircle size={22} color="#EF4444" />}
-              </Button>
-            );
-          })}
-        </View>
-
-        {/* Verify / Next */}
         <Button
           size="lg"
-          className={`w-full ${isVerified
-              ? isCorrect
-                ? 'bg-success'
-                : 'bg-danger'
-              : ''
-            }`}
+          className={`w-full ${actionClass}`}
           onPress={isVerified ? handleNext : handleVerify}
-          isDisabled={!selectedOption}
+          isDisabled={!selectedOption || finishing}
         >
-          <Button.Label>
-            {isVerified
-              ? currentQuestionIndex < questions.length - 1
-                ? 'Siguiente'
-                : 'Ver Resultados'
-              : 'Verificar'}
-          </Button.Label>
+          <Button.Label>{actionLabel}</Button.Label>
         </Button>
       </View>
 
@@ -223,13 +238,15 @@ export default function Quiz({
         visible={resultModalVisible}
         score={score}
         total={questions.length}
+        hasFailed={failedCount > 0}
+        achievement={achievement}
+        savedOffline={savedOffline}
         onOk={() => { setResultModalVisible(false); onBack(); }}
         onReview={() => {
           setResultModalVisible(false);
-          Alert.alert('Repaso', 'En la próxima versión podrás repasar solo tus errores aquí mismo.');
+          toast.info('Repaso de errores', { message: 'Pronto podrás repasar solo tus errores aquí mismo.' });
           onBack();
         }}
-        hasFailed={failedQuestions.length > 0}
       />
     </View>
   );

@@ -1,40 +1,32 @@
 import React, { useState, useEffect } from 'react';
-import { View, Animated } from 'react-native';
+import { View } from 'react-native';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
-import { ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { ArrowLeft, ChevronLeft, ChevronRight, Play, BookOpen } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, Spinner, Typography } from 'heroui-native';
 import FlashCard from '../../components/FlashCard';
-import QuizStartButton from '../../components/QuizStartButton';
+import IconButton from '../../components/ui/IconButton';
+import { useAppTheme } from '../../context/ThemeContext';
+import { useFeedback } from '../../components/feedback/FeedbackProvider';
+
+const MIN_CARDS_FOR_QUIZ = 5;
+const MAX_DOTS = 12;
+
 export default function GameFlashCard({ navigation, route }) {
-  const { sampleCards, quiz } = route.params;
+  const { sampleCards, quiz, deckId, deckName } = route.params;
   const insets = useSafeAreaInsets();
+  const { theme } = useAppTheme();
+  const { toast } = useFeedback();
 
   const [index, setIndex] = useState(0);
   const [cards, setCards] = useState([]);
-  const [toast, setToast] = useState({ visible: false, message: '', type: '' });
-  const [toastAnim] = useState(new Animated.Value(0));
 
   useEffect(() => {
     if (sampleCards?.length > 0) {
-      let prepared = [...sampleCards];
-      if (!quiz) prepared = prepared.sort(() => Math.random() - 0.5);
+      const prepared = quiz ? [...sampleCards] : [...sampleCards].sort(() => Math.random() - 0.5);
       setCards(prepared);
     }
   }, [sampleCards, quiz]);
-
-  useEffect(() => {
-    if (toast.visible) {
-      Animated.sequence([
-        Animated.spring(toastAnim, { toValue: 1, useNativeDriver: true, tension: 50, friction: 7 }),
-        Animated.delay(2500),
-        Animated.timing(toastAnim, { toValue: 0, duration: 300, useNativeDriver: true }),
-      ]).start(() => setToast({ visible: false, message: '', type: '' }));
-    }
-  }, [toast.visible]);
-
-  const showToast = (message, type) => setToast({ visible: true, message, type });
 
   const total = cards.length;
   const current = cards[index];
@@ -51,42 +43,41 @@ export default function GameFlashCard({ navigation, route }) {
       else if (event.translationX > 40) goPrev();
     });
 
+  const startQuiz = () => {
+    if (quiz) {
+      navigation.navigate(quiz, { deckId, deckName });
+    } else if (deckId) {
+      if (total >= MIN_CARDS_FOR_QUIZ) navigation.navigate('DeckQuiz', { deckId, deckName: deckName || 'Quiz' });
+      else toast.info(`Necesitas al menos ${MIN_CARDS_FOR_QUIZ} tarjetas`, { message: 'Agrega más tarjetas a este mazo para hacer un quiz.' });
+    } else {
+      toast.info('No hay prueba disponible para este conjunto de tarjetas.');
+    }
+  };
+
   return (
     <GestureDetector gesture={swipeGesture}>
-      <View className="flex-1 bg-background items-center" style={{ paddingTop: insets.top + 10 }}>
-
-        {/* Top Row */}
-        <View className="flex-row justify-between items-center w-full px-5 mb-8">
-          <Button isIconOnly variant="ghost" onPress={() => navigation.goBack()}>
-            <ArrowLeft color="#12B5B0" size={28} />
+      <View className="flex-1 bg-background" style={{ paddingTop: insets.top + 4, paddingBottom: insets.bottom + 16 }}>
+        {/* Cabecera */}
+        <View className="h-14 flex-row items-center justify-between px-3">
+          <IconButton accessibilityLabel="Volver" onPress={() => navigation.goBack()}>
+            <ArrowLeft color={theme.colors.foreground} size={22} />
+          </IconButton>
+          <Typography type="body" weight="bold" numberOfLines={1} className="mx-2 flex-1 text-center">
+            {deckName || 'Estudiar'}
+          </Typography>
+          <Button size="sm" onPress={startQuiz}>
+            <Play size={14} color={theme.colors.onPrimary} fill={theme.colors.onPrimary} />
+            <Button.Label>Prueba</Button.Label>
           </Button>
-          <QuizStartButton
-            onPress={() => {
-              if (quiz) {
-                navigation.navigate(quiz, { deckId: route.params.deckId, deckName: route.params.deckName });
-              } else if (route.params.deckId) {
-                if (total >= 5) {
-                  navigation.navigate('DeckQuiz', { deckId: route.params.deckId, deckName: route.params.deckName || 'Quiz' });
-                } else {
-                  showToast('Necesitas al menos 5 tarjetas en este mazo para hacer un quiz.', 'error');
-                }
-              } else {
-                showToast('No hay prueba disponible para este conjunto de tarjetas.', 'error');
-              }
-            }}
-            label="Comenzar Prueba"
-            iconName="play-outline"
-          />
         </View>
 
-        {/* Card Area */}
-        <View className="flex-1 w-full items-center justify-center pb-10">
-          <Typography type="body-sm" color="muted" className="mb-4">
-            Tarjeta {index + 1} de {total}
-          </Typography>
-
-          {cards.length > 0 ? (
+        {/* Tarjeta */}
+        <View className="flex-1 items-center justify-center">
+          {total > 0 ? (
             <>
+              <Typography type="body-sm" weight="semibold" color="muted" className="mb-2">
+                Tarjeta {index + 1} de {total}
+              </Typography>
               <FlashCard
                 key={index}
                 item={current}
@@ -97,77 +88,42 @@ export default function GameFlashCard({ navigation, route }) {
                 langFront={isSystemGame ? 'en-US' : 'es-ES'}
                 langBack={isSystemGame ? 'es-ES' : 'en-US'}
               />
-
-              {/* Dots */}
-              <View className="flex-row justify-center mt-5 gap-1.5">
-                {cards.map((_, i) => (
-                  <View
-                    key={i}
-                    className={`h-2 rounded-full ${i === index ? 'w-5 bg-accent' : 'w-2 bg-border'}`}
-                  />
-                ))}
-              </View>
+              {total <= MAX_DOTS ? (
+                <View className="mt-5 flex-row justify-center gap-1.5">
+                  {cards.map((_, i) => (
+                    <View key={i} className={`h-2 rounded-full ${i === index ? 'w-5 bg-accent' : 'w-2 bg-border'}`} />
+                  ))}
+                </View>
+              ) : null}
             </>
-          ) : (
-            <View className="items-center px-5 gap-4">
-              {quiz ? (
-                <>
-                  <Ionicons name="book-outline" size={60} color="#12B5B0" />
-                  <Typography type="body" align="center" className="text-foreground">
-                    Este nivel no tiene tarjetas de estudio aún, pero puedes saltar directamente a la prueba.
-                  </Typography>
-                </>
-              ) : (
-                <Spinner size="lg" />
-              )}
+          ) : quiz ? (
+            <View className="items-center gap-4 px-8">
+              <View className="h-16 w-16 items-center justify-center rounded-full bg-accent/10">
+                <BookOpen size={28} color={theme.colors.primary} />
+              </View>
+              <Typography type="body" align="center" className="leading-6">
+                Este nivel aún no tiene tarjetas de estudio, pero puedes ir directo a la prueba.
+              </Typography>
+              <Button onPress={startQuiz}><Button.Label>Comenzar prueba</Button.Label></Button>
             </View>
+          ) : (
+            <Spinner size="lg" />
           )}
-
-          {/* Controls */}
-          <View className="flex-row justify-center gap-4 mt-6">
-            <Button
-              variant="primary"
-              size="lg"
-              className="px-6"
-              onPress={goPrev}
-              isDisabled={index === 0}
-            >
-              <Ionicons name="chevron-back" size={18} color="#fff" />
-              <Button.Label>Anterior</Button.Label>
-            </Button>
-            <Button
-              variant="primary"
-              size="lg"
-              className="px-6"
-              onPress={goNext}
-              isDisabled={index === total - 1}
-            >
-              <Button.Label>Siguiente</Button.Label>
-              <Ionicons name="chevron-forward" size={18} color="#fff" />
-            </Button>
-          </View>
         </View>
 
-        {/* Toast */}
-        {toast.visible && (
-          <Animated.View
-            className="absolute top-0 self-center rounded-2xl px-4 py-3 flex-row items-center gap-3"
-            style={{
-              backgroundColor: toast.type === 'success' ? '#10b981' : '#ef4444',
-              transform: [
-                { translateY: toastAnim.interpolate({ inputRange: [0, 1], outputRange: [-100, 50] }) },
-                { scale: toastAnim.interpolate({ inputRange: [0, 1], outputRange: [0.8, 1] }) },
-              ],
-              opacity: toastAnim,
-            }}
-          >
-            {toast.type === 'success'
-              ? <CheckCircle size={22} color="white" />
-              : <AlertCircle size={22} color="white" />
-            }
-            <Typography type="body-sm" weight="semibold" className="text-white">{toast.message}</Typography>
-          </Animated.View>
-        )}
+        {/* Controles */}
+        {total > 0 ? (
+          <View className="flex-row justify-center gap-3 px-5">
+            <Button variant="secondary" size="lg" className="flex-1" onPress={goPrev} isDisabled={index === 0}>
+              <ChevronLeft size={18} color={theme.colors.foreground} />
+              <Button.Label className="text-foreground">Anterior</Button.Label>
+            </Button>
+            <Button size="lg" className="flex-1" onPress={goNext} isDisabled={index === total - 1}>
+              <Button.Label>Siguiente</Button.Label>
+              <ChevronRight size={18} color={theme.colors.onPrimary} />
+            </Button>
+          </View>
+        ) : null}
       </View>
     </GestureDetector>
   );

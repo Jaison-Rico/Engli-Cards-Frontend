@@ -1,13 +1,18 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, FlatList, StatusBar, Text, TouchableOpacity } from 'react-native';
+import { View, FlatList, StatusBar, Text } from 'react-native';
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { CheckCircle2 } from 'lucide-react-native';
+import { CheckCircle2, AlertCircle } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 import { useAppTheme } from '../context/ThemeContext';
+import { useFeedback } from '../components/feedback/FeedbackProvider';
 import { getCategories, completeOnboarding } from '../services/onboarding.service';
-import { Button, Card, Spinner, Typography } from 'heroui-native';
+import { getErrorMessage } from '../utils/errors';
+import { Button, Spinner, Typography } from 'heroui-native';
 import CachedImage from '../components/CachedImage';
+import PressableScale from '../components/ui/PressableScale';
+import EmptyState from '../components/ui/EmptyState';
+import { elevation } from '../theme/theme';
 
 const CATEGORY_GIFS = {
   saludos: 'https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExcjR3aG9oZzNqZnluNjBteGplaWxkb3hxamN6bGdvd2o1dHk0dzNmZSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/IThjAlJnD9WNO/giphy.gif',
@@ -30,13 +35,19 @@ export default function OnboardingScreen() {
   const [selected, setSelected] = useState(new Set());
   const [submitting, setSubmitting] = useState(false);
   const [loadingCategories, setLoadingCategories] = useState(true);
+  const [loadError, setLoadError] = useState(null);
+  const { toast } = useFeedback();
 
-  useEffect(() => {
+  const loadCategories = useCallback(() => {
+    setLoadingCategories(true);
+    setLoadError(null);
     getCategories()
-      .then((data) => setCategories(data))
-      .catch(() => {})
+      .then((data) => setCategories(Array.isArray(data) ? data : []))
+      .catch((err) => setLoadError(getErrorMessage(err, 'No se pudieron cargar los temas.')))
       .finally(() => setLoadingCategories(false));
   }, []);
+
+  useEffect(() => { loadCategories(); }, [loadCategories]);
 
   const toggleCategory = useCallback((key) => {
     setSelected((prev) => {
@@ -55,8 +66,7 @@ export default function OnboardingScreen() {
       await updateUser({ onboarding_completed: true });
       navigation.dispatch(CommonActions.reset({ index: 0, routes: [{ name: 'BottomTabs' }] }));
     } catch (err) {
-      console.log('Error completing onboarding:', err);
-      alert('Hubo un error al configurar tu cuenta. Intenta de nuevo.');
+      toast.error('No pudimos configurar tu cuenta', { message: getErrorMessage(err, 'Intenta de nuevo.') });
     } finally {
       setSubmitting(false);
     }
@@ -67,22 +77,23 @@ export default function OnboardingScreen() {
   const renderCategory = ({ item }) => {
     const isSelected = selected.has(item.key);
     return (
-      <TouchableOpacity
+      <PressableScale
         style={{ width: '48%', marginBottom: 12 }}
-        activeOpacity={0.7}
         onPress={() => toggleCategory(item.key)}
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked: isSelected }}
+        accessibilityLabel={item.name}
       >
-        <Card
-          className="w-full"
+        <View
+          className={`w-full rounded-3xl ${isSelected ? 'bg-accent/5' : 'bg-surface'}`}
           style={{
             height: 180,
-            borderWidth: 2,
-            borderColor: isSelected ? theme.colors.primary : 'transparent',
-            borderRadius: 20,
+            borderWidth: isSelected ? 2 : 1,
+            borderColor: isSelected ? theme.colors.primary : theme.colors.border,
+            ...elevation(isSelected ? 2 : 1, theme.mode),
           }}
-          animation="disable-all"
         >
-          <Card.Body className="p-4 relative flex-1 justify-between">
+          <View className="relative flex-1 justify-between p-4">
             {isSelected && (
               <View className="absolute top-3 right-3 z-10">
                 <CheckCircle2 size={20} color={theme.colors.primary} />
@@ -123,9 +134,9 @@ export default function OnboardingScreen() {
                 {item.description}
               </Typography>
             </View>
-          </Card.Body>
-        </Card>
-      </TouchableOpacity>
+          </View>
+        </View>
+      </PressableScale>
     );
   };
 
@@ -148,6 +159,10 @@ export default function OnboardingScreen() {
       {loadingCategories ? (
         <View className="flex-1 items-center justify-center">
           <Spinner size="lg" />
+        </View>
+      ) : loadError ? (
+        <View className="flex-1 justify-center">
+          <EmptyState icon={AlertCircle} tone="danger" title="No pudimos cargar los temas" description={loadError} actionLabel="Reintentar" onAction={loadCategories} />
         </View>
       ) : (
         <FlatList

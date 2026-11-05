@@ -1,113 +1,75 @@
 import React, { useState } from 'react';
-import { View, KeyboardAvoidingView, Platform, ScrollView, StatusBar } from 'react-native';
+import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, Mail, Send, RotateCcw } from 'lucide-react-native';
-import { Button, Input, Card, Typography } from 'heroui-native';
-import { config } from '../../config/api';
+import { Mail, Send, KeyRound } from 'lucide-react-native';
+import { Button, Spinner, Typography } from 'heroui-native';
+import { useAppTheme } from '../../context/ThemeContext';
+import { requestPasswordReset } from '../../services/auth.service';
+import { getErrorMessage } from '../../utils/errors';
+import AuthScaffold from '../../components/ui/AuthScaffold';
+import FormField from '../../components/ui/FormField';
+import InlineAlert from '../../components/ui/InlineAlert';
+import PressableScale from '../../components/ui/PressableScale';
 
 export default function ForgotPasswordScreen() {
+  const { theme } = useAppTheme();
   const navigation = useNavigation();
-  const insets = useSafeAreaInsets();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const handleSend = async () => {
-    if (!email) {
-      alert('Por favor ingresa tu correo');
-      return;
-    }
+    if (!email.trim()) { setError('Ingresa tu correo electrónico.'); return; }
     setLoading(true);
+    setError(null);
     try {
-      const response = await fetch(`${config.BASE_URL}/auth/forgot-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      });
-      const data = await response.json();
-      if (response.ok) {
-        navigation.navigate('OtpVerification', { email });
-      } else {
-        alert(data.message || 'Error al enviar el código');
-      }
-    } catch {
-      alert('Error de conexión');
+      await requestPasswordReset(email.trim());
+      navigation.navigate('OtpVerification', { email: email.trim() });
+    } catch (err) {
+      setError(getErrorMessage(err, 'No se pudo enviar el código.'));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <KeyboardAvoidingView
-      className="flex-1 bg-surface"
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    <AuthScaffold
+      onBack={() => navigation.goBack()}
+      icon={KeyRound}
+      title="Recuperar contraseña"
+      subtitle="Escribe el correo de tu cuenta y te enviaremos un código para restablecerla."
     >
-      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
-      <ScrollView
-        contentContainerStyle={{ paddingTop: insets.top + 20, paddingBottom: insets.bottom + 20, paddingHorizontal: 28, flexGrow: 1 }}
-        keyboardShouldPersistTaps="handled"
-      >
-        {/* Nav */}
-        <View className="flex-row items-center mb-10">
-          <Button isIconOnly variant="ghost" onPress={() => navigation.goBack()}>
-            <ArrowLeft color="#0D4A48" size={24} />
-          </Button>
-          <Typography type="h4" weight="bold" className="ml-4">Engli-Cards</Typography>
-        </View>
+      <FormField
+        label="Correo electrónico"
+        icon={Mail}
+        placeholder="nombre@ejemplo.com"
+        keyboardType="email-address"
+        autoCapitalize="none"
+        autoComplete="email"
+        value={email}
+        onChangeText={(t) => { setEmail(t); setError(null); }}
+        editable={!loading}
+        returnKeyType="send"
+        onSubmitEditing={handleSend}
+      />
 
-        {/* Highlight Card */}
-        <Card className="w-full mb-8">
-          <Card.Body className="items-center py-10">
-            <View className="w-20 h-20 rounded-full bg-background items-center justify-center mb-6 shadow-surface">
-              <RotateCcw color="#006386" size={32} strokeWidth={2.5} />
-            </View>
-            <Typography type="h3" weight="bold" className="mb-3">Reset Password</Typography>
-            <Typography type="body-sm" color="muted" align="center" className="leading-6">
-              Enter your email address and we'll send you a link to reset your password.
-            </Typography>
-          </Card.Body>
-        </Card>
+      <InlineAlert message={error} className="mb-4" />
 
-        {/* Email Input */}
-        <View className="mb-6">
-          <Typography type="body-xs" weight="bold" className="uppercase tracking-widest mb-2 text-foreground">
-            EMAIL ADDRESS
-          </Typography>
-          <View className="flex-row items-center bg-background border border-border rounded-full px-4 h-[52px]">
-            <Mail color="#527F7C" size={18} style={{ marginRight: 10 }} />
-            <Input
-              className="flex-1 bg-transparent"
-              placeholder="name@example.com"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              value={email}
-              onChangeText={setEmail}
-              editable={!loading}
-            />
-          </View>
-        </View>
+      <Button onPress={handleSend} isDisabled={loading} size="lg" className="mb-8 w-full">
+        {loading ? <Spinner color={theme.colors.onPrimary} size="sm" /> : (
+          <>
+            <Button.Label>Enviar código</Button.Label>
+            <Send color={theme.colors.onPrimary} size={18} />
+          </>
+        )}
+      </Button>
 
-        {/* Send Button */}
-        <Button
-          onPress={handleSend}
-          isDisabled={loading}
-          size="lg"
-          className="w-full rounded-full h-[52px] mb-10"
-        >
-          <View className="flex-row items-center gap-2">
-            <Button.Label>Send</Button.Label>
-            <Send color="#ffffff" size={18} />
-          </View>
-        </Button>
-
-        {/* Footer */}
-        <View className="flex-row items-center justify-center">
-          <Typography type="body-sm" color="muted">Remember your password? </Typography>
-          <Button variant="ghost" size="sm" onPress={() => navigation.navigate('Login')} className="p-0 h-auto">
-            <Typography type="body-sm" weight="bold" className="text-foreground">Log In</Typography>
-          </Button>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+      <View className="flex-row items-center justify-center">
+        <Typography type="body-sm" color="muted">¿Recordaste tu contraseña? </Typography>
+        <PressableScale onPress={() => navigation.navigate('Login')} haptic={null} hitSlop={8}>
+          <Typography type="body-sm" weight="bold" className="text-accent">Inicia sesión</Typography>
+        </PressableScale>
+      </View>
+    </AuthScaffold>
   );
 }

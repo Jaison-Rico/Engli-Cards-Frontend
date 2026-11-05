@@ -1,28 +1,32 @@
 import React, { useState } from 'react';
-import { View, ScrollView, Dimensions } from 'react-native';
+import { View, ScrollView, useWindowDimensions } from 'react-native';
 import { ProgressChart, BarChart } from 'react-native-chart-kit';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 import { useAuth, getUserId } from '../context/AuthContext';
 import { getUserStats, getQuizSessions } from '../services/users.service';
 import { getDecks } from '../services/decks.service';
-import { Layers, Layout, Clock, TrendingUp, WifiOff } from 'lucide-react-native';
+import { Layers, Layout, Clock, TrendingUp, ArrowLeft } from 'lucide-react-native';
 import { Card, Spinner, Typography } from 'heroui-native';
 import { useAppTheme } from '../context/ThemeContext';
-
-const screenWidth = Dimensions.get('window').width;
+import IconButton from '../components/ui/IconButton';
+import { elevation } from '../theme/theme';
 
 export default function StatsScreen() {
   const { theme } = useAppTheme();
   const { user } = useAuth();
   const userId = getUserId(user);
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation();
+  const route = useRoute();
+  const { width: screenWidth } = useWindowDimensions();
+  // Abierta desde Inicio (stack) muestra botón de volver; como pestaña no.
+  const showBack = route.name === 'StatsScreen' && navigation.canGoBack();
   const [isLoading, setIsLoading] = useState(true);
   const [stats, setStats] = useState(null);
   const [sessions, setSessions] = useState([]);
   const [totalDecks, setTotalDecks] = useState(0);
   const [totalCards, setTotalCards] = useState(0);
-  const [isOfflineData, setIsOfflineData] = useState(false);
 
   const primaryColor = theme.colors.primaryLight || theme.colors.primary;
   const cardColor = theme.colors.card;
@@ -46,7 +50,6 @@ export default function StatsScreen() {
             const personalDecks = decksData.filter((d) => !d.is_system);
             setTotalDecks(personalDecks.length);
             setTotalCards(personalDecks.reduce((acc, deck) => acc + (deck.flashcards?.length || 0), 0));
-            setIsOfflineData(Boolean(statsResult.offline || sessionsResult.offline || decksData.isOffline));
           }
         } catch (error) {
           console.warn('No se pudieron cargar las estadísticas:', error?.message ?? error);
@@ -97,19 +100,17 @@ export default function StatsScreen() {
     <View className="flex-1 bg-background" style={{ paddingTop: insets.top }}>
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: insets.bottom + 80 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: insets.bottom + 32 }}
         showsVerticalScrollIndicator={false}
       >
-        <Typography type="h3" weight="bold" align="center" className="mb-8">Estadísticas</Typography>
-
-        {isOfflineData && (
-          <View className="mb-5 flex-row items-center gap-2 rounded-2xl bg-warning/10 px-4 py-3">
-            <WifiOff size={16} color="#B45309" />
-            <Typography type="body-xs" className="flex-1 text-warning">
-              Sin conexión: mostrando los últimos datos guardados en este dispositivo.
-            </Typography>
-          </View>
-        )}
+        <View className="mb-6 flex-row items-center gap-1">
+          {showBack ? (
+            <IconButton accessibilityLabel="Volver" onPress={() => navigation.goBack()} className="-ml-3">
+              <ArrowLeft color={theme.colors.foreground} size={22} />
+            </IconButton>
+          ) : null}
+          <Typography type="h3" weight="bold" className="tracking-tight">Estadísticas</Typography>
+        </View>
 
         {/* Circular Progress */}
         <View className="items-center justify-center h-[220px] mb-8">
@@ -143,12 +144,10 @@ export default function StatsScreen() {
             { label: 'RACHA', value: `${Math.round(streakPercent * 100)}%` },
             { label: 'DOMINIO', value: `${Math.round(dominionPercent * 100)}%` },
           ].map((item) => (
-            <Card key={item.label} className="flex-1 py-4 items-center">
-              <Card.Body className="items-center">
-                <Typography type="body-xs" weight="bold" color="muted" className="uppercase tracking-wider mb-1">{item.label}</Typography>
-                <Typography type="h4" weight="bold" className="text-accent">{item.value}</Typography>
-              </Card.Body>
-            </Card>
+            <View key={item.label} className="flex-1 items-center rounded-2xl border border-border bg-surface py-4" style={elevation(1, theme.mode)}>
+              <Typography type="body-xs" weight="bold" color="muted" className="mb-1 uppercase tracking-wider">{item.label}</Typography>
+              <Typography type="h4" weight="bold" className="text-accent">{item.value}</Typography>
+            </View>
           ))}
         </View>
 
@@ -208,9 +207,9 @@ export default function StatsScreen() {
         </View>
 
         {/* Study Time Banner */}
-        <View className="bg-accent rounded-3xl p-6 flex-row items-center">
+        <View className="flex-row items-center rounded-3xl bg-accent p-6">
           <View className="w-11 h-11 rounded-full bg-white/20 items-center justify-center mr-4">
-            <Clock color="#FFF" size={24} />
+            <Clock color={theme.colors.onPrimary} size={24} />
           </View>
           <View className="flex-1">
             <Typography type="h4" weight="bold" className="text-accent-foreground mb-0.5">

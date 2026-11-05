@@ -1,155 +1,149 @@
-import { View, KeyboardAvoidingView, Platform, ScrollView, Image, StatusBar } from 'react-native';
-import { useState } from 'react';
+import React, { useRef, useState } from 'react';
+import { View } from 'react-native';
 import { CommonActions, useNavigation } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { User, Mail, Lock, ShieldCheck, Zap, Trophy } from 'lucide-react-native';
-import { Button, Input, Spinner, Typography } from 'heroui-native';
+import { Button, Spinner, Typography } from 'heroui-native';
 import { useAppTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
 import { registerUser } from '../../services/auth.service';
+import { getErrorMessage, getStatus, isNetworkError } from '../../utils/errors';
+import AuthScaffold from '../../components/ui/AuthScaffold';
+import FormField from '../../components/ui/FormField';
+import InlineAlert from '../../components/ui/InlineAlert';
+import PressableScale from '../../components/ui/PressableScale';
+import { elevation } from '../../theme/theme';
+
+const registerErrorMessage = (error) => {
+  if (isNetworkError(error)) return 'No se pudo conectar con el servidor. Revisa tu conexión.';
+  const status = getStatus(error);
+  if (status === 400) return getErrorMessage(error, 'Datos inválidos. Verifica el correo y que la contraseña tenga al menos 4 caracteres.');
+  if (status === 429) return 'Demasiados intentos. Espera un momento y vuelve a intentarlo.';
+  return getErrorMessage(error, 'No se pudo completar el registro. Intenta de nuevo.');
+};
 
 export default function RegisterScreen() {
   const { theme } = useAppTheme();
   const navigation = useNavigation();
-  const insets = useSafeAreaInsets();
   const { login } = useAuth();
+  const emailRef = useRef(null);
+  const passwordRef = useRef(null);
+  const confirmRef = useRef(null);
 
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState(null);
+  const [mismatch, setMismatch] = useState(false);
+
+  const clearError = () => { setError(null); setMismatch(false); };
 
   const handleRegister = async () => {
-    if (password !== confirmPassword) {
-      alert('Las contraseñas no coinciden');
+    if (!name.trim() || !email.trim() || !password) {
+      setError('Completa todos los campos.');
       return;
     }
-    if (!name || !email || !password) {
-      alert('Por favor completa todos los campos');
+    if (password !== confirmPassword) {
+      setMismatch(true);
+      setError('Las contraseñas no coinciden.');
       return;
     }
     setLoading(true);
+    clearError();
     try {
-      const { token, user } = await registerUser(name, email, password);
+      const { token, user } = await registerUser(name.trim(), email.trim(), password);
       await login(token, user);
-      navigation.dispatch(
-        CommonActions.reset({ index: 0, routes: [{ name: 'Onboarding' }] })
-      );
-    } catch (error) {
-      const status = error.response?.status;
-      const msg = error.response?.data?.message;
-      if (status === 400) alert(msg || 'Datos inválidos. Verifica que el correo sea válido y la contraseña tenga al menos 4 caracteres.');
-      else if (status === 429) alert('Demasiados intentos. Espera un momento y vuelve a intentarlo.');
-      else if (!error.response) alert('No se pudo conectar con el servidor. Verifica tu conexión.');
-      else alert(msg || 'No se pudo completar el registro. Intenta de nuevo.');
+      navigation.dispatch(CommonActions.reset({ index: 0, routes: [{ name: 'Onboarding' }] }));
+    } catch (err) {
+      setError(registerErrorMessage(err));
     } finally {
       setLoading(false);
     }
   };
 
-  const iconRow = (IconComp, value, setter, placeholder, props = {}) => (
-    <View className="flex-row items-center bg-background border border-border rounded-md px-4 h-[52px] mb-4">
-      <IconComp color={theme.colors.mutedForeground} size={18} style={{ marginRight: 10 }} />
-      <Input
-        className="flex-1 bg-transparent"
-        value={value}
-        onChangeText={setter}
-        placeholder={placeholder}
-        {...props}
-      />
-    </View>
-  );
-
   return (
-    <KeyboardAvoidingView
-      className="flex-1 bg-background"
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <StatusBar
-        barStyle={theme.mode === 'dark' ? 'light-content' : 'dark-content'}
-        backgroundColor="transparent"
-        translucent
-      />
-      <ScrollView
-        contentContainerStyle={{ paddingTop: insets.top + 10, paddingBottom: insets.bottom + 20, paddingHorizontal: 28, alignItems: 'center' }}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Header */}
-        <View className="items-center mt-10 mb-6">
-          <View className="w-20 h-20 rounded-full bg-surface items-center justify-center mb-4 shadow-surface">
-            <Image
-              source={require('../../../assets/logo.png')}
-              style={{ width: 100, height: 100, borderRadius: 16 }}
-              resizeMode="contain"
-            />
-          </View>
-          <Typography type="h2" weight="bold">Engli-Cards</Typography>
-          <Typography type="body-sm" color="muted">Tu viaje al inglés empieza aquí</Typography>
+    <AuthScaffold showLogo title="Crear cuenta" subtitle="Tu viaje al inglés empieza aquí.">
+      <View className="mb-6 rounded-3xl border border-border bg-surface px-5 py-6" style={elevation(1, theme.mode)}>
+        <FormField
+          label="Nombre completo"
+          icon={User}
+          value={name}
+          onChangeText={(t) => { setName(t); clearError(); }}
+          placeholder="Ingresa tu nombre"
+          autoCapitalize="words"
+          autoComplete="name"
+          returnKeyType="next"
+          onSubmitEditing={() => emailRef.current?.focus()}
+          editable={!loading}
+        />
+        <FormField
+          ref={emailRef}
+          label="Correo electrónico"
+          icon={Mail}
+          value={email}
+          onChangeText={(t) => { setEmail(t); clearError(); }}
+          placeholder="ejemplo@correo.com"
+          keyboardType="email-address"
+          autoCapitalize="none"
+          autoComplete="email"
+          returnKeyType="next"
+          onSubmitEditing={() => passwordRef.current?.focus()}
+          editable={!loading}
+        />
+        <FormField
+          ref={passwordRef}
+          label="Contraseña"
+          icon={Lock}
+          value={password}
+          onChangeText={(t) => { setPassword(t); clearError(); }}
+          placeholder="••••••••"
+          secureTextEntry
+          autoComplete="new-password"
+          returnKeyType="next"
+          onSubmitEditing={() => confirmRef.current?.focus()}
+          editable={!loading}
+        />
+        <FormField
+          ref={confirmRef}
+          label="Confirmar contraseña"
+          icon={ShieldCheck}
+          value={confirmPassword}
+          onChangeText={(t) => { setConfirmPassword(t); clearError(); }}
+          placeholder="••••••••"
+          secureTextEntry
+          returnKeyType="go"
+          onSubmitEditing={handleRegister}
+          editable={!loading}
+          error={mismatch ? ' ' : null}
+        />
+
+        <InlineAlert message={error} className="mb-4" />
+
+        <Button onPress={handleRegister} isDisabled={loading} size="lg" className="w-full">
+          {loading ? <Spinner color={theme.colors.onPrimary} size="sm" /> : <Button.Label>Registrarse</Button.Label>}
+        </Button>
+
+        <View className="mt-5 flex-row justify-center">
+          <Typography type="body-sm" color="muted">¿Ya tienes cuenta? </Typography>
+          <PressableScale onPress={() => navigation.navigate('Login')} haptic={null} hitSlop={8}>
+            <Typography type="body-sm" weight="bold" className="text-accent">Inicia sesión</Typography>
+          </PressableScale>
         </View>
+      </View>
 
-        {/* Form Card */}
-        <View className="w-full bg-surface rounded-3xl p-6 shadow-surface mb-6">
-          <Typography type="h3" weight="bold" className="mb-1">Crear cuenta</Typography>
-          <Typography type="body-sm" color="muted" className="mb-6">Empieza tu rutina de aprendizaje diario.</Typography>
-
-          <Typography type="body-sm" className="mb-2 text-foreground">Nombre completo</Typography>
-          {iconRow(User, name, setName, 'Ingresa tu nombre', { autoCapitalize: 'words' })}
-
-          <Typography type="body-sm" className="mb-2 text-foreground">Correo electrónico</Typography>
-          {iconRow(Mail, email, setEmail, 'ejemplo@correo.com', { keyboardType: 'email-address', autoCapitalize: 'none' })}
-
-          <Typography type="body-sm" className="mb-2 text-foreground">Contraseña</Typography>
-          {iconRow(Lock, password, setPassword, '••••••••', { secureTextEntry: true })}
-
-          <Typography type="body-sm" className="mb-2 text-foreground">Confirmar contraseña</Typography>
-          {iconRow(ShieldCheck, confirmPassword, setConfirmPassword, '••••••••', { secureTextEntry: true })}
-
-          <Button
-            onPress={handleRegister}
-            isDisabled={loading}
-            size="lg"
-            className="w-full rounded-md h-[52px] mt-2"
-          >
-            {loading
-              ? <Spinner color="white" size="sm" />
-              : <Button.Label>Registrarse</Button.Label>
-            }
-          </Button>
-
-          <View className="flex-row justify-center mt-5">
-            <Typography type="body-sm" color="muted">¿Ya tienes cuenta? </Typography>
-            <Button variant="ghost" size="sm" onPress={() => navigation.navigate('Login')} className="p-0 h-auto">
-              <Typography type="body-sm" weight="bold" className="text-accent">Inicia sesión</Typography>
-            </Button>
+      <View className="w-full flex-row gap-3">
+        {[
+          { icon: Zap, title: 'Adaptivo', text: 'Tarjetas que aprenden a tu ritmo.' },
+          { icon: Trophy, title: 'Recompensas', text: 'Gana puntos por cada nivel dominado.' },
+        ].map(({ icon: Icon, title, text }) => (
+          <View key={title} className="flex-1 items-center rounded-2xl border border-border bg-surface p-4">
+            <Icon color={theme.colors.primary} size={20} />
+            <Typography type="body-xs" weight="bold" className="mb-1 mt-2 uppercase tracking-wider text-accent">{title}</Typography>
+            <Typography type="body-xs" color="muted" align="center">{text}</Typography>
           </View>
-        </View>
-
-        {/* Info Blocks */}
-        <View className="flex-row w-full mb-8 gap-3">
-          <View className="flex-1 bg-default rounded-md p-4 items-center">
-            <Zap color={theme.colors.primary} size={20} />
-            <Typography type="body-sm" weight="bold" className="text-accent uppercase tracking-wider mt-2 mb-1">ADAPTIVO</Typography>
-            <Typography type="body-xs" color="muted" align="center">Tarjetas que aprenden a tu ritmo.</Typography>
-          </View>
-          <View className="flex-1 bg-default rounded-md p-4 items-center">
-            <Trophy color={theme.colors.primary} size={20} />
-            <Typography type="body-sm" weight="bold" className="text-accent uppercase tracking-wider mt-2 mb-1">RECOMPENSAS</Typography>
-            <Typography type="body-xs" color="muted" align="center">Gana puntos por cada nivel dominado.</Typography>
-          </View>
-        </View>
-
-        {/* Bottom Links */}
-        <View className="flex-row justify-center mb-10 gap-8">
-          <Button variant="ghost" size="sm" className="p-0 h-auto">
-            <Typography type="body-xs" color="muted">Privacidad</Typography>
-          </Button>
-          <Button variant="ghost" size="sm" className="p-0 h-auto">
-            <Typography type="body-xs" color="muted">Términos de uso</Typography>
-          </Button>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        ))}
+      </View>
+    </AuthScaffold>
   );
 }
