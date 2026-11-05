@@ -7,7 +7,7 @@ import { HeroUINativeProvider } from 'heroui-native';
 import AppNavigator from './src/navigation/AppNavigator';
 import { ThemeProvider } from './src/context/ThemeContext';
 import { AuthProvider } from './src/context/AuthContext';
-import { scheduleDailyStudyReminder } from './src/config/notifications';
+import { enableStudyReminders } from './src/config/notifications';
 import { useAuth, getUserId } from './src/context/AuthContext';
 import { syncPendingChanges } from './src/services/decks.service';
 
@@ -34,18 +34,34 @@ function OfflineSyncManager() {
   return null;
 }
 
-export default function App() {
-  useEffect(() => {
-    scheduleDailyStudyReminder();
-  }, []);
+function StudyReminderManager() {
+  const { user } = useAuth();
+  const userId = getUserId(user);
 
+  useEffect(() => {
+    // El permiso de notificaciones se pide solo cuando ya hay una sesión
+    // iniciada, para no interrumpir el primer arranque de la app.
+    if (!userId) return undefined;
+
+    enableStudyReminders().catch((error) => {
+      console.warn('No se pudieron activar los recordatorios de estudio:', error);
+    });
+
+    return undefined;
+  }, [userId]);
+
+  return null;
+}
+
+export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <HeroUINativeProvider>
+      <HeroUINativeProvider config={{ devInfo: { stylingPrinciples: false } }}>
         <SafeAreaProvider>
           <ThemeProvider>
             <AuthProvider>
               <OfflineSyncManager />
+              <StudyReminderManager />
               <AppNavigator />
             </AuthProvider>
           </ThemeProvider>

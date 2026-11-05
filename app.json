@@ -6,12 +6,6 @@
     "orientation": "portrait",
     "icon": "./assets/logo.png",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
-    "splash": {
-      "image": "./assets/logo.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.oweenunda.englicards"
@@ -21,7 +15,6 @@
         "foregroundImage": "./assets/logo.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true,
       "package": "com.oweenunda.englicards",
       "permissions": [
         "android.permission.RECORD_AUDIO"
@@ -42,7 +35,19 @@
       ],
       "expo-status-bar",
       "expo-sqlite",
-      "expo-image"
+      "expo-image",
+      [
+        "expo-notifications",
+        {
+          "color": "#231F7C",
+          "defaultChannel": "default",
+          "enableRemoteNotifications": true,
+          "enableBackgroundRemoteNotifications": false
+        }
+      ],
+      "expo-font",
+      "expo-asset",
+      "expo-audio"
     ],
     "runtimeVersion": {
       "policy": "appVersion"

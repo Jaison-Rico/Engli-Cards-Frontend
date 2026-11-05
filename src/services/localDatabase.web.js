@@ -1,6 +1,8 @@
 const decks = new Map();
 const pendingChanges = [];
+const pendingQuizProgress = [];
 let nextChangeId = 1;
+let nextQuizProgressId = 1;
 
 const key = (userId, deckId) => `${String(userId)}:${String(deckId)}`;
 
@@ -43,4 +45,23 @@ export const getPendingChanges = async (userId) =>
 export const removePendingChange = async (id) => {
   const index = pendingChanges.findIndex((change) => change.id === id);
   if (index >= 0) pendingChanges.splice(index, 1);
+};
+
+export const queueQuizProgress = async (userId, progress) => {
+  pendingQuizProgress.push({
+    id: nextQuizProgressId++,
+    user_id: String(userId),
+    deckId: progress.deckId === null || progress.deckId === undefined ? null : String(progress.deckId),
+    totalQuestions: Number(progress.totalQuestions) || 0,
+    correctAnswers: Number(progress.correctAnswers) || 0,
+    timeSpentSeconds: Number(progress.timeSpentSeconds) || 0,
+  });
+};
+
+export const getPendingQuizProgress = async (userId) =>
+  pendingQuizProgress.filter((entry) => entry.user_id === String(userId));
+
+export const removePendingQuizProgress = async (id) => {
+  const index = pendingQuizProgress.findIndex((entry) => entry.id === id);
+  if (index >= 0) pendingQuizProgress.splice(index, 1);
 };
