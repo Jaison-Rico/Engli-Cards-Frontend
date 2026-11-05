@@ -2,20 +2,23 @@
   "expo": {
     "name": "EngliCards",
     "slug": "EngliCards",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./assets/logo.png",
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.oweenunda.englicards"
+      "bundleIdentifier": "com.englicards.app",
+      "config": {
+        "usesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/logo.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.oweenunda.englicards",
+      "package": "com.englicards.app",
       "permissions": [
         "android.permission.RECORD_AUDIO"
       ]
@@ -24,7 +27,12 @@
       "favicon": "./assets/logo.png"
     },
     "plugins": [
-      "expo-secure-store",
+      [
+        "expo-secure-store",
+        {
+          "configureAndroidBackup": true
+        }
+      ],
       [
         "expo-image-picker",
         {
@@ -51,6 +59,10 @@
     ],
     "runtimeVersion": {
       "policy": "appVersion"
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0,
+      "checkAutomatically": "ON_LOAD"
     },
     "extra": {
       "eas": {

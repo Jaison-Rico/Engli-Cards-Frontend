@@ -17,9 +17,22 @@
  */
 import * as SecureStore from 'expo-secure-store';
 
+/**
+ * Tiempo máximo de espera para leer del almacén. Si el sistema nativo se
+ * queda colgado (keystore bloqueado, migraciones de Android), no queremos que
+ * la app se quede esperando: es mejor arrancar con los valores por defecto.
+ */
+const READ_TIMEOUT_MS = 3000;
+
+const withTimeout = (promise, ms) =>
+  Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), ms)),
+  ]);
+
 export const getItemAsync = async (key) => {
   try {
-    return await SecureStore.getItemAsync(key);
+    return await withTimeout(SecureStore.getItemAsync(key), READ_TIMEOUT_MS);
   } catch (error) {
     console.warn(`[secureStorage] No se pudo leer "${key}":`, error?.message ?? error);
     return null;

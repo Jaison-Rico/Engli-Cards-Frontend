@@ -21,11 +21,20 @@ const safeStorage = () => {
   };
 };
 
+/** Tiempo máximo de espera para leer: la app nunca debe quedarse esperando. */
+const READ_TIMEOUT_MS = 3000;
+
+const withTimeout = (promise, ms) =>
+  Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), ms)),
+  ]);
+
 export const getItemAsync = async (key) => {
   const store = safeStorage();
   if (!store) return null;
   try {
-    return store.getItem(PREFIX + key);
+    return await withTimeout(Promise.resolve(store.getItem(PREFIX + key)), READ_TIMEOUT_MS);
   } catch {
     return null;
   }
