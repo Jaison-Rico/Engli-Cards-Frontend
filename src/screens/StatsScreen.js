@@ -11,9 +11,7 @@ import { Spinner, Typography } from 'heroui-native';
 import { useAppTheme } from '../context/ThemeContext';
 import IconButton from '../components/ui/IconButton';
 import { elevation } from '../theme/theme';
-import GradientFill from '../components/ui/GradientFill';
 import TopFade from '../components/ui/TopFade';
-import { GlassBorder } from '../components/FlipCard';
 
 const EASE = Easing.bezier(0.22, 1, 0.36, 1);
 
@@ -178,9 +176,6 @@ export default function StatsScreen() {
           className="mb-4 overflow-hidden rounded-[28px] px-5 pb-5 pt-6"
           style={[{ backgroundColor: primaryColor }, elevation(2, theme.mode)]}
         >
-          {/* Mismo lenguaje que el Perfil: degradado + borde fino, texto directo sobre el fondo */}
-          <GradientFill colors={['#17B3AD', primaryColor, '#07726E']} radius={28} sheen />
-          <GlassBorder radius={28} color="rgba(255,255,255,0.22)" />
           <View className="flex-row items-end justify-between">
             <View>
               <Typography type="body-sm" weight="semibold" style={{ color: 'rgba(255,255,255,0.82)' }}>Nivel actual</Typography>

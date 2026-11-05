@@ -205,8 +205,6 @@ export default function NewFlashCard() {
             className="mb-5 h-36 items-center justify-center overflow-hidden rounded-[28px] px-6"
             style={[{ backgroundColor: theme.colors.primary }, elevation(2, theme.mode)]}
           >
-            <View pointerEvents="none" style={{ position: 'absolute', right: -40, top: -50, width: 160, height: 160, borderRadius: 80, backgroundColor: 'rgba(255,255,255,0.1)' }} />
-            <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 28, borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)' }} />
             <View className="absolute left-4 top-4 rounded-full px-2.5 py-1" style={{ backgroundColor: 'rgba(255,255,255,0.18)' }}>
               <Typography type="body-xs" weight="semibold" style={{ color: '#fff' }}>Vista previa</Typography>
             </View>

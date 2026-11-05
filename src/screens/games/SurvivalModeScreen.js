@@ -12,15 +12,13 @@ import Animated, {
 } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 import * as Haptics from 'expo-haptics';
-import { Heart, Skull, Zap, Play } from 'lucide-react-native';
+import { Heart, Timer, Zap, Play } from 'lucide-react-native';
 import { Typography } from 'heroui-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import GameScaffold from '../../components/games/GameScaffold';
 import useGameSession, { nodeResultNote } from '../../components/games/useGameSession';
 import QuizResultModal from '../../components/QuizResultModal';
 import PressableScale from '../../components/ui/PressableScale';
-import GradientFill from '../../components/ui/GradientFill';
-import { GlassBorder } from '../../components/FlipCard';
 import { useAppTheme } from '../../context/ThemeContext';
 import { getSurvivalDeck, shuffle } from '../../services/learning.service';
 import { speak } from '../../services/tts';
@@ -203,7 +201,7 @@ export default function SurvivalModeScreen() {
 
   return (
     <GameScaffold
-      title={node ? 'Jefe del módulo' : 'Supervivencia'}
+      title={node ? 'Jefe del módulo' : 'Contrarreloj'}
       subtitle={params?.sourceLabel ?? 'Tus palabras más difíciles'}
       onBack={() => navigation.goBack()}
       loading={session.loading}
@@ -215,26 +213,30 @@ export default function SurvivalModeScreen() {
     >
       {phase === 'intro' ? (
         <Animated.View entering={FadeInDown.springify().damping(38).stiffness(360)} className="flex-1 items-center justify-center px-6">
-          <View className="mb-6 h-28 w-28 items-center justify-center overflow-hidden rounded-[36px]" style={elevation(3)}>
-            <GradientFill colors={['#F43F5E', '#9F1239']} radius={36} sheen />
-            <Skull color="#fff" size={56} strokeWidth={2} />
+          <View className="mb-6 h-24 w-24 items-center justify-center rounded-[28px]" style={{ backgroundColor: `${theme.colors.primary}1A` }}>
+            <Timer color={theme.colors.primary} size={44} strokeWidth={2} />
           </View>
-          <Typography type="h3" weight="bold" align="center">Ronda del jefe</Typography>
+          <Typography type="h3" weight="bold" align="center">{node ? 'Jefe del módulo' : 'Contrarreloj'}</Typography>
           <Typography type="body-sm" color="muted" align="center" className="mb-6 mt-2 max-w-[300px] leading-5">
             {meta.current.fromErrors > 0
               ? `${meta.current.fromErrors} de estas palabras son las que más fallas. Responde antes de que se acabe el tiempo.`
-              : 'Aún no tienes errores registrados: te enfrentarás a palabras al azar. ¡Juega más para afinar al jefe!'}
+              : 'Aún no tienes errores registrados, así que saldrán palabras al azar. Mientras más juegues, más se ajusta a ti.'}
           </Typography>
           <View className="mb-8 flex-row gap-3">
             {[{ icon: Heart, text: `${LIVES} vidas` }, { icon: Zap, text: 'Cada vez más rápido' }].map((it) => (
               <View key={it.text} className="flex-row items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-2">
-                <it.icon size={14} color="#F43F5E" />
+                <it.icon size={14} color={theme.colors.primary} />
                 <Typography type="body-xs" weight="semibold">{it.text}</Typography>
               </View>
             ))}
           </View>
-          <PressableScale onPress={start} haptic="medium" accessibilityLabel="Empezar" className="h-14 w-full max-w-[320px] flex-row items-center justify-center gap-2 overflow-hidden rounded-[18px]" style={elevation(2)}>
-            <GradientFill colors={['#F43F5E', '#BE123C']} radius={18} />
+          <PressableScale
+            onPress={start}
+            haptic="medium"
+            accessibilityLabel="Empezar"
+            className="h-14 w-full max-w-[320px] flex-row items-center justify-center gap-2 rounded-[18px]"
+            style={{ backgroundColor: theme.colors.primary }}
+          >
             <Play color="#fff" size={18} fill="#fff" />
             <Typography type="body" weight="bold" style={{ color: '#fff' }}>Empezar</Typography>
           </PressableScale>
@@ -248,19 +250,17 @@ export default function SurvivalModeScreen() {
           <View className="mt-3 flex-row items-center justify-between">
             <Typography type="body-sm" weight="bold">{score} <Typography type="body-sm" color="muted">aciertos</Typography></Typography>
             {combo >= 2 ? (
-              <Animated.View key={combo} entering={FadeIn.duration(140)} className="flex-row items-center gap-1 rounded-full px-2.5 py-1" style={{ backgroundColor: '#F5B30122' }}>
-                <Zap size={13} color="#D97706" fill="#F5B301" />
-                <Typography type="body-xs" weight="bold" style={{ color: '#B45309' }}>Combo x{combo}</Typography>
+              <Animated.View key={combo} entering={FadeIn.duration(140)} className="flex-row items-center gap-1 rounded-full px-2.5 py-1" style={{ backgroundColor: `${theme.colors.primary}1A` }}>
+                <Zap size={13} color={theme.colors.primary} fill={theme.colors.primary} />
+                <Typography type="body-xs" weight="bold" style={{ color: theme.colors.primary }}>Combo x{combo}</Typography>
               </Animated.View>
             ) : null}
           </View>
 
           {/* Palabra */}
-          <Animated.View key={turn} entering={FadeInDown.springify().damping(38).stiffness(360)} style={[styles.wordCard, elevation(2, theme.mode), shakeStyle]}>
-            <GradientFill colors={['#2B2F4A', '#151827']} radius={28} sheen />
-            <GlassBorder radius={28} color="rgba(255,255,255,0.14)" />
-            <Typography type="body-xs" weight="bold" style={{ color: 'rgba(255,255,255,0.6)', letterSpacing: 1.2 }}>TRADUCE</Typography>
-            <Typography type="h2" weight="bold" align="center" numberOfLines={2} adjustsFontSizeToFit style={{ color: '#fff', marginTop: 6 }}>
+          <Animated.View key={turn} entering={FadeInDown.springify().damping(38).stiffness(360)} style={[styles.wordCard, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }, elevation(1, theme.mode), shakeStyle]}>
+            <Typography type="body-xs" weight="bold" color="muted" style={{ letterSpacing: 1.2 }}>TRADUCE</Typography>
+            <Typography type="h2" weight="bold" align="center" numberOfLines={2} adjustsFontSizeToFit style={{ color: theme.colors.foreground, marginTop: 6 }}>
               {card.front}
             </Typography>
           </Animated.View>
@@ -312,8 +312,8 @@ const styles = StyleSheet.create({
   wordCard: {
     marginVertical: 24,
     minHeight: 170,
-    borderRadius: 28,
-    overflow: 'hidden',
+    borderRadius: 24,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
     padding: 24,

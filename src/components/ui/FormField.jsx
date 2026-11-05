@@ -1,5 +1,5 @@
 import React, { forwardRef, useState } from 'react';
-import { View, TextInput } from 'react-native';
+import { View, TextInput, StyleSheet } from 'react-native';
 import { Typography } from 'heroui-native';
 import { useAppTheme } from '../../context/ThemeContext';
 
@@ -7,6 +7,11 @@ import { useAppTheme } from '../../context/ThemeContext';
  * Campo de formulario estándar: etiqueta, icono inicial opcional, accesorio
  * final (p. ej. mostrar contraseña) y mensaje de error. El borde cambia a
  * color de marca al enfocar y a rojo si hay error.
+ *
+ * Importante: el estilo que depende del foco SIEMPRE tiene las mismas claves
+ * (solo cambian valores). Añadir/quitar propiedades al enfocar (sombra,
+ * fondo…) hace que NativeWind vuelva a montar el componente; en Android el
+ * TextInput enfocado se desmonta y el foco salta al otro campo.
  */
 const FormField = forwardRef(function FormField(
   { label, required = false, icon: Icon, trailing, error, hint, className = '', editable = true, ...inputProps },
@@ -26,12 +31,8 @@ const FormField = forwardRef(function FormField(
         </Typography>
       ) : null}
       <View
-        className={`h-14 flex-row items-center gap-3 rounded-[18px] bg-field px-4 ${editable ? '' : 'opacity-60'}`}
-        style={{
-          borderWidth: focused || error ? 1.5 : 1,
-          borderColor,
-          ...(focused ? { backgroundColor: `${theme.colors.primary}0D`, shadowColor: theme.colors.primary, shadowOpacity: 0.15, shadowRadius: 8, shadowOffset: { width: 0, height: 2 } } : null),
-        }}
+        className="bg-field"
+        style={[styles.box, { borderColor, borderWidth: focused || error ? 1.5 : 1, opacity: editable ? 1 : 0.6 }]}
       >
         {Icon ? <Icon color={focused ? theme.colors.primary : theme.colors.subtle} size={19} /> : null}
         <TextInput
@@ -39,8 +40,7 @@ const FormField = forwardRef(function FormField(
           {...inputProps}
           editable={editable}
           placeholderTextColor={theme.colors.subtle}
-          className="flex-1 text-[15px] text-foreground"
-          style={{ paddingVertical: 0 }}
+          style={[styles.input, { color: theme.colors.foreground }]}
           accessibilityLabel={inputProps.accessibilityLabel ?? label}
           onFocus={(event) => { setFocused(true); inputProps.onFocus?.(event); }}
           onBlur={(event) => { setFocused(false); inputProps.onBlur?.(event); }}
@@ -54,6 +54,18 @@ const FormField = forwardRef(function FormField(
       ) : null}
     </View>
   );
+});
+
+const styles = StyleSheet.create({
+  box: {
+    height: 56,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    borderRadius: 18,
+    paddingHorizontal: 16,
+  },
+  input: { flex: 1, fontSize: 15, paddingVertical: 0 },
 });
 
 export default FormField;

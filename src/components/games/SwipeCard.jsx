@@ -12,11 +12,10 @@ import Animated, {
 import { scheduleOnRN } from 'react-native-worklets';
 import { Typography } from 'heroui-native';
 import CachedImage from '../CachedImage';
-import GradientFill from '../ui/GradientFill';
-import { GlassBorder } from '../FlipCard';
+import { useAppTheme } from '../../context/ThemeContext';
 import { SPRING, EASE } from '../../theme/motion';
 
-const RADIUS = 28;
+const RADIUS = 24;
 
 /**
  * Tarjeta superior del mazo Swipe.
@@ -107,24 +106,28 @@ const SwipeCard = forwardRef(function SwipeCard({ width, height, front, shown, i
   );
 });
 
-/** Contenido visual (también lo usan las tarjetas de atrás, sin gesto). */
+/**
+ * Contenido visual (también lo usan las tarjetas de atrás, sin gesto).
+ * Usa los colores del tema: antes eran fijos y en modo oscuro la tarjeta
+ * quedaba como un bloque blanco.
+ */
 export function SwipeFace({ width, height, front, shown, image }) {
+  const { theme } = useAppTheme();
+  const c = theme.colors;
   return (
-    <View style={[styles.face, { width, height }]}>
-      <GradientFill colors={['#FFFFFF', '#F2F6FF']} direction="vertical" radius={RADIUS} />
-      <GlassBorder radius={RADIUS} color="rgba(52,67,181,0.12)" />
-      <View style={styles.langPill}>
-        <Typography type="body-xs" weight="bold" style={{ color: '#3443B5' }}>ENGLISH</Typography>
+    <View style={[styles.face, { width, height, backgroundColor: c.surface, borderColor: c.border }]}>
+      <View style={[styles.langPill, { backgroundColor: `${c.primary}1A` }]}>
+        <Typography type="body-xs" weight="bold" style={{ color: c.primary, letterSpacing: 0.6 }}>ENGLISH</Typography>
       </View>
-      <Typography type="h2" weight="bold" align="center" numberOfLines={2} adjustsFontSizeToFit style={{ color: '#151B3D' }}>
+      <Typography type="h2" weight="bold" align="center" numberOfLines={2} adjustsFontSizeToFit style={{ color: c.foreground }}>
         {front}
       </Typography>
       {image ? (
         <CachedImage uri={image} style={{ width: width * 0.45, height: height * 0.3, marginVertical: 12, borderRadius: 14 }} contentFit="contain" />
       ) : <View style={{ height: 24 }} />}
-      <View style={styles.divider} />
-      <Typography type="body-xs" weight="semibold" style={{ color: '#6B7299', marginBottom: 4 }}>¿Significa…?</Typography>
-      <Typography type="h4" weight="bold" align="center" numberOfLines={2} style={{ color: '#4A5BD4' }}>
+      <View style={[styles.divider, { backgroundColor: c.border }]} />
+      <Typography type="body-xs" weight="semibold" style={{ color: c.muted, marginBottom: 4 }}>¿Significa…?</Typography>
+      <Typography type="h4" weight="bold" align="center" numberOfLines={2} style={{ color: c.primary }}>
         {shown}
       </Typography>
     </View>
@@ -135,20 +138,19 @@ const styles = StyleSheet.create({
   card: {
     position: 'absolute',
     borderRadius: RADIUS,
-    shadowColor: '#1B2361',
-    shadowOpacity: 0.18,
-    shadowRadius: 22,
-    shadowOffset: { width: 0, height: 14 },
-    elevation: 10,
+    shadowColor: '#08302E',
+    shadowOpacity: 0.12,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 6,
   },
-  face: { borderRadius: RADIUS, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', padding: 24 },
+  face: { borderRadius: RADIUS, borderWidth: 1, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', padding: 24 },
   tint: { ...StyleSheet.absoluteFillObject, borderRadius: RADIUS },
   langPill: {
     position: 'absolute', top: 18, left: 18,
     paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999,
-    backgroundColor: 'rgba(74,91,212,0.1)',
   },
-  divider: { width: 48, height: 3, borderRadius: 2, backgroundColor: 'rgba(74,91,212,0.18)', marginBottom: 12 },
+  divider: { width: 48, height: 3, borderRadius: 2, marginBottom: 12 },
   stamp: {
     position: 'absolute', top: 26,
     paddingHorizontal: 12, paddingVertical: 6,

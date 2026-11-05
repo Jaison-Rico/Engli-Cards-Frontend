@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { View, FlatList, StatusBar, RefreshControl } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,6 +19,7 @@ import SearchField from '../components/ui/SearchField';
 import EmptyState from '../components/ui/EmptyState';
 import { elevation } from '../theme/theme';
 import TopFade from '../components/ui/TopFade';
+import { getLocalDecks } from '../services/localDatabase';
 
 function QuickAction({ icon: Icon, label, onPress }) {
   const { theme } = useAppTheme();
@@ -52,6 +53,7 @@ export default function MainScreen() {
   const [error, setError] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [streak, setStreak] = useState(0);
+  const hasDecks = useRef(false);
 
   // El spinner solo aparece en la primera carga; al volver a la pantalla se
   // refresca en segundo plano sin vaciar la lista.
@@ -62,14 +64,25 @@ export default function MainScreen() {
       return;
     }
     setError(null);
+    // La racha va aparte: no debe retrasar la lista de mazos.
+    getUserStats(userId)
+      .then((res) => { if (isActive() && res?.data) setStreak(res.data.streak_current || 0); })
+      .catch(() => {});
     try {
-      const [deckData, statsResult] = await Promise.all([
-        getDecks(userId, false),
-        getUserStats(userId).catch(() => null),
-      ]);
+      // Primera carga: muestra al instante la copia local (SQLite) mientras
+      // llega la respuesta del servidor.
+      if (!hasDecks.current) {
+        const cached = await getLocalDecks(userId).catch(() => []);
+        const own = cached.filter((d) => !d.is_system);
+        if (isActive() && own.length > 0) {
+          setDecks(own);
+          setLoading(false);
+        }
+      }
+      const deckData = await getDecks(userId, false);
       if (!isActive()) return;
+      hasDecks.current = true;
       setDecks(deckData);
-      if (statsResult?.data) setStreak(statsResult.data.streak_current || 0);
     } catch (err) {
       if (isActive()) setError(getErrorMessage(err, 'No se pudieron cargar tus mazos.'));
     } finally {
@@ -97,7 +110,7 @@ export default function MainScreen() {
     return term ? personalDecks.filter((d) => d.deck_name?.toLowerCase().includes(term)) : personalDecks;
   }, [personalDecks, search]);
 
-  const studyDeck = (deck) => {
+  const studyDeck = useCallback((deck) => {
     if (deck.flashcards?.length > 0) {
       navigation.navigate('GameFlashCard', {
         sampleCards: deck.flashcards,
@@ -107,11 +120,11 @@ export default function MainScreen() {
     } else {
       toast.info('Este mazo está vacío', { message: 'Agrega algunas flashcards antes de estudiar.' });
     }
-  };
+  }, [navigation, toast]);
 
   const firstName = user?.name?.split(' ')[0] || 'amigo';
 
-  const renderDeck = ({ item }) => {
+  const renderDeck = useCallback(({ item }) => {
     const count = item.cardCount ?? 0;
     return (
       <ListCard
@@ -138,7 +151,7 @@ export default function MainScreen() {
         )}
       />
     );
-  };
+  }, [navigation, theme, studyDeck]);
 
   const renderEmpty = () => {
     if (loading) return null;
@@ -207,6 +220,8 @@ export default function MainScreen() {
         renderItem={renderDeck}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
+        initialNumToRender={8}
+        windowSize={7}
         contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 20, paddingBottom: 32, flexGrow: 1 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={theme.colors.primary} colors={[theme.colors.primary]} />}
         ListHeaderComponent={(

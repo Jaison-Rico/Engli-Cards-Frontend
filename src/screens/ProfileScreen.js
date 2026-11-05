@@ -19,8 +19,6 @@ import CachedImage from '../components/CachedImage';
 import IconButton from '../components/ui/IconButton';
 import PressableScale from '../components/ui/PressableScale';
 import { elevation } from '../theme/theme';
-import GradientFill from '../components/ui/GradientFill';
-import { GlassBorder } from '../components/FlipCard';
 import TopFade from '../components/ui/TopFade';
 
 const ACHIEVEMENT_ICONS = { Trophy, Zap, Moon, Star, Flame, Award, Sun, GraduationCap };
@@ -241,9 +239,6 @@ export default function ProfileScreen() {
           className="mx-4 mb-4 overflow-hidden rounded-[28px] px-5 pb-5 pt-6"
           style={[{ backgroundColor: theme.colors.primary }, elevation(2, theme.mode)]}
         >
-          {/* Degradado + borde glass: el texto queda directamente sobre el fondo, sin formas detrás. */}
-          <GradientFill colors={['#17B3AD', theme.colors.primary, '#07726E']} radius={28} sheen />
-          <GlassBorder radius={28} color="rgba(255,255,255,0.22)" />
 
           <View className="flex-row items-center">
             <View className="relative mr-4">

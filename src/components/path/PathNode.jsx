@@ -17,16 +17,6 @@ import { SPRING } from '../../theme/motion';
 const TYPE_ICON = { flashcards: BookOpen, swipe: Layers2, memory: Grid3x3, boss: Trophy };
 const DEPTH = 7;
 
-/** Oscurece un color hex (amount < 0) o lo aclara (amount > 0). */
-export const shade = (hex, amount) => {
-  const n = parseInt(hex.replace('#', ''), 16);
-  const f = (c) => Math.max(0, Math.min(255, Math.round(c + (amount < 0 ? c : 255 - c) * amount)));
-  const r = f((n >> 16) & 255);
-  const g = f((n >> 8) & 255);
-  const b = f(n & 255);
-  return `#${((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1)}`;
-};
-
 /**
  * Nodo del camino: una ficha sólida con grosor (base más oscura debajo) que
  * se hunde al presionarla. Sin brillos ni neón: profundidad por volumen.

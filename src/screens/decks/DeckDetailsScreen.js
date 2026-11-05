@@ -6,7 +6,7 @@ import {
   ArrowLeft, MoreVertical, Pencil, Volume2, Plus, Image as ImageIcon, Share2, Trash2,
   GraduationCap, AlertCircle, CloudOff, Layers,
 } from 'lucide-react-native';
-import * as Speech from 'expo-speech';
+import { speak } from '../../services/tts';
 import { Button, Spinner, Typography } from 'heroui-native';
 import { useAppTheme } from '../../context/ThemeContext';
 import { useAuth, getUserId } from '../../context/AuthContext';
@@ -111,11 +111,8 @@ export default function DeckDetailsScreen({ route, navigation }) {
     });
   };
 
-  const handleSpeak = (word) => {
-    if (!word) return;
-    Speech.stop();
-    Speech.speak(word, { language: 'en-US', pitch: 1.0, rate: 1.0 });
-  };
+  // Usa el servicio TTS: elige la voz inglesa instalada (antes podía leer con la voz por defecto).
+  const handleSpeak = useCallback((word) => speak(word, { lang: 'en', rate: 1.0 }), []);
 
   const filteredCards = useMemo(() => {
     const term = searchQuery.trim().toLowerCase();
@@ -132,7 +129,7 @@ export default function DeckDetailsScreen({ route, navigation }) {
     else toast.info(`Necesitas al menos ${MIN_CARDS_FOR_QUIZ} tarjetas`, { message: `Este mazo tiene ${flashcards.length}.` });
   };
 
-  const renderCard = ({ item }) => (
+  const renderCard = useCallback(({ item }) => (
     <ListCard
       className="mb-2.5"
       title={item.word}
@@ -152,7 +149,7 @@ export default function DeckDetailsScreen({ route, navigation }) {
         </IconButton>
       )}
     />
-  );
+  ), [navigation, theme, handleSpeak, deck]);
 
   return (
     <View className="flex-1 bg-background">

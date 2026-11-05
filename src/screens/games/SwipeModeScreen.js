@@ -41,7 +41,7 @@ function BackCard({ depth, drag, width, height, prompt }) {
     };
   });
   return (
-    <Animated.View pointerEvents="none" style={[{ position: 'absolute', width, height, borderRadius: 28 }, elevation(1), style]}>
+    <Animated.View pointerEvents="none" style={[{ position: 'absolute', width, height, borderRadius: 24 }, style]}>
       <SwipeFace width={width} height={height} front={prompt.card.front} shown={prompt.shown} image={prompt.card.image} />
     </Animated.View>
   );
@@ -110,7 +110,7 @@ export default function SwipeModeScreen() {
     >
       {/* Progreso */}
       <View className="mx-5 mt-1 h-2 overflow-hidden rounded-full bg-default">
-        <View className="h-full rounded-full" style={{ width: `${progress * 100}%`, backgroundColor: '#4A5BD4' }} />
+        <View className="h-full rounded-full" style={{ width: `${progress * 100}%`, backgroundColor: theme.colors.primary }} />
       </View>
       <Typography type="body-xs" color="muted" align="center" className="mt-2">
         Desliza → si la traducción es correcta, ← si no

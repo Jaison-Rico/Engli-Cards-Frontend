@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { Pressable } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
@@ -13,7 +13,7 @@ const SPRING = { damping: 28, stiffness: 400, mass: 0.5 };
  *
  * @param {'selection'|'light'|'medium'|null} haptic tipo de vibración (null = ninguna)
  */
-export default function PressableScale({
+function PressableScale({
   children,
   onPress,
   onLongPress,
@@ -65,3 +65,5 @@ export default function PressableScale({
     </AnimatedPressable>
   );
 }
+
+export default memo(PressableScale);

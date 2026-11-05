@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Pressable, Platform, View } from 'react-native';
+import { Pressable, Platform } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -109,15 +109,5 @@ export default function FlipCard({
         <Animated.View pointerEvents="none" style={[face, backStyle]}>{back}</Animated.View>
       </Pressable>
     </Animated.View>
-  );
-}
-
-/** Borde fino translúcido tipo glass, para usar dentro de una cara. */
-export function GlassBorder({ radius = 28, color = 'rgba(255,255,255,0.3)' }) {
-  return (
-    <View
-      pointerEvents="none"
-      style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: radius, borderWidth: 1, borderColor: color }}
-    />
   );
 }

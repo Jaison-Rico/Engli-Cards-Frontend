@@ -58,7 +58,7 @@ export default function LoginScreen() {
   return (
     <AuthScaffold showLogo title="Engli-Cards" subtitle="Eleva tu inglés con cada tarjeta.">
       <View className="mb-7 rounded-[28px] border border-border bg-surface px-5 pb-6 pt-7" style={elevation(2, theme.mode)}>
-        <Typography type="h4" weight="bold">Bienvenido de nuevo 👋</Typography>
+        <Typography type="h4" weight="bold">Bienvenido de nuevo</Typography>
         <Typography type="body-sm" color="muted" className="mb-6 mt-1">Inicia sesión para continuar aprendiendo.</Typography>
 
         <FormField

@@ -1,7 +1,7 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { memo, useCallback, useMemo, useRef, useState } from 'react';
 import { View, FlatList, StatusBar, RefreshControl, useWindowDimensions } from 'react-native';
 import Animated from 'react-native-reanimated';
-import { AlertCircle, Layers2, Grid3x3, Skull, Library, Sparkles, GraduationCap, Crosshair } from 'lucide-react-native';
+import { AlertCircle, Layers2, Grid3x3, Timer, Library, Sparkles, GraduationCap, Crosshair } from 'lucide-react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Spinner, Typography } from 'heroui-native';
@@ -13,45 +13,40 @@ import { getCurriculumMap } from '../services/curriculum.service';
 import { getErrorMessage } from '../utils/errors';
 import EmptyState from '../components/ui/EmptyState';
 import PressableScale from '../components/ui/PressableScale';
-import GradientFill from '../components/ui/GradientFill';
 import ModuleRoad, { sectionHeight, nodeLocalY } from '../components/path/ModuleRoad';
-import { shade } from '../components/path/PathNode';
 import TopFade from '../components/ui/TopFade';
 import { PLAYABLE_LESSONS } from '../data/lessons';
 import { TOTAL_WORDS } from '../data/curriculum';
-import { elevation } from '../theme/theme';
+import { elevation, shade } from '../theme/theme';
 import { enterStagger } from '../theme/motion';
 
 const SECTION_GAP = 0; // las secciones son contiguas para que el camino no se corte
 
 const MINIGAMES = [
-  { route: 'SwipeMode', title: 'Swipe', caption: 'Desliza: ¿es correcta?', icon: Layers2, colors: ['#6474F0', '#3443B5'], pickSource: true },
-  { route: 'MemoryMode', title: 'Memoria', caption: 'Encuentra los pares', icon: Grid3x3, colors: ['#F59E0B', '#D97706'], pickSource: true },
-  { route: 'SurvivalMode', title: 'Supervivencia', caption: 'Tus palabras más difíciles', icon: Skull, colors: ['#F43F5E', '#BE123C'], pickSource: false },
+  { route: 'SwipeMode', title: 'Swipe', caption: '¿Es correcta?', icon: Layers2, pickSource: true },
+  { route: 'MemoryMode', title: 'Memoria', caption: 'Encuentra pares', icon: Grid3x3, pickSource: true },
+  { route: 'SurvivalMode', title: 'Contrarreloj', caption: 'Tus errores', icon: Timer, pickSource: false },
 ];
 
-function MinigameCard({ game, onPress, index }) {
+/** Tarjeta de minijuego: superficie neutra, icono en el color de marca. */
+const MinigameCard = memo(function MinigameCard({ game, onPress, theme }) {
   const Icon = game.icon;
   return (
-    <Animated.View entering={enterStagger(index + 1)} style={{ flex: 1 }}>
-      <PressableScale
-        onPress={() => onPress(game)}
-        haptic="light"
-        accessibilityLabel={`Minijuego ${game.title}`}
-        className="h-[128px] overflow-hidden rounded-[24px] p-3.5"
-        style={elevation(2)}
-      >
-        <GradientFill colors={game.colors} radius={24} sheen />
-        <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.28)' }} />
-        <View className="mb-auto h-10 w-10 items-center justify-center rounded-[14px]" style={{ backgroundColor: 'rgba(255,255,255,0.22)' }}>
-          <Icon color="#fff" size={20} strokeWidth={2.4} />
-        </View>
-        <Typography type="body" weight="bold" numberOfLines={1} style={{ color: '#fff' }}>{game.title}</Typography>
-        <Typography type="body-xs" numberOfLines={2} style={{ color: 'rgba(255,255,255,0.88)' }}>{game.caption}</Typography>
-      </PressableScale>
-    </Animated.View>
+    <PressableScale
+      onPress={() => onPress(game)}
+      haptic="light"
+      accessibilityLabel={`Minijuego ${game.title}`}
+      className="flex-1 rounded-[20px] border border-border bg-surface p-3.5"
+      style={elevation(1, theme.mode)}
+    >
+      <View className="mb-3 h-10 w-10 items-center justify-center rounded-[12px]" style={{ backgroundColor: `${theme.colors.primary}1A` }}>
+        <Icon color={theme.colors.primary} size={20} strokeWidth={2.2} />
+      </View>
+      <Typography type="body-sm" weight="bold" numberOfLines={1}>{game.title}</Typography>
+      <Typography type="body-xs" color="muted" numberOfLines={1}>{game.caption}</Typography>
+    </PressableScale>
   );
-}
+});
 
 /** Progreso global: nodos completados y avance por nivel MCER. */
 function OverallProgress({ map, theme }) {
@@ -273,8 +268,8 @@ export default function LearningPath() {
       </Animated.View>
 
       <Typography type="h5" weight="bold" className="mb-3 px-1">Minijuegos libres</Typography>
-      <View className="mb-6 flex-row gap-2.5">
-        {MINIGAMES.map((game, i) => <MinigameCard key={game.route} game={game} index={i} onPress={openMinigame} />)}
+      <View className="mb-6 flex-row gap-3">
+        {MINIGAMES.map((game) => <MinigameCard key={game.route} game={game} theme={theme} onPress={openMinigame} />)}
       </View>
 
       {map ? <OverallProgress map={map} theme={theme} /> : null}

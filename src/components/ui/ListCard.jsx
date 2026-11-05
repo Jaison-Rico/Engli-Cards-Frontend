@@ -1,6 +1,5 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { View } from 'react-native';
-import { FadeInDown } from 'react-native-reanimated';
 import { Typography } from 'heroui-native';
 import { ChevronRight } from 'lucide-react-native';
 import PressableScale from './PressableScale';
@@ -14,7 +13,7 @@ import { elevation } from '../../theme/theme';
  * Sustituye a `<Card onPress>`: el Card de heroui-native es un View y no
  * responde a toques.
  */
-export default function ListCard({
+function ListCard({
   title,
   subtitle,
   leading,
@@ -34,7 +33,6 @@ export default function ListCard({
       disabled={disabled || !onPress}
       accessibilityLabel={accessibilityLabel ?? title}
       className={`flex-row items-center gap-3 rounded-[22px] bg-surface px-4 py-4 border border-border ${className}`}
-      entering={FadeInDown.springify().damping(38).stiffness(360)}
       style={elevation(1, theme.mode)}
     >
       {leading ? <View>{leading}</View> : null}
@@ -56,3 +54,6 @@ export default function ListCard({
     </PressableScale>
   );
 }
+
+/** memo: las filas no se re-renderizan si sus props no cambian. */
+export default memo(ListCard);

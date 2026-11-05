@@ -4,17 +4,16 @@ import Animated, { useAnimatedStyle, withTiming, useSharedValue, withSequence } 
 import * as Haptics from 'expo-haptics';
 import { Typography } from 'heroui-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { Sparkles } from 'lucide-react-native';
 import GameScaffold from '../../components/games/GameScaffold';
 import useGameSession, { poolLoader, nodeResultNote } from '../../components/games/useGameSession';
-import FlipCard, { GlassBorder } from '../../components/FlipCard';
-import GradientFill from '../../components/ui/GradientFill';
+import FlipCard from '../../components/FlipCard';
 import QuizResultModal from '../../components/QuizResultModal';
 import { useAppTheme } from '../../context/ThemeContext';
 import { shuffle } from '../../services/learning.service';
 import { speak } from '../../services/tts';
 import SoundManager from '../../config/sounds';
 import { DURATION } from '../../theme/motion';
+import { shade } from '../../theme/theme';
 
 const MAX_PAIRS = 6;
 const MIN_PAIRS = 3;
@@ -62,7 +61,7 @@ const buildTiles = (cards) =>
 
 /* ------------------------------ Ficha ------------------------------- */
 
-const Tile = memo(function Tile({ tile, size, isOpen, isMatched, onPress }) {
+const Tile = memo(function Tile({ tile, size, isOpen, isMatched, onPress, colors }) {
   const pulse = useSharedValue(1);
   const fade = useSharedValue(1);
 
@@ -88,19 +87,15 @@ const Tile = memo(function Tile({ tile, size, isOpen, isMatched, onPress }) {
         pressScale={0.95}
         duration={DURATION.flip - 60}
         shadowStrength={0.55}
-        plateColor={isEn ? '#0B8C88' : '#4A5BD4'}
+        plateColor={isEn ? colors.en : colors.es}
         accessibilityLabel={isOpen || isMatched ? tile.text : 'Tarjeta oculta'}
         front={(
-          <View style={[styles.face, { width: size, height: size }]}>
-            <GradientFill colors={['#F59E0B', '#D97706']} radius={20} sheen />
-            <GlassBorder radius={20} />
-            <View style={styles.pattern}><Sparkles color="rgba(255,255,255,0.9)" size={size * 0.28} /></View>
+          <View style={[styles.face, styles.hidden, { width: size, height: size, backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <Typography weight="bold" style={{ color: colors.en, fontSize: size * 0.32, opacity: 0.35 }}>?</Typography>
           </View>
         )}
         back={(
-          <View style={[styles.face, { width: size, height: size }]}>
-            <GradientFill colors={isEn ? ['#17B3AD', '#07726E'] : ['#6474F0', '#3443B5']} radius={20} sheen />
-            <GlassBorder radius={20} />
+          <View style={[styles.face, { width: size, height: size, backgroundColor: isEn ? colors.en : colors.es }]}>
             <Typography type="body-xs" weight="bold" style={styles.lang}>{isEn ? 'EN' : 'ES'}</Typography>
             <Typography
               type="body"
@@ -175,8 +170,15 @@ export default function MemoryModeScreen() {
   }, []);
 
   const size = useMemo(() => Math.floor((Math.min(screenW, 460) - 32 - GAP * (COLUMNS - 1)) / COLUMNS), [screenW]);
-  const openSet = new Set(state.open);
-  const matchedSet = new Set(state.matched);
+  const openSet = useMemo(() => new Set(state.open), [state.open]);
+  const matchedSet = useMemo(() => new Set(state.matched), [state.matched]);
+  // Inglés: color de marca. Español: el mismo tono más profundo.
+  const tileColors = useMemo(() => ({
+    en: theme.colors.primary,
+    es: shade(theme.colors.primary, -0.32),
+    surface: theme.colors.surface,
+    border: theme.colors.border,
+  }), [theme]);
 
   return (
     <GameScaffold
@@ -211,6 +213,7 @@ export default function MemoryModeScreen() {
               isOpen={openSet.has(tile.id)}
               isMatched={matchedSet.has(tile.pairKey)}
               onPress={handlePress}
+              colors={tileColors}
             />
           ))}
         </View>
@@ -235,6 +238,6 @@ export default function MemoryModeScreen() {
 
 const styles = StyleSheet.create({
   face: { borderRadius: 20, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
-  pattern: { opacity: 0.95 },
+  hidden: { borderWidth: 1 },
   lang: { position: 'absolute', top: 8, left: 10, color: 'rgba(255,255,255,0.75)', fontSize: 10, letterSpacing: 0.8 },
 });

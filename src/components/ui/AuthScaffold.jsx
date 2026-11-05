@@ -3,7 +3,7 @@ import { View, KeyboardAvoidingView, Platform, ScrollView, StatusBar, Image } fr
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft } from 'lucide-react-native';
 import { Typography } from 'heroui-native';
-import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import IconButton from './IconButton';
 import { useAppTheme } from '../../context/ThemeContext';
 import { elevation } from '../../theme/theme';
@@ -20,9 +20,6 @@ export default function AuthScaffold({ children, onBack, icon: Icon, title, subt
 
   return (
     <KeyboardAvoidingView className="flex-1 bg-background" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      {/* Fondo decorativo: halos suaves de marca */}
-      <Animated.View entering={FadeIn.duration(350)} pointerEvents="none" style={{ position: 'absolute', top: -140, right: -90, width: 320, height: 320, borderRadius: 160, backgroundColor: theme.colors.primary, opacity: theme.mode === 'dark' ? 0.16 : 0.1 }} />
-      <Animated.View entering={FadeIn.duration(450)} pointerEvents="none" style={{ position: 'absolute', top: 120, left: -120, width: 240, height: 240, borderRadius: 120, backgroundColor: theme.colors.primary, opacity: theme.mode === 'dark' ? 0.1 : 0.06 }} />
       <StatusBar barStyle={theme.mode === 'dark' ? 'light-content' : 'dark-content'} backgroundColor="transparent" translucent />
       <ScrollView
         contentContainerStyle={{
@@ -58,9 +55,9 @@ export default function AuthScaffold({ children, onBack, icon: Icon, title, subt
           ) : null}
         </Animated.View>
 
-        <Animated.View entering={FadeInDown.delay(60).springify().damping(38).stiffness(360)}>
-          {children}
-        </Animated.View>
+        {/* Sin animación de entrada alrededor del formulario: una capa animada
+            envolviendo los TextInput puede interferir con el foco en Android. */}
+        {children}
       </ScrollView>
     </KeyboardAvoidingView>
   );
