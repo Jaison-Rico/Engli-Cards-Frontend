@@ -1,61 +1,70 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
+import { AlertCircle, WifiOff } from 'lucide-react-native';
+import { Spinner, Typography } from 'heroui-native';
 import Quiz from '../../components/Quiz';
+import EmptyState from '../../components/ui/EmptyState';
+import ScreenHeader from '../../components/ui/ScreenHeader';
 import { getDeckQuiz } from '../../services/decks.service';
-import { Button, Spinner, Typography } from 'heroui-native';
-import { useAppTheme } from '../../context/ThemeContext';
+import { getErrorMessage, isNetworkError } from '../../utils/errors';
 
 export default function DeckQuizScreen({ route, navigation }) {
-  const { theme } = useAppTheme();
   const { deckId, deckName } = route.params;
   const [loading, setLoading] = useState(true);
   const [quizData, setQuizData] = useState(null);
   const [error, setError] = useState(null);
 
-  useEffect(() => { fetchQuiz(); }, []);
-
-  const fetchQuiz = async () => {
+  const fetchQuiz = useCallback(async () => {
+    setLoading(true);
+    setError(null);
     try {
-      setLoading(true);
-      const data = await getDeckQuiz(deckId);
-      setQuizData(data);
+      setQuizData(await getDeckQuiz(deckId));
     } catch (err) {
-      setError(err?.response?.data?.message || err.message);
+      setError(err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [deckId]);
+
+  useEffect(() => { fetchQuiz(); }, [fetchQuiz]);
 
   if (loading) {
     return (
-      <View className="flex-1 bg-background items-center justify-center gap-4">
+      <View className="flex-1 items-center justify-center gap-4 bg-background">
         <Spinner size="lg" />
-        <Typography type="body" color="muted" weight="medium">Generando tu Quiz...</Typography>
+        <Typography type="body" color="muted" weight="medium">Generando tu quiz…</Typography>
       </View>
     );
   }
 
   if (error) {
+    const offline = isNetworkError(error);
     return (
-      <View className="flex-1 bg-background items-center justify-center px-5 gap-5">
-        <Typography type="body" className="text-danger text-center">{error}</Typography>
-        <Button size="lg" className="px-8" onPress={() => navigation.goBack()}>
-          <Button.Label>Volver</Button.Label>
-        </Button>
+      <View className="flex-1 bg-background">
+        <ScreenHeader title={deckName} onBack={() => navigation.goBack()} />
+        <View className="flex-1 justify-center">
+          <EmptyState
+            icon={offline ? WifiOff : AlertCircle}
+            tone={offline ? 'default' : 'danger'}
+            title={offline ? 'El quiz necesita conexión' : 'No se pudo generar el quiz'}
+            description={offline
+              ? 'Las preguntas se generan en el servidor. Mientras tanto puedes repasar tus tarjetas.'
+              : getErrorMessage(error)}
+            actionLabel="Reintentar"
+            onAction={fetchQuiz}
+          />
+        </View>
       </View>
     );
   }
 
   return (
-    <View className="flex-1 bg-background">
-      <Quiz
-        questions={quizData}
-        heading={deckName}
-        deckId={deckId}
-        onBack={() => navigation.goBack()}
-        instructionText="Selecciona la traducción correcta"
-        onFinish={(score, total) => console.log(`Quiz finalizado: ${score}/${total}`)}
-      />
-    </View>
+    <Quiz
+      questions={quizData}
+      heading={deckName}
+      deckId={deckId}
+      onBack={() => navigation.goBack()}
+      instructionText="Selecciona la traducción correcta"
+    />
   );
 }

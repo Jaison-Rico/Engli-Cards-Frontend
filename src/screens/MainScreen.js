@@ -1,16 +1,40 @@
-import React, { useState } from 'react';
-import { View, FlatList, StatusBar, Alert } from 'react-native';
+import React, { useCallback, useMemo, useState } from 'react';
+import { View, FlatList, StatusBar, RefreshControl } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { BookOpen, Activity, Plus, Flame } from 'lucide-react-native';
-import { Button, Input, Card, Spinner, Typography } from 'heroui-native';
-import * as Haptics from 'expo-haptics';
-import SoundManager from '../config/sounds';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BookOpen, Plus, Flame, BarChart3, Layers, CloudOff, Play, AlertCircle } from 'lucide-react-native';
+import { Spinner, Typography } from 'heroui-native';
+import SoundManager from '../config/sounds';
 import { useAppTheme } from '../context/ThemeContext';
 import { useAuth, getUserId } from '../context/AuthContext';
+import { useFeedback } from '../components/feedback/FeedbackProvider';
 import { getDecks } from '../services/decks.service';
 import { getUserStats } from '../services/users.service';
+import { getErrorMessage } from '../utils/errors';
 import CreateDeck from '../components/CreateDeckModal';
+import ListCard from '../components/ui/ListCard';
+import PressableScale from '../components/ui/PressableScale';
+import IconButton from '../components/ui/IconButton';
+import SearchField from '../components/ui/SearchField';
+import EmptyState from '../components/ui/EmptyState';
+import { elevation } from '../theme/theme';
+
+function QuickAction({ icon: Icon, label, onPress }) {
+  const { theme } = useAppTheme();
+  return (
+    <PressableScale
+      onPress={onPress}
+      haptic="light"
+      className="flex-1 flex-row items-center gap-3 rounded-2xl border border-border bg-surface px-4 py-3.5"
+      style={elevation(1, theme.mode)}
+    >
+      <View className="h-10 w-10 items-center justify-center rounded-xl bg-accent/10">
+        <Icon color={theme.colors.primary} size={20} strokeWidth={2.3} />
+      </View>
+      <Typography type="body-sm" weight="semibold" className="flex-1" numberOfLines={2}>{label}</Typography>
+    </PressableScale>
+  );
+}
 
 export default function MainScreen() {
   const { theme } = useAppTheme();
@@ -18,204 +42,198 @@ export default function MainScreen() {
   const userId = getUserId(user);
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
+  const { toast } = useFeedback();
 
   const [search, setSearch] = useState('');
   const [decks, setDecks] = useState([]);
-  const [isOffline, setIsOffline] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
   const [streak, setStreak] = useState(0);
 
-  const handleDeckCreated = () => setRefreshKey((prev) => prev + 1);
+  // El spinner solo aparece en la primera carga; al volver a la pantalla se
+  // refresca en segundo plano sin vaciar la lista.
+  const loadData = useCallback(async ({ isActive = () => true } = {}) => {
+    if (!userId) {
+      setError('No se encontró tu sesión. Inicia sesión nuevamente.');
+      setLoading(false);
+      return;
+    }
+    setError(null);
+    try {
+      const [deckData, statsResult] = await Promise.all([
+        getDecks(userId, false),
+        getUserStats(userId).catch(() => null),
+      ]);
+      if (!isActive()) return;
+      setDecks(deckData);
+      if (statsResult?.data) setStreak(statsResult.data.streak_current || 0);
+    } catch (err) {
+      if (isActive()) setError(getErrorMessage(err, 'No se pudieron cargar tus mazos.'));
+    } finally {
+      if (isActive()) setLoading(false);
+    }
+  }, [userId]);
 
   useFocusEffect(
-    React.useCallback(() => {
-      let isActive = true;
-      const fetchData = async () => {
-        if (!userId) {
-          setError('No se encontró el ID de usuario. Inicia sesión nuevamente.');
-          return;
-        }
-        setLoading(true);
-        setError(null);
-        try {
-          const [deckData, statsResult] = await Promise.all([
-            getDecks(userId, false),
-            getUserStats(userId).catch(() => null),
-          ]);
-          if (isActive) {
-            setDecks(deckData);
-            setIsOffline(Boolean(deckData.isOffline || statsResult?.offline));
-            if (statsResult?.data) setStreak(statsResult.data.streak_current || 0);
-          }
-        } catch (err) {
-          if (isActive) {
-            setError(err?.response?.data?.message || err?.message || 'Error inesperado');
-            setIsOffline(true);
-            setDecks([]);
-          }
-        } finally {
-          if (isActive) setLoading(false);
-        }
-      };
-      fetchData();
-      return () => { isActive = false; };
-    }, [userId, refreshKey])
+    useCallback(() => {
+      let active = true;
+      loadData({ isActive: () => active });
+      return () => { active = false; };
+    }, [loadData]),
   );
 
-  const personalDecks = decks.filter((d) => !d.is_system);
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await loadData();
+    setRefreshing(false);
+  };
+
+  const personalDecks = useMemo(() => decks.filter((d) => !d.is_system), [decks]);
+  const visibleDecks = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    return term ? personalDecks.filter((d) => d.deck_name?.toLowerCase().includes(term)) : personalDecks;
+  }, [personalDecks, search]);
+
+  const studyDeck = (deck) => {
+    if (deck.flashcards?.length > 0) {
+      navigation.navigate('GameFlashCard', {
+        sampleCards: deck.flashcards,
+        deckId: deck.deck_id,
+        deckName: deck.deck_name,
+      });
+    } else {
+      toast.info('Este mazo está vacío', { message: 'Agrega algunas flashcards antes de estudiar.' });
+    }
+  };
+
+  const firstName = user?.name?.split(' ')[0] || 'amigo';
+
+  const renderDeck = ({ item }) => {
+    const count = item.cardCount ?? 0;
+    return (
+      <ListCard
+        className="mb-2.5"
+        title={item.deck_name}
+        subtitle={`${count} ${count === 1 ? 'tarjeta' : 'tarjetas'}`}
+        onPress={() => navigation.navigate('DeckDetails', { deck: item })}
+        showChevron={false}
+        badge={item.pending ? <CloudOff color={theme.colors.warning} size={14} /> : null}
+        leading={(
+          <View className="h-11 w-11 items-center justify-center rounded-xl bg-accent/10">
+            <Layers color={theme.colors.primary} size={20} />
+          </View>
+        )}
+        trailing={(
+          <IconButton
+            variant="accent"
+            accessibilityLabel={`Estudiar ${item.deck_name}`}
+            onPress={() => studyDeck(item)}
+            className="h-10 w-10"
+          >
+            <Play color={theme.colors.onPrimary} fill={theme.colors.onPrimary} size={16} />
+          </IconButton>
+        )}
+      />
+    );
+  };
+
+  const renderEmpty = () => {
+    if (loading) return null;
+    if (error) {
+      return (
+        <EmptyState
+          icon={AlertCircle}
+          tone="danger"
+          title="No pudimos cargar tus mazos"
+          description={error}
+          actionLabel="Reintentar"
+          onAction={() => { setLoading(true); loadData(); }}
+        />
+      );
+    }
+    if (search) {
+      return <EmptyState title="Sin resultados" description={`No hay mazos que coincidan con “${search}”.`} />;
+    }
+    return (
+      <EmptyState
+        icon={Layers}
+        title="Aún no tienes mazos"
+        description="Crea tu primer mazo para empezar a guardar vocabulario."
+        actionLabel="Crear mazo"
+        onAction={() => setModalVisible(true)}
+      />
+    );
+  };
 
   return (
     <View className="flex-1 bg-background">
-      <StatusBar
-        barStyle={theme.mode === 'dark' ? 'light-content' : 'dark-content'}
-        backgroundColor="transparent"
-        translucent
-      />
+      <StatusBar barStyle={theme.mode === 'dark' ? 'light-content' : 'dark-content'} backgroundColor="transparent" translucent />
 
-      {/* Top Section */}
-      <View className="bg-surface px-5 pb-4 shadow-surface" style={{ paddingTop: insets.top + 10 }}>
-        <View className="flex-row justify-between items-start mb-4">
+      {/* Cabecera */}
+      <View className="border-b border-border bg-surface px-5 pb-4" style={{ paddingTop: insets.top + 12 }}>
+        <View className="mb-4 flex-row items-center justify-between">
           <View className="flex-1 pr-3">
-            <Typography type="h2" weight="bold">Engli cards</Typography>
-            <Typography type="body-sm" color="muted">
-              ¡Hola! {user?.name?.split(' ')[0] || 'amigo'} Continúa aprendiendo
-            </Typography>
+            <Typography type="body-sm" color="muted">¡Hola, {firstName}!</Typography>
+            <Typography type="h3" weight="bold" className="tracking-tight">Engli Cards</Typography>
           </View>
 
           <View className="flex-row items-center gap-2">
-            <View className="flex-row items-center bg-default px-3 py-1.5 rounded-full gap-1">
-              <Flame color="#F97316" size={20} fill="#F97316" />
-              <Typography type="body-sm" weight="bold" className="text-[#C2410C]">{streak}</Typography>
-            </View>
-
-            <Button
-              variant="secondary"
-              size="sm"
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                navigation.push('StatsScreen');
-              }}
+            <View
+              className="h-10 flex-row items-center gap-1 rounded-full bg-[#FFF4EC] px-3 dark:bg-[#3A2416]"
+              accessibilityLabel={`Racha de ${streak} días`}
             >
-              <Activity color="#08302E" size={16} strokeWidth={2.5} />
-              <Button.Label className="text-foreground">Stats</Button.Label>
-            </Button>
+              <Flame color={theme.colors.flame} fill={theme.colors.flame} size={18} />
+              <Typography type="body-sm" weight="bold" style={{ color: theme.colors.flame }}>{streak}</Typography>
+            </View>
+            <IconButton variant="soft" accessibilityLabel="Ver estadísticas" onPress={() => navigation.push('StatsScreen')}>
+              <BarChart3 color={theme.colors.foreground} size={20} />
+            </IconButton>
           </View>
         </View>
 
-        <View className="flex-row items-center bg-background-secondary rounded-xl px-4 h-11 gap-2">
-          <Input
-            className="flex-1 bg-transparent"
-            placeholder="Nombre del deck"
-            value={search}
-            onChangeText={setSearch}
-          />
-        </View>
+        <SearchField value={search} onChangeText={setSearch} placeholder="Buscar mazo" />
       </View>
 
-      {/* Action Buttons */}
-      <View className="flex-row px-4 py-3 gap-3">
-        <Button
-          variant="secondary"
-          className="flex-1 h-[72px] rounded-2xl"
-          onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-            SoundManager.play('click');
-            setModalVisible(true);
-          }}
-        >
-          <Plus color="#08302E" size={30} strokeWidth={2} />
-          <Button.Label className="text-foreground text-base font-bold">+ Crear Deck</Button.Label>
-        </Button>
-
-        <Button
-          variant="secondary"
-          className="flex-1 h-[72px] rounded-2xl"
-          onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-            SoundManager.play('click');
-            navigation.push('NewFlashCard');
-          }}
-        >
-          <BookOpen color="#08302E" size={28} strokeWidth={2} />
-          <Button.Label className="text-foreground text-base font-bold">Crear Flashcard</Button.Label>
-        </Button>
-      </View>
-
-      {/* Deck List */}
-      <View className="flex-1 px-4">
-        {isOffline && (
-          <Typography type="body-sm" className="text-warning text-center my-2">
-            Modo offline — sin conexión al servidor
-          </Typography>
+      <FlatList
+        data={visibleDecks}
+        keyExtractor={(item, index) => (item.deck_id ? String(item.deck_id) : `deck-${index}`)}
+        renderItem={renderDeck}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 32, flexGrow: 1 }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={theme.colors.primary} colors={[theme.colors.primary]} />}
+        ListHeaderComponent={(
+          <>
+            <View className="mb-6 flex-row gap-3">
+              <QuickAction
+                icon={Plus}
+                label="Crear mazo"
+                onPress={() => { SoundManager.play('click'); setModalVisible(true); }}
+              />
+              <QuickAction
+                icon={BookOpen}
+                label="Crear flashcard"
+                onPress={() => { SoundManager.play('click'); navigation.push('NewFlashCard'); }}
+              />
+            </View>
+            <View className="mb-3 flex-row items-baseline justify-between">
+              <Typography type="h6" weight="bold">Mis mazos</Typography>
+              {personalDecks.length > 0 ? (
+                <Typography type="body-xs" color="muted">{personalDecks.length} en total</Typography>
+              ) : null}
+            </View>
+            {loading ? <View className="items-center py-10"><Spinner size="lg" /></View> : null}
+          </>
         )}
-        {loading ? (
-          <View className="flex-1 items-center justify-center">
-            <Spinner size="lg" />
-          </View>
-        ) : (
-          <FlatList
-            style={{ flex: 1 }}
-            data={personalDecks.filter((d) =>
-              d.deck_name?.toLowerCase().includes(search.toLowerCase())
-            )}
-            keyExtractor={(item, index) =>
-              item.deck_id ? String(item.deck_id) : `${item.deck_name || 'deck'}-${index}`
-            }
-            showsVerticalScrollIndicator={false}
-            ListHeaderComponent={() => (
-              <Typography type="h5" weight="bold" className="mt-2 mb-4">Mis Mazos</Typography>
-            )}
-            renderItem={({ item }) => (
-              <Card
-                className="mb-2"
-                onPress={() => navigation.navigate('DeckDetails', { deck: item })}
-              >
-                <Card.Body className="flex-row items-center justify-between py-2.5 px-4">
-                  <View className="flex-1">
-                    <Typography type="body" weight="semibold">{item.deck_name}</Typography>
-                    <Typography type="body-sm" color="muted">{item.cardCount ?? 0} tarjetas</Typography>
-                  </View>
-                  <Button
-                    isIconOnly
-                    variant="primary"
-                    size="sm"
-                    className="rounded-xl"
-                    onPress={() => {
-                      if (item.flashcards && item.flashcards.length > 0) {
-                        navigation.navigate('GameFlashCard', {
-                          sampleCards: item.flashcards,
-                          deckId: item.deck_id,
-                          deckName: item.deck_name,
-                        });
-                      } else {
-                        Alert.alert('Mazo vacío', 'Agrega algunas flashcards antes de estudiar.');
-                      }
-                    }}
-                  >
-                    <BookOpen size={18} color="#ffffff" strokeWidth={2.5} />
-                  </Button>
-                </Card.Body>
-              </Card>
-            )}
-            ListEmptyComponent={() => (
-              <Typography type="body" color="muted" align="center" className="my-5">
-                {error ? `Error: ${error}` : 'No tienes mazos personales aún'}
-              </Typography>
-            )}
-            contentContainerStyle={
-              personalDecks.length === 0 ? { flexGrow: 1 } : { paddingBottom: 40 }
-            }
-          />
-        )}
-      </View>
+        ListEmptyComponent={renderEmpty}
+      />
 
       <CreateDeck
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
-        onCreateDeck={handleDeckCreated}
+        onCreateDeck={() => loadData()}
       />
     </View>
   );

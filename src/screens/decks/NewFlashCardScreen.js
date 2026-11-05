@@ -1,337 +1,301 @@
-import React, { useState } from 'react';
-import { View, ScrollView, Modal, Platform, Alert } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
-import { Camera, Save, ArrowLeft, ChevronDown, CheckCircle, Type, Globe, Lightbulb, Aperture, User } from 'lucide-react-native';
-import { CommonActions, useNavigation, useFocusEffect } from '@react-navigation/native';
+import React, { useCallback, useState } from 'react';
+import { View, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Save, ChevronDown, Type, Globe, Lightbulb, ImagePlus, Layers, Link2, WifiOff, X } from 'lucide-react-native';
+import { Button, Spinner, Typography } from 'heroui-native';
 import { useAuth, getUserId } from '../../context/AuthContext';
-import { Button, Input, Card, Spinner, Typography } from 'heroui-native';
-import client from '../../services/client';
-import * as ImagePicker from 'expo-image-picker';
-import CachedImage from '../../components/CachedImage';
 import { useAppTheme } from '../../context/ThemeContext';
+import { useNetwork } from '../../context/NetworkContext';
+import { useFeedback } from '../../components/feedback/FeedbackProvider';
+import { getDecks } from '../../services/decks.service';
+import { createFlashcard, uploadFlashcardImage, isLocalImageUri } from '../../services/flashcards.service';
+import { getErrorMessage, isNetworkError } from '../../utils/errors';
+import { pickImageFromLibrary } from '../../utils/imagePicker';
+import CachedImage from '../../components/CachedImage';
+import ScreenHeader from '../../components/ui/ScreenHeader';
+import FormField from '../../components/ui/FormField';
+import PressableScale from '../../components/ui/PressableScale';
+import IconButton from '../../components/ui/IconButton';
+
+function SegmentedControl({ value, options, onChange }) {
+  return (
+    <View className="mb-4 flex-row rounded-xl bg-default p-1">
+      {options.map((option) => {
+        const active = option.value === value;
+        return (
+          <PressableScale
+            key={option.value}
+            onPress={() => onChange(option.value)}
+            scaleTo={0.98}
+            accessibilityState={{ selected: active }}
+            className={`flex-1 items-center rounded-lg py-2 ${active ? 'bg-surface' : ''}`}
+          >
+            <Typography type="body-sm" weight={active ? 'semibold' : 'medium'} className={active ? 'text-foreground' : 'text-muted'}>
+              {option.label}
+            </Typography>
+          </PressableScale>
+        );
+      })}
+    </View>
+  );
+}
 
 export default function NewFlashCard() {
   const { theme } = useAppTheme();
   const { user } = useAuth();
   const userId = getUserId(user);
   const navigation = useNavigation();
+  const route = useRoute();
+  const insets = useSafeAreaInsets();
+  const { isOnline } = useNetwork();
+  const feedback = useFeedback();
+  const { toast, confirm, actionSheet } = feedback;
 
-  const [selectedMazo, setSelectedMazo] = useState('');
-  const [iosPickerVisible, setIosPickerVisible] = useState(false);
-  const [tempMazo, setTempMazo] = useState('');
+  const [selectedDeckId, setSelectedDeckId] = useState(route.params?.deckId ? String(route.params.deckId) : '');
   const [englishWord, setEnglishWord] = useState('');
   const [spanishTranslation, setSpanishTranslation] = useState('');
   const [image, setImage] = useState(null);
   const [mediaType, setMediaType] = useState('image');
   const [gifUrl, setGifUrl] = useState('');
   const [decks, setDecks] = useState([]);
-  const [loadingDecks, setLoadingDecks] = useState(false);
-  const [error, setError] = useState(null);
-  const [successModalVisible, setSuccessModalVisible] = useState(false);
-  const [creatingFlashcard, setCreatingFlashcard] = useState(false);
-
-  const pickImage = async () => {
-    try {
-      if (Platform.OS === 'android') {
-        const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (!perm.granted) {
-          Alert.alert('Permiso requerido', 'Debes permitir el acceso a tus fotos para seleccionar una imagen.');
-          return;
-        }
-      }
-      const result = await ImagePicker.launchImageLibraryAsync({ allowsEditing: true, aspect: [4, 3], quality: 1, exif: false });
-      if (!result.canceled && result.assets?.length) setImage(result.assets[0].uri);
-    } catch {
-      Alert.alert('Error', 'No pudimos abrir tu galería. Intenta nuevamente.');
-    }
-  };
+  const [loadingDecks, setLoadingDecks] = useState(true);
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [saving, setSaving] = useState(false);
 
   useFocusEffect(
-    React.useCallback(() => {
+    useCallback(() => {
       let isActive = true;
-      const fetchDecks = async () => {
-        if (!userId) { setError('No se encontró el ID de usuario.'); return; }
-        setLoadingDecks(true);
-        setError(null);
+      (async () => {
+        if (!userId) { setLoadingDecks(false); return; }
         try {
-          const { getDecks } = await import('../../services/decks.service');
           const data = await getDecks(userId, false);
           if (isActive) setDecks(data.filter((d) => !d.is_system));
         } catch (err) {
-          if (isActive) {
-            setError(err?.response?.data?.message || err?.message || 'Error al cargar mazos');
-            setDecks([]);
-          }
+          if (isActive) toast.error('No se pudieron cargar tus mazos', { message: getErrorMessage(err) });
         } finally {
           if (isActive) setLoadingDecks(false);
         }
-      };
-      fetchDecks();
+      })();
       return () => { isActive = false; };
-    }, [])
+    }, [userId, toast]),
   );
 
-  const handleCreateFlashCard = async () => {
-    if (!englishWord.trim() || !spanishTranslation.trim() || !selectedMazo) {
-      setError('Por favor, completa todos los campos obligatorios.');
+  const selectedDeck = decks.find((d) => String(d.deck_id) === selectedDeckId);
+
+  const openDeckPicker = () => {
+    if (decks.length === 0) {
+      toast.info('Aún no tienes mazos', { message: 'Crea un mazo desde la pantalla de inicio.' });
       return;
     }
-    setCreatingFlashcard(true);
-    setError(null);
+    actionSheet({
+      title: 'Elegir mazo',
+      options: decks.map((deck) => ({
+        key: String(deck.deck_id),
+        label: deck.deck_name,
+        icon: Layers,
+        selected: String(deck.deck_id) === selectedDeckId,
+        onPress: () => {
+          setSelectedDeckId(String(deck.deck_id));
+          setFieldErrors((prev) => ({ ...prev, deck: null }));
+        },
+      })),
+    });
+  };
+
+  const pickImage = async () => {
+    const asset = await pickImageFromLibrary(feedback);
+    if (asset) setImage(asset.uri);
+  };
+
+  const validate = () => {
+    const errors = {};
+    if (!englishWord.trim()) errors.word = 'Escribe la palabra en inglés.';
+    if (!spanishTranslation.trim()) errors.translation = 'Escribe la traducción.';
+    if (!selectedDeckId) errors.deck = 'Elige un mazo.';
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  /** Sube la imagen si hace falta. Devuelve la URL, null o `undefined` si el usuario cancela. */
+  const resolveImageUrl = async () => {
+    if (mediaType === 'gif') return gifUrl.trim() || null;
+    if (!image) return null;
+    if (!isLocalImageUri(image)) return image;
+
+    const askSaveWithoutImage = () => confirm({
+      title: 'Sin conexión para subir la imagen',
+      message: 'Las imágenes necesitan Internet. Puedes guardar la tarjeta ahora sin imagen y añadirla después.',
+      confirmText: 'Guardar sin imagen',
+      cancelText: 'Esperar',
+      icon: WifiOff,
+    }).then((ok) => (ok ? null : undefined));
+
+    if (!isOnline) return askSaveWithoutImage();
     try {
-      let finalImageUrl = null;
-      if (mediaType === 'gif' && gifUrl.trim()) {
-        finalImageUrl = gifUrl.trim();
-      } else if (mediaType === 'image' && image) {
-        const formData = new FormData();
-        const uri = image;
-        const ext = (uri?.split('.')?.pop() || 'jpg').toLowerCase();
-        const mime = ext === 'png' ? 'image/png' : ext === 'heic' ? 'image/heic' : 'image/jpeg';
-        formData.append('image', { uri, name: `flashcard.${ext}`, type: mime });
-        const uploadResponse = await client.post('/cloudinary/upload-flashcard', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-          timeout: 30000,
-        });
-        finalImageUrl = uploadResponse.data.imageUrl;
-      }
-      await client.post('/flashcards', {
-        word: englishWord,
-        translation: spanishTranslation,
-        image_url: finalImageUrl,
-        user_id: +userId,
-        deck_id: +selectedMazo,
-      });
-      setSuccessModalVisible(true);
-      setTimeout(() => {
-        setSuccessModalVisible(false);
-        navigation.goBack();
-      }, 2000);
+      return await uploadFlashcardImage(image);
     } catch (err) {
-      setError(err?.response?.data?.message || 'Error al crear la flashcard. Intenta de nuevo.');
+      if (isNetworkError(err)) return askSaveWithoutImage();
+      throw err;
+    }
+  };
+
+  const handleSave = async () => {
+    if (!validate() || saving) return;
+    setSaving(true);
+    try {
+      const imageUrl = await resolveImageUrl();
+      if (imageUrl === undefined) return;
+
+      const { offline } = await createFlashcard(userId, {
+        word: englishWord.trim(),
+        translation: spanishTranslation.trim(),
+        imageUrl,
+        deckId: selectedDeckId,
+      });
+      navigation.goBack();
+      if (offline) toast.offline('Tarjeta guardada en el dispositivo', { message: 'Se sincronizará al volver la conexión.' });
+      else toast.success('¡Flashcard creada!');
+    } catch (err) {
+      toast.error('No se pudo crear la flashcard', { message: getErrorMessage(err) });
     } finally {
-      setCreatingFlashcard(false);
+      setSaving(false);
     }
   };
 
   return (
     <View className="flex-1 bg-background">
-      {/* Header */}
-      <View className="flex-row items-center justify-between px-4 py-4 bg-surface shadow-surface">
-        <Button isIconOnly variant="ghost" onPress={() => navigation.goBack()}>
-          <ArrowLeft color="#12B5B0" size={24} />
-        </Button>
-        <Typography type="h5" weight="bold">Crear Flashcard</Typography>
-        <View className="w-10 h-10 rounded-full bg-default items-center justify-center">
-          <User color="#08302E" size={20} />
-        </View>
-      </View>
+      <ScreenHeader title="Nueva flashcard" onBack={() => navigation.goBack()} />
 
-      {/* Content */}
-      <ScrollView className="flex-1 px-4 py-4" showsVerticalScrollIndicator={false}>
+      <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <ScrollView
+          className="flex-1"
+          contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 24 }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <FormField
+            label="Palabra en inglés"
+            required
+            icon={Type}
+            placeholder="ej. Apple"
+            value={englishWord}
+            onChangeText={(text) => { setEnglishWord(text); setFieldErrors((p) => ({ ...p, word: null })); }}
+            autoCapitalize="none"
+            error={fieldErrors.word}
+          />
+          <FormField
+            label="Traducción en español"
+            required
+            icon={Globe}
+            placeholder="ej. Manzana"
+            value={spanishTranslation}
+            onChangeText={(text) => { setSpanishTranslation(text); setFieldErrors((p) => ({ ...p, translation: null })); }}
+            error={fieldErrors.translation}
+          />
 
-        {/* English Word */}
-        <Typography type="body-sm" weight="semibold" className="mb-2">
-          Palabra en Inglés <Typography type="body-sm" className="text-accent">*</Typography>
-        </Typography>
-        <View className="flex-row items-center bg-surface border border-border rounded-xl px-4 mb-4 h-12 gap-3">
-          <Input className="flex-1 bg-transparent" placeholder="ej. Apple" value={englishWord} onChangeText={setEnglishWord} />
-          <Type color="#A1CFC9" size={20} />
-        </View>
-
-        {/* Spanish Translation */}
-        <Typography type="body-sm" weight="semibold" className="mb-2">
-          Traducción en Español <Typography type="body-sm" className="text-accent">*</Typography>
-        </Typography>
-        <View className="flex-row items-center bg-surface border border-border rounded-xl px-4 mb-4 h-12 gap-3">
-          <Input className="flex-1 bg-transparent" placeholder="ej. Manzana" value={spanishTranslation} onChangeText={setSpanishTranslation} />
-          <Globe color="#A1CFC9" size={20} />
-        </View>
-
-        {/* Deck Selector */}
-        <Typography type="body-sm" weight="semibold" className="mb-2">
-          Seleccionar un Mazo <Typography type="body-sm" className="text-accent">*</Typography>
-        </Typography>
-        {loadingDecks ? (
-          <View className="h-12 bg-surface border border-border rounded-xl items-center justify-center mb-4">
-            <Spinner size="sm" />
-          </View>
-        ) : (
-          <Button
-            variant="secondary"
-            className="w-full rounded-xl h-12 mb-4 justify-between px-4"
-            onPress={() => {
-              if (decks.length > 0) {
-                setTempMazo(selectedMazo || String(decks[0].deck_id));
-                setIosPickerVisible(true);
-              }
-            }}
-            isDisabled={decks.length === 0}
+          {/* Selector de mazo */}
+          <Typography type="body-sm" weight="semibold" className="mb-1.5">
+            Mazo<Typography type="body-sm" className="text-accent"> *</Typography>
+          </Typography>
+          <PressableScale
+            onPress={openDeckPicker}
+            disabled={loadingDecks}
+            scaleTo={0.99}
+            accessibilityLabel="Elegir mazo"
+            className="mb-1 h-[52px] flex-row items-center gap-2.5 rounded-2xl bg-field px-4"
+            style={{ borderWidth: 1, borderColor: fieldErrors.deck ? theme.colors.danger : theme.colors.border }}
           >
-            <Typography type="body-sm" className={!selectedMazo ? 'text-muted' : 'text-foreground'}>
-              {selectedMazo
-                ? decks.find((d) => String(d.deck_id) === selectedMazo)?.deck_name || 'Mazo seleccionado'
-                : decks.length > 0 ? 'Elige un mazo...' : 'No hay mazos'
-              }
-            </Typography>
-            <ChevronDown color="#A1CFC9" size={20} />
-          </Button>
-        )}
-
-        {/* Picker Modal */}
-        <Modal visible={iosPickerVisible} transparent animationType="slide" onRequestClose={() => setIosPickerVisible(false)}>
-          <View className="flex-1 justify-end">
-            <View className="bg-surface rounded-t-3xl p-6 shadow-overlay">
-              <Typography type="h5" weight="bold" align="center" className="mb-4">Seleccionar un Mazo</Typography>
-              {decks.length === 0 ? (
-                <Typography type="body-sm" color="muted" align="center" className="py-5">
-                  No tienes mazos disponibles. Crea uno primero.
-                </Typography>
-              ) : Platform.OS === 'ios' ? (
-                <Picker selectedValue={tempMazo} onValueChange={(val) => setTempMazo(val)}>
-                  {decks.map((deck) => (
-                    <Picker.Item key={deck.deck_id} label={deck.deck_name} value={String(deck.deck_id)} />
-                  ))}
-                </Picker>
-              ) : (
-                <ScrollView style={{ maxHeight: 300 }}>
-                  {decks.map((deck) => (
-                    <Button
-                      key={deck.deck_id}
-                      variant={tempMazo === String(deck.deck_id) ? 'primary' : 'ghost'}
-                      className="w-full mb-1 justify-start"
-                      onPress={() => setTempMazo(String(deck.deck_id))}
-                    >
-                      <Button.Label className={tempMazo === String(deck.deck_id) ? 'text-accent-foreground' : 'text-foreground'}>
-                        {deck.deck_name}
-                      </Button.Label>
-                    </Button>
-                  ))}
-                </ScrollView>
-              )}
-              <View className="flex-row gap-3 mt-4">
-                <Button variant="secondary" className="flex-1" onPress={() => setIosPickerVisible(false)}>
-                  <Button.Label>Cancelar</Button.Label>
-                </Button>
-                <Button className="flex-1" isDisabled={decks.length === 0} onPress={() => { setSelectedMazo(tempMazo); setIosPickerVisible(false); }}>
-                  <Button.Label>Aceptar</Button.Label>
-                </Button>
-              </View>
-            </View>
-          </View>
-        </Modal>
-
-        {error && <Typography type="body-sm" className="text-danger mb-3">{error}</Typography>}
-
-        {/* Media Toggle */}
-        <Typography type="body-sm" weight="semibold" className="mb-3">Añadir Media</Typography>
-        <View className="flex-row gap-2 mb-4">
-          <Button
-            variant={mediaType === 'image' ? 'primary' : 'outline'}
-            className="flex-1"
-            onPress={() => { setMediaType('image'); setGifUrl(''); }}
-          >
-            <Button.Label>Imagen</Button.Label>
-          </Button>
-          <Button
-            variant={mediaType === 'gif' ? 'primary' : 'outline'}
-            className="flex-1"
-            onPress={() => { setMediaType('gif'); setImage(null); }}
-          >
-            <Button.Label>GIF</Button.Label>
-          </Button>
-        </View>
-
-        {/* Image Upload */}
-        {mediaType === 'image' && (
-          <Button
-            variant="ghost"
-            className="w-full h-40 border-2 border-dashed border-border rounded-2xl mb-4"
-            onPress={pickImage}
-          >
-            {image ? (
-              <CachedImage uri={image} style={{ width: '100%', height: '100%', borderRadius: 16 }} contentFit="cover" />
+            <Layers color={theme.colors.subtle} size={18} />
+            {loadingDecks ? (
+              <View className="flex-1"><Spinner size="sm" /></View>
             ) : (
-              <View className="items-center gap-2">
-                <View className="w-12 h-12 rounded-full bg-accent/10 items-center justify-center">
-                  <Aperture color="#086B67" size={24} />
-                </View>
-                <Typography type="body-sm" weight="semibold">Subir una referencia visual</Typography>
-                <Typography type="body-xs" color="muted">JPG, PNG hasta 5MB</Typography>
-              </View>
+              <Typography type="body" className={`flex-1 ${selectedDeck ? 'text-foreground' : 'text-muted'}`} numberOfLines={1}>
+                {selectedDeck?.deck_name ?? (decks.length > 0 ? 'Elige un mazo…' : 'No tienes mazos')}
+              </Typography>
             )}
-          </Button>
-        )}
+            <ChevronDown color={theme.colors.subtle} size={18} />
+          </PressableScale>
+          {fieldErrors.deck ? (
+            <Typography type="body-xs" className="mb-3 mt-0.5 text-danger">{fieldErrors.deck}</Typography>
+          ) : <View className="mb-4" />}
 
-        {/* GIF URL */}
-        {mediaType === 'gif' && (
-          <View className="mb-4">
-            <Typography type="body-sm" weight="semibold" className="mb-2">URL del GIF</Typography>
-            <View className="bg-surface border border-border rounded-xl px-4 h-12">
-              <Input
-                className="flex-1 bg-transparent h-full"
-                placeholder="https://ejemplo.com/animation.gif"
+          {/* Media */}
+          <Typography type="body-sm" weight="semibold" className="mb-2">Imagen (opcional)</Typography>
+          <SegmentedControl
+            value={mediaType}
+            onChange={(next) => { setMediaType(next); if (next === 'gif') setImage(null); else setGifUrl(''); }}
+            options={[{ value: 'image', label: 'Foto' }, { value: 'gif', label: 'GIF por URL' }]}
+          />
+
+          {mediaType === 'image' ? (
+            <PressableScale
+              onPress={pickImage}
+              scaleTo={0.99}
+              accessibilityLabel={image ? 'Cambiar imagen' : 'Elegir imagen'}
+              className="mb-5 h-44 items-center justify-center overflow-hidden rounded-2xl border border-dashed border-border bg-surface"
+            >
+              {image ? (
+                <>
+                  <CachedImage uri={image} style={{ width: '100%', height: '100%' }} contentFit="cover" />
+                  <View className="absolute right-2 top-2">
+                    <IconButton variant="soft" accessibilityLabel="Quitar imagen" onPress={() => setImage(null)} className="h-9 w-9">
+                      <X color={theme.colors.foreground} size={16} />
+                    </IconButton>
+                  </View>
+                </>
+              ) : (
+                <View className="items-center gap-2">
+                  <View className="h-12 w-12 items-center justify-center rounded-full bg-accent/10">
+                    <ImagePlus color={theme.colors.primary} size={22} />
+                  </View>
+                  <Typography type="body-sm" weight="semibold">Añadir una referencia visual</Typography>
+                  <Typography type="body-xs" color="muted">
+                    {isOnline ? 'JPG o PNG desde tu galería' : 'Requiere conexión para subirse'}
+                  </Typography>
+                </View>
+              )}
+            </PressableScale>
+          ) : (
+            <View className="mb-5">
+              <FormField
+                icon={Link2}
+                placeholder="https://ejemplo.com/animacion.gif"
                 value={gifUrl}
                 onChangeText={setGifUrl}
+                autoCapitalize="none"
+                keyboardType="url"
+                className="mb-3"
               />
+              {gifUrl ? (
+                <View className="overflow-hidden rounded-2xl border border-border bg-default">
+                  <CachedImage uri={gifUrl} style={{ width: '100%', height: 160 }} contentFit="cover" />
+                </View>
+              ) : null}
             </View>
-            {gifUrl ? (
-              <View className="mt-3 rounded-xl overflow-hidden bg-default p-2">
-                <CachedImage
-                  uri={gifUrl}
-                  style={{ width: '100%', height: 160, borderRadius: 8 }}
-                  contentFit="cover"
-                />
-              </View>
-            ) : null}
-          </View>
-        )}
+          )}
 
-        {/* Tip Block */}
-        <Card className="mb-6 bg-accent/5">
-          <Card.Body className="flex-row items-start gap-3 px-4 py-4">
-            <Lightbulb color="#086B67" size={20} style={{ marginTop: 2 }} />
+          {/* Consejo */}
+          <View className="mb-6 flex-row items-start gap-3 rounded-2xl bg-accent/5 px-4 py-4">
+            <Lightbulb color={theme.colors.primary} size={18} style={{ marginTop: 2 }} />
             <View className="flex-1">
-              <Typography type="body-sm" weight="bold" className="mb-1">Tip del Erudito</Typography>
-              <Typography type="body-sm" color="muted">
-                Añadir una imagen relevante ayuda a tu cerebro a crear conexiones neuronales más fuertes y memorizar hasta un 40% más rápido.
+              <Typography type="body-sm" weight="bold" className="mb-0.5">Consejo</Typography>
+              <Typography type="body-xs" color="muted" className="leading-4">
+                Una imagen relevante ayuda a tu memoria a crear asociaciones más fuertes con la palabra.
               </Typography>
             </View>
-          </Card.Body>
-        </Card>
+          </View>
 
-        {/* Save Button */}
-        <Button
-          size="lg"
-          className="w-full mb-8"
-          onPress={handleCreateFlashCard}
-          isDisabled={creatingFlashcard}
-        >
-          {creatingFlashcard
-            ? <Spinner color="white" size="sm" />
-            : (
-              <View className="flex-row items-center gap-2">
-                <Save color="#fff" size={20} />
-                <Button.Label>Guardar Tarjeta</Button.Label>
-              </View>
-            )
-          }
-        </Button>
-      </ScrollView>
-
-      {/* Success Modal */}
-      <Modal visible={successModalVisible} transparent animationType="fade">
-        <View className="flex-1 bg-backdrop items-center justify-center px-8">
-          <Card className="w-full">
-            <Card.Body className="items-center py-10">
-              <CheckCircle size={60} color="#12B5B0" />
-              <Typography type="h4" weight="bold" className="mt-4 mb-2">¡Flashcard creada!</Typography>
-              <Typography type="body-sm" color="muted" align="center">
-                Tu tarjeta se ha guardado exitosamente
-              </Typography>
-            </Card.Body>
-          </Card>
-        </View>
-      </Modal>
+          <Button size="lg" className="w-full" onPress={handleSave} isDisabled={saving}>
+            {saving ? <Spinner color={theme.colors.onPrimary} size="sm" /> : (
+              <>
+                <Save color={theme.colors.onPrimary} size={18} />
+                <Button.Label>Guardar tarjeta</Button.Label>
+              </>
+            )}
+          </Button>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 }

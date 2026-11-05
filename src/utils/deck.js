@@ -1,5 +1,10 @@
-export const normalizeDeck = (d) => ({
-  deck_id: d.deck_id ?? d.id ?? d._id ?? d.deckId ?? String(Math.random()),
+/**
+ * Normaliza la forma de un mazo venga de donde venga (API, caché o creado
+ * offline). Si no trae ID devuelve `deck_id: null`: antes se inventaba un ID
+ * aleatorio y cada recarga dejaba un registro basura en la caché local.
+ */
+export const normalizeDeck = (d = {}) => ({
+  deck_id: d.deck_id ?? d.id ?? d._id ?? d.deckId ?? null,
   deck_name: d.deck_name ?? d.name ?? d.title ?? 'Deck',
   cardCount:
     d.cardCount ??
@@ -15,4 +20,5 @@ export const normalizeDeck = (d) => ({
   is_locked: d.is_locked ?? false,
   best_accuracy: d.best_accuracy ?? 0,
   min_accuracy: d.min_accuracy ?? 0.9,
+  ...(d.pending ? { pending: true } : {}),
 });

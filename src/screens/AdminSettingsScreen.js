@@ -1,247 +1,208 @@
-import React, { useState, useEffect } from 'react';
-import { View, ScrollView, Alert, Modal } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { View, ScrollView, Modal, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { ChevronLeft, Plus, Edit3, Trash2, Shield, X, Save } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import * as SecureStore from 'expo-secure-store';
-import { config } from '../config/api';
+import Animated, { SlideInDown } from 'react-native-reanimated';
+import { Plus, Pencil, Trash2, Shield, X, Save, AlertCircle, BookOpen } from 'lucide-react-native';
+import { Button, Spinner, Typography } from 'heroui-native';
 import { useAppTheme } from '../context/ThemeContext';
-import { Button, Card, Input, Spinner, Typography } from 'heroui-native';
+import { useAuth, getUserId } from '../context/AuthContext';
+import { useFeedback } from '../components/feedback/FeedbackProvider';
+import { getSystemLessons, saveSystemLesson, deleteSystemLesson } from '../services/admin.service';
+import { getErrorMessage } from '../utils/errors';
+import ScreenHeader from '../components/ui/ScreenHeader';
+import ListCard from '../components/ui/ListCard';
+import IconButton from '../components/ui/IconButton';
+import EmptyState from '../components/ui/EmptyState';
+import FormField from '../components/ui/FormField';
 
 export default function AdminSettingsScreen() {
   const { theme } = useAppTheme();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
+  const { user } = useAuth();
+  const userId = getUserId(user);
+  const { toast, confirm } = useFeedback();
 
   const [lessons, setLessons] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingLesson, setEditingLesson] = useState(null);
   const [formName, setFormName] = useState('');
   const [formOrder, setFormOrder] = useState('');
   const [formAccuracy, setFormAccuracy] = useState('0.9');
+  const [formError, setFormError] = useState(null);
+  const [saving, setSaving] = useState(false);
 
-  const fetchLessons = async () => {
+  const fetchLessons = useCallback(async () => {
+    setLoadError(null);
     try {
-      setLoading(true);
-      const token = await SecureStore.getItemAsync('token');
-      const response = await fetch(`${config.BASE_URL}/decks/all`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await response.json();
-      setLessons(data.filter((d) => d.is_system).sort((a, b) => a.order_index - b.order_index));
+      setLessons(await getSystemLessons());
     } catch (error) {
-      console.error('Error fetching lessons:', error);
+      setLoadError(getErrorMessage(error, 'No se pudieron cargar las lecciones.'));
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  useEffect(() => { fetchLessons(); }, []);
+  useEffect(() => { fetchLessons(); }, [fetchLessons]);
 
   const openModal = (lesson = null) => {
-    if (lesson) {
-      setEditingLesson(lesson);
-      setFormName(lesson.deck_name);
-      setFormOrder(String(lesson.order_index));
-      setFormAccuracy(String(lesson.min_accuracy));
-    } else {
-      setEditingLesson(null);
-      setFormName('');
-      setFormOrder(String(lessons.length + 1));
-      setFormAccuracy('0.9');
-    }
+    setEditingLesson(lesson);
+    setFormName(lesson ? lesson.deck_name : '');
+    setFormOrder(String(lesson ? lesson.order_index : lessons.length + 1));
+    setFormAccuracy(String(lesson ? lesson.min_accuracy : 0.9));
+    setFormError(null);
     setModalVisible(true);
   };
 
   const handleSave = async () => {
-    if (!formName || !formOrder) {
-      Alert.alert('Error', 'Nombre y Orden son obligatorios');
+    const orderIndex = parseInt(formOrder, 10);
+    const minAccuracy = parseFloat(formAccuracy);
+    if (!formName.trim() || Number.isNaN(orderIndex)) {
+      setFormError('El nombre y el orden son obligatorios.');
       return;
     }
+    if (Number.isNaN(minAccuracy) || minAccuracy < 0 || minAccuracy > 1) {
+      setFormError('La precisión mínima debe estar entre 0 y 1.');
+      return;
+    }
+    setSaving(true);
+    setFormError(null);
     try {
-      const token = await SecureStore.getItemAsync('token');
-      const userInfo = await SecureStore.getItemAsync('userInfo');
-      const user = JSON.parse(userInfo);
-      const userId = user?.user_id || user?.id;
-      const body = {
-        name: formName,
-        user_id: Number(userId),
-        is_system: true,
-        order_index: parseInt(formOrder),
-        min_accuracy: parseFloat(formAccuracy),
-      };
-      const url = editingLesson
-        ? `${config.BASE_URL}/decks/${editingLesson.deck_id}`
-        : `${config.BASE_URL}/decks`;
-      const method = editingLesson ? 'PATCH' : 'POST';
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify(body),
+      await saveSystemLesson(userId, {
+        deckId: editingLesson?.deck_id,
+        name: formName.trim(),
+        orderIndex,
+        minAccuracy,
       });
-      if (res.ok) {
-        setModalVisible(false);
-        fetchLessons();
-        Alert.alert('Éxito', editingLesson ? 'Lección actualizada' : 'Lección creada');
-      } else {
-        const err = await res.json();
-        Alert.alert('Error', err.message || 'No se pudo guardar la lección');
-      }
-    } catch {
-      Alert.alert('Error', 'Ocurrió un error al conectar con el servidor');
+      setModalVisible(false);
+      toast.success(editingLesson ? 'Lección actualizada' : 'Lección creada');
+      fetchLessons();
+    } catch (error) {
+      setFormError(getErrorMessage(error, 'No se pudo guardar la lección.'));
+    } finally {
+      setSaving(false);
     }
   };
 
-  const handleDelete = (id) => {
-    Alert.alert('Eliminar Lección', '¿Estás seguro? Se eliminarán todas las flashcards asociadas.', [
-      { text: 'Cancelar', style: 'cancel' },
-      {
-        text: 'Eliminar', style: 'destructive', onPress: async () => {
-          const token = await SecureStore.getItemAsync('token');
-          const userInfo = await SecureStore.getItemAsync('userInfo');
-          const user = JSON.parse(userInfo);
-          const userId = user?.user_id || user?.id;
-          await fetch(`${config.BASE_URL}/decks?deckId=${id}&userId=${userId}`, {
-            method: 'DELETE',
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          fetchLessons();
-        },
-      },
-    ]);
+  const handleDelete = async (lesson) => {
+    const ok = await confirm({
+      title: '¿Eliminar lección?',
+      message: `Se eliminará “${lesson.deck_name}” y todas sus flashcards asociadas.`,
+      confirmText: 'Eliminar',
+      destructive: true,
+      icon: Trash2,
+    });
+    if (!ok) return;
+    try {
+      await deleteSystemLesson(userId, lesson.deck_id);
+      toast.success('Lección eliminada');
+      fetchLessons();
+    } catch (error) {
+      toast.error('No se pudo eliminar la lección', { message: getErrorMessage(error) });
+    }
   };
 
   return (
-    <View className="flex-1 bg-background" style={{ paddingTop: insets.top }}>
-      {/* Header */}
-      <View className="flex-row items-center justify-between px-5 h-[60px] bg-surface border-b border-border">
-        <Button isIconOnly variant="ghost" onPress={() => navigation.goBack()}>
-          <ChevronLeft color={theme.colors.primary} size={28} />
-        </Button>
-        <Typography type="h5" weight="bold">Panel de Administración</Typography>
-        <View className="w-10" />
-      </View>
+    <View className="flex-1 bg-background">
+      <ScreenHeader title="Administración" onBack={() => navigation.goBack()} />
 
-      <ScrollView contentContainerStyle={{ padding: 20 }} showsVerticalScrollIndicator={false}>
-        {/* Info Card */}
-        <Card className="mb-8">
-          <Card.Body className="items-center px-6 py-6">
-            <Shield color={theme.colors.primary} size={40} style={{ marginBottom: 10 }} />
-            <Typography type="h5" weight="bold" align="center" className="mb-1">Gestión de Lecciones</Typography>
-            <Typography type="body-sm" color="muted" align="center" className="leading-5">
-              Configura la Ruta de Aprendizaje. El orden determina la secuencia de desbloqueo.
+      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 32 }} showsVerticalScrollIndicator={false}>
+        <View className="mb-6 flex-row items-center gap-4 rounded-2xl border border-border bg-surface p-4">
+          <View className="h-12 w-12 items-center justify-center rounded-full bg-accent/10">
+            <Shield color={theme.colors.primary} size={22} />
+          </View>
+          <View className="flex-1">
+            <Typography type="body" weight="bold">Gestión de lecciones</Typography>
+            <Typography type="body-xs" color="muted" className="mt-0.5 leading-4">
+              El orden determina la secuencia de desbloqueo de la ruta de aprendizaje.
             </Typography>
-          </Card.Body>
-        </Card>
+          </View>
+        </View>
 
-        {/* Section Header */}
-        <View className="flex-row justify-between items-center mb-4">
-          <Typography type="h5" weight="bold">Lecciones Actuales</Typography>
+        <View className="mb-3 flex-row items-center justify-between">
+          <Typography type="h6" weight="bold">Lecciones actuales</Typography>
           <Button size="sm" onPress={() => openModal()}>
-            <Plus color="#fff" size={16} />
+            <Plus color={theme.colors.onPrimary} size={16} />
             <Button.Label>Nueva</Button.Label>
           </Button>
         </View>
 
         {loading ? (
-          <View className="items-center mt-10">
-            <Spinner size="lg" />
-          </View>
+          <View className="mt-10 items-center"><Spinner size="lg" /></View>
+        ) : loadError ? (
+          <EmptyState icon={AlertCircle} tone="danger" title="Error al cargar" description={loadError} actionLabel="Reintentar" onAction={() => { setLoading(true); fetchLessons(); }} />
+        ) : lessons.length === 0 ? (
+          <EmptyState icon={BookOpen} title="No hay lecciones configuradas" actionLabel="Crear lección" onAction={() => openModal()} />
         ) : (
           lessons.map((item) => (
-            <Card key={item.deck_id} className="mb-3">
-              <Card.Body className="flex-row items-center px-4 py-3">
-                <Button
-                  variant="ghost"
-                  className="flex-row items-center gap-4 flex-1 justify-start"
-                  onPress={() => navigation.navigate('DeckDetails', { deck: item })}
-                >
-                  <View className="w-10 h-10 rounded-full bg-accent/10 items-center justify-center">
-                    <Typography type="body" weight="bold" className="text-accent">{item.order_index}</Typography>
-                  </View>
-                  <View>
-                    <Typography type="body" weight="bold">{item.deck_name}</Typography>
-                    <Typography type="body-xs" color="muted">
-                      Min Accuracy: {(item.min_accuracy * 100).toFixed(0)}%
-                    </Typography>
-                  </View>
-                </Button>
-                <View className="flex-row gap-4 ml-2">
-                  <Button isIconOnly variant="ghost" onPress={() => openModal(item)}>
-                    <Edit3 color={theme.colors.mutedForeground} size={20} />
-                  </Button>
-                  <Button isIconOnly variant="ghost" onPress={() => handleDelete(item.deck_id)}>
-                    <Trash2 color="#dc3545" size={20} />
-                  </Button>
+            <ListCard
+              key={item.deck_id}
+              className="mb-2.5"
+              title={item.deck_name}
+              subtitle={`Precisión mínima: ${(item.min_accuracy * 100).toFixed(0)}%`}
+              onPress={() => navigation.navigate('DeckDetails', { deck: item })}
+              showChevron={false}
+              leading={(
+                <View className="h-10 w-10 items-center justify-center rounded-full bg-accent/10">
+                  <Typography type="body" weight="bold" className="text-accent">{item.order_index}</Typography>
                 </View>
-              </Card.Body>
-            </Card>
+              )}
+              trailing={(
+                <View className="flex-row">
+                  <IconButton accessibilityLabel={`Editar ${item.deck_name}`} onPress={() => openModal(item)}>
+                    <Pencil color={theme.colors.muted} size={18} />
+                  </IconButton>
+                  <IconButton accessibilityLabel={`Eliminar ${item.deck_name}`} onPress={() => handleDelete(item)}>
+                    <Trash2 color={theme.colors.danger} size={18} />
+                  </IconButton>
+                </View>
+              )}
+            />
           ))
-        )}
-
-        {lessons.length === 0 && !loading && (
-          <Typography type="body-sm" color="muted" align="center" className="mt-10">
-            No hay lecciones configuradas.
-          </Typography>
         )}
       </ScrollView>
 
-      {/* Create/Edit Modal */}
-      <Modal
-        visible={modalVisible}
-        animationType="slide"
-        transparent
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View className="flex-1 bg-backdrop justify-end">
-          <View className="bg-surface rounded-t-3xl px-6 pt-6 pb-10 min-h-[400px]">
-            <View className="flex-row justify-between items-center mb-6">
-              <Typography type="h4" weight="bold">
-                {editingLesson ? 'Editar Lección' : 'Nueva Lección'}
-              </Typography>
-              <Button isIconOnly variant="ghost" onPress={() => setModalVisible(false)}>
-                <X color="#6B7280" size={24} />
-              </Button>
+      {/* Hoja para crear/editar */}
+      <Modal visible={modalVisible} animationType="fade" transparent statusBarTranslucent onRequestClose={() => !saving && setModalVisible(false)}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          className="flex-1 justify-end"
+          style={{ backgroundColor: theme.colors.backdrop }}
+        >
+          <Pressable style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }} onPress={() => !saving && setModalVisible(false)} />
+          <Animated.View
+            entering={SlideInDown.springify().damping(22).stiffness(240)}
+            className="rounded-t-3xl border-t border-border bg-overlay px-5 pt-2"
+            style={{ paddingBottom: insets.bottom + 16 }}
+          >
+            <View className="mb-3 mt-1 h-1 w-10 self-center rounded-full bg-border" />
+            <View className="mb-5 flex-row items-center justify-between">
+              <Typography type="h5" weight="bold">{editingLesson ? 'Editar lección' : 'Nueva lección'}</Typography>
+              <IconButton accessibilityLabel="Cerrar" onPress={() => setModalVisible(false)} disabled={saving}>
+                <X color={theme.colors.muted} size={20} />
+              </IconButton>
             </View>
 
-            <Typography type="body-sm" weight="semibold" className="mb-1">Nombre de la Lección</Typography>
-            <Input
-              className="w-full mb-4"
-              value={formName}
-              onChangeText={setFormName}
-              placeholder="Ej. Greetings"
-            />
-
-            <View className="flex-row gap-4 mb-4">
-              <View className="flex-1">
-                <Typography type="body-sm" weight="semibold" className="mb-1">Orden</Typography>
-                <Input
-                  className="w-full"
-                  value={formOrder}
-                  onChangeText={setFormOrder}
-                  placeholder="1"
-                  keyboardType="numeric"
-                />
-              </View>
-              <View className="flex-1">
-                <Typography type="body-sm" weight="semibold" className="mb-1">Precisión Min (0-1)</Typography>
-                <Input
-                  className="w-full"
-                  value={formAccuracy}
-                  onChangeText={setFormAccuracy}
-                  placeholder="0.9"
-                  keyboardType="numeric"
-                />
-              </View>
+            <FormField label="Nombre de la lección" value={formName} onChangeText={setFormName} placeholder="Ej. Greetings" editable={!saving} />
+            <View className="flex-row gap-3">
+              <FormField className="flex-1" label="Orden" value={formOrder} onChangeText={setFormOrder} placeholder="1" keyboardType="number-pad" editable={!saving} />
+              <FormField className="flex-1" label="Precisión mín. (0-1)" value={formAccuracy} onChangeText={setFormAccuracy} placeholder="0.9" keyboardType="decimal-pad" editable={!saving} />
             </View>
+            {formError ? <Typography type="body-sm" className="mb-3 text-danger">{formError}</Typography> : null}
 
-            <Button size="lg" className="w-full mt-2" onPress={handleSave}>
-              <Save color="#fff" size={20} />
-              <Button.Label>Guardar Lección</Button.Label>
+            <Button size="lg" className="mt-1 w-full" onPress={handleSave} isDisabled={saving}>
+              {saving ? <Spinner color={theme.colors.onPrimary} size="sm" /> : (
+                <>
+                  <Save color={theme.colors.onPrimary} size={18} />
+                  <Button.Label>Guardar lección</Button.Label>
+                </>
+              )}
             </Button>
-          </View>
-        </View>
+          </Animated.View>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );

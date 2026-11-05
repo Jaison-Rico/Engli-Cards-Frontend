@@ -1,158 +1,132 @@
-import { View, KeyboardAvoidingView, Platform, ScrollView, Image, StatusBar } from 'react-native';
-import { useState } from 'react';
+import React, { useRef, useState } from 'react';
+import { View } from 'react-native';
 import { CommonActions, useNavigation } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Mail, Lock, Eye, EyeOff, LogIn } from 'lucide-react-native';
-import { Button, Input, Spinner, Typography } from 'heroui-native';
+import { Button, Spinner, Typography } from 'heroui-native';
 import { useAppTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
 import { loginUser } from '../../services/auth.service';
+import { getErrorMessage, getStatus, isNetworkError } from '../../utils/errors';
+import AuthScaffold from '../../components/ui/AuthScaffold';
+import FormField from '../../components/ui/FormField';
+import InlineAlert from '../../components/ui/InlineAlert';
+import IconButton from '../../components/ui/IconButton';
+import PressableScale from '../../components/ui/PressableScale';
+import { elevation } from '../../theme/theme';
+
+const loginErrorMessage = (error) => {
+  if (isNetworkError(error)) return 'No se pudo conectar con el servidor. Revisa tu conexión a Internet.';
+  const status = getStatus(error);
+  if (status === 401) return getErrorMessage(error, 'Correo o contraseña incorrectos.');
+  if (status === 404) return getErrorMessage(error, 'No existe una cuenta con ese correo.');
+  if (status === 429) return 'Demasiados intentos. Espera un momento y vuelve a intentarlo.';
+  if (status >= 500) return 'Error del servidor. Intenta más tarde.';
+  return getErrorMessage(error, 'No se pudo iniciar sesión.');
+};
 
 export default function LoginScreen() {
   const { theme } = useAppTheme();
   const navigation = useNavigation();
-  const insets = useSafeAreaInsets();
   const { login } = useAuth();
+  const passwordRef = useRef(null);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState(null);
 
   const handleLogin = async () => {
-    if (!email || !password) {
-      alert('Por favor ingresa correo y contraseña');
+    if (!email.trim() || !password) {
+      setError('Ingresa tu correo y contraseña.');
       return;
     }
     setLoading(true);
+    setError(null);
     try {
-      const { token, user } = await loginUser(email, password);
+      const { token, user } = await loginUser(email.trim(), password);
       await login(token, user);
       const destination = user.onboarding_completed ? 'BottomTabs' : 'Onboarding';
-      navigation.dispatch(
-        CommonActions.reset({ index: 0, routes: [{ name: destination }] })
-      );
-    } catch (error) {
-      if (!error.response) {
-        alert('No se pudo conectar con el servidor. Verifica que el backend esté encendido.');
-        return;
-      }
-      const status = error.response?.status;
-      const msg = error.response?.data?.message || '';
-      if (status === 400) alert(msg || 'Solicitud inválida. Revisa los campos.');
-      else if (status === 401) alert(msg || 'Credenciales incorrectas.');
-      else if (status === 404) alert(msg || 'Usuario no encontrado.');
-      else if (status >= 500) alert('Error del servidor. Intenta más tarde.');
-      else alert(msg || `Error ${status}`);
+      navigation.dispatch(CommonActions.reset({ index: 0, routes: [{ name: destination }] }));
+    } catch (err) {
+      setError(loginErrorMessage(err));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <KeyboardAvoidingView
-      className="flex-1 bg-background"
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <StatusBar
-        barStyle={theme.mode === 'dark' ? 'light-content' : 'dark-content'}
-        backgroundColor="transparent"
-        translucent
-      />
-      <ScrollView
-        contentContainerStyle={{ paddingTop: insets.top + 40, paddingBottom: insets.bottom + 20, paddingHorizontal: 28, alignItems: 'center' }}
-        keyboardShouldPersistTaps="handled"
-      >
-        {/* Header */}
-        <View className="items-center mb-8">
-          <View className="w-20 h-20 rounded-full bg-surface items-center justify-center mb-4 shadow-surface">
-            <Image
-              source={require('../../../assets/logo.png')}
-              style={{ width: 100, height: 100, borderRadius: 16 }}
-              resizeMode="contain"
-            />
-          </View>
-          <Typography type="h1" weight="bold" className="tracking-tight mb-1">Engli-Cards</Typography>
-          <Typography type="body-sm" color="muted">Eleva tu inglés con cada tarjeta.</Typography>
-        </View>
+    <AuthScaffold showLogo title="Engli-Cards" subtitle="Eleva tu inglés con cada tarjeta.">
+      <View className="mb-6 rounded-3xl border border-border bg-surface px-5 py-6" style={elevation(1, theme.mode)}>
+        <Typography type="h5" weight="bold" className="mb-5">Bienvenido de nuevo</Typography>
 
-        {/* Form Card */}
-        <View className="w-full bg-surface rounded-3xl px-6 py-7 shadow-surface mb-7">
-          <Typography type="h3" weight="bold" className="mb-6">Bienvenido de nuevo</Typography>
+        <FormField
+          label="Correo electrónico"
+          icon={Mail}
+          value={email}
+          onChangeText={(text) => { setEmail(text); setError(null); }}
+          placeholder="nombre@ejemplo.com"
+          keyboardType="email-address"
+          autoCapitalize="none"
+          autoComplete="email"
+          textContentType="emailAddress"
+          returnKeyType="next"
+          onSubmitEditing={() => passwordRef.current?.focus()}
+          editable={!loading}
+        />
 
-          {/* Email */}
-          <View className="mb-5">
-            <Typography type="body-sm" weight="bold" className="uppercase tracking-widest mb-2 text-foreground">
-              Correo electrónico
-            </Typography>
-            <View className="flex-row items-center bg-background rounded-full border border-border px-4 h-[52px]">
-              <Mail color={theme.colors.mutedForeground} size={18} style={{ marginRight: 10 }} />
-              <Input
-                className="flex-1 bg-transparent"
-                value={email}
-                onChangeText={setEmail}
-                placeholder="nombre@ejemplo.com"
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-            </View>
-          </View>
+        <FormField
+          ref={passwordRef}
+          label="Contraseña"
+          icon={Lock}
+          value={password}
+          onChangeText={(text) => { setPassword(text); setError(null); }}
+          placeholder="••••••••"
+          secureTextEntry={!showPassword}
+          autoComplete="password"
+          textContentType="password"
+          returnKeyType="go"
+          onSubmitEditing={handleLogin}
+          editable={!loading}
+          className="mb-2"
+          trailing={(
+            <IconButton
+              accessibilityLabel={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+              onPress={() => setShowPassword(!showPassword)}
+              className="-mr-3 h-10 w-10"
+            >
+              {showPassword ? <EyeOff color={theme.colors.muted} size={18} /> : <Eye color={theme.colors.muted} size={18} />}
+            </IconButton>
+          )}
+        />
 
-          {/* Password */}
-          <View className="mb-6">
-            <View className="flex-row justify-between items-center mb-2">
-              <Typography type="body-sm" weight="bold" className="uppercase tracking-widest text-foreground">
-                Contraseña
-              </Typography>
-              <Button variant="ghost" size="sm" onPress={() => navigation.navigate('ResetPassword')} className="p-0 h-auto">
-                <Typography type="body-sm" className="text-accent">¿Olvidaste tu contraseña?</Typography>
-              </Button>
-            </View>
-            <View className="flex-row items-center bg-background rounded-full border border-border px-4 h-[52px]">
-              <Lock color={theme.colors.mutedForeground} size={18} style={{ marginRight: 10 }} />
-              <Input
-                className="flex-1 bg-transparent"
-                value={password}
-                onChangeText={setPassword}
-                placeholder="••••••••"
-                secureTextEntry={!showPassword}
-              />
-              <Button isIconOnly variant="ghost" size="sm" onPress={() => setShowPassword(!showPassword)}>
-                {showPassword
-                  ? <EyeOff color={theme.colors.mutedForeground} size={18} />
-                  : <Eye color={theme.colors.mutedForeground} size={18} />
-                }
-              </Button>
-            </View>
-          </View>
+        <PressableScale
+          onPress={() => navigation.navigate('ResetPassword')}
+          haptic={null}
+          hitSlop={8}
+          className="mb-5 self-end py-1"
+        >
+          <Typography type="body-sm" weight="semibold" className="text-accent">¿Olvidaste tu contraseña?</Typography>
+        </PressableScale>
 
-          {/* Login Button */}
-          <Button
-            onPress={handleLogin}
-            isDisabled={loading}
-            size="lg"
-            className="w-full rounded-full h-[52px]"
-          >
-            {loading
-              ? <Spinner color="white" size="sm" />
-              : (
-                <View className="flex-row items-center gap-2">
-                  <Button.Label>Iniciar Sesión</Button.Label>
-                  <LogIn color="#fff" size={18} />
-                </View>
-              )
-            }
-          </Button>
-        </View>
+        <InlineAlert message={error} className="mb-4" />
 
-        {/* Footer */}
-        <View className="flex-row items-center">
-          <Typography type="body-sm" color="muted">¿No tienes cuenta? </Typography>
-          <Button variant="ghost" size="sm" onPress={() => navigation.navigate('Register')} className="p-0 h-auto">
-            <Typography type="body-sm" weight="bold" className="text-accent">Crear cuenta</Typography>
-          </Button>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        <Button onPress={handleLogin} isDisabled={loading} size="lg" className="w-full">
+          {loading ? <Spinner color={theme.colors.onPrimary} size="sm" /> : (
+            <>
+              <Button.Label>Iniciar sesión</Button.Label>
+              <LogIn color={theme.colors.onPrimary} size={18} />
+            </>
+          )}
+        </Button>
+      </View>
+
+      <View className="flex-row items-center justify-center">
+        <Typography type="body-sm" color="muted">¿No tienes cuenta? </Typography>
+        <PressableScale onPress={() => navigation.navigate('Register')} haptic={null} hitSlop={8}>
+          <Typography type="body-sm" weight="bold" className="text-accent">Crear cuenta</Typography>
+        </PressableScale>
+      </View>
+    </AuthScaffold>
   );
 }

@@ -1,26 +1,55 @@
 import client from './client';
 import { normalizeDeck } from '../utils/deck';
+import { isNetworkError } from '../utils/errors';
 import {
   getLocalDecks,
-  saveDecksLocally,
+  getLocalDeck,
+  replaceDecksFromServer,
   saveLocalDeck,
+  saveLocalDeckFlashcards,
+  getLocalDeckFlashcards,
   removeLocalDeck,
   queueChange,
-  getPendingChanges,
-  removePendingChange,
 } from './localDatabase';
+import { syncAll } from './sync.service';
+import { refreshPendingCount } from './syncStatus';
+import { getNetworkState } from './networkStatus';
+import { createTemporaryId, isTemporaryId } from './queuePlanner';
 
+/**
+ * Antes de una escritura online se vacía la cola, para que los cambios hechos
+ * offline lleguen al servidor en el orden en que el usuario los hizo.
+ */
+const flushQueue = (userId) => syncAll(userId).catch(() => null);
+
+const queueDeckChange = async (userId, operation, entityId, payload) => {
+  await queueChange(userId, { entity: 'deck', operation, entityId, payload });
+  await refreshPendingCount(userId);
+};
+
+/**
+ * Lista de mazos del usuario.
+ *
+ * Online: sincroniza lo pendiente, descarga la lista, reconcilia la caché y
+ * devuelve la lista del servidor más los mazos locales aún no sincronizados.
+ * Offline: devuelve la caché marcada con `isOffline = true`.
+ */
 export const getDecks = async (userId, includeSystem = false) => {
   try {
+    if (getNetworkState().deviceOnline) await flushQueue(userId);
     const res = await client.get(`/decks/${userId}?includeSystem=${includeSystem}`);
     const data = Array.isArray(res.data) ? res.data : (res.data?.decks ?? []);
-    const decks = data.map(normalizeDeck);
-    await saveDecksLocally(userId, decks);
-    await syncPendingChanges(userId);
-    return decks;
+    const serverDecks = data.map(normalizeDeck).filter((deck) => deck.deck_id !== null);
+    await replaceDecksFromServer(userId, serverDecks, { includeSystem });
+
+    const serverIds = new Set(serverDecks.map((deck) => String(deck.deck_id)));
+    const localOnly = (await getLocalDecks(userId)).filter(
+      (deck) => !serverIds.has(String(deck.deck_id)) && (includeSystem || !deck.is_system),
+    );
+    return [...serverDecks, ...localOnly];
   } catch (error) {
-    if (error.response) throw error;
-    const cachedDecks = await getLocalDecks(userId);
+    if (!isNetworkError(error)) throw error;
+    const cachedDecks = (await getLocalDecks(userId)).filter((deck) => includeSystem || !deck.is_system);
     if (cachedDecks.length > 0) {
       cachedDecks.isOffline = true;
       return cachedDecks;
@@ -29,91 +58,97 @@ export const getDecks = async (userId, includeSystem = false) => {
   }
 };
 
+/** @returns {Promise<object>} el mazo creado (con `pending: true` si quedó en cola). */
 export const createDeck = async (name, userId) => {
-  try {
-    const response = await client.post('/decks', { name, userId });
-    const deck = normalizeDeck(response.data);
-    await saveLocalDeck(userId, deck);
-    return deck;
-  } catch (error) {
-    if (error.response) throw error;
+  const createOffline = async () => {
     const temporaryDeck = normalizeDeck({
-      deck_id: `offline-${Date.now()}`,
+      deck_id: createTemporaryId(),
       deck_name: name,
       cardCount: 0,
+      flashcards: [],
       is_system: false,
     });
-    await saveLocalDeck(userId, temporaryDeck);
-    await queueChange(userId, 'create', temporaryDeck.deck_id, { name });
-    return temporaryDeck;
-  }
-};
+    const deck = { ...temporaryDeck, pending: true };
+    await saveLocalDeck(userId, deck);
+    await queueDeckChange(userId, 'create', deck.deck_id, { name });
+    return deck;
+  };
 
-export const updateDeck = async (deckId, name, userId) => {
+  if (!getNetworkState().deviceOnline) return createOffline();
   try {
-    const response = await client.patch(`/decks/${deckId}`, { name, userId });
-    const deck = normalizeDeck(response.data);
+    await flushQueue(userId);
+    const response = await client.post('/decks', { name, userId });
+    const deck = normalizeDeck({ deck_name: name, cardCount: 0, flashcards: [], ...response.data });
     await saveLocalDeck(userId, deck);
     return deck;
   } catch (error) {
-    if (error.response) throw error;
-    const decks = await getLocalDecks(userId);
-    const current = decks.find((item) => String(item.deck_id) === String(deckId));
+    if (!isNetworkError(error)) throw error;
+    return createOffline();
+  }
+};
+
+/** @returns {Promise<{ deck: object, offline: boolean }>} */
+export const updateDeck = async (deckId, name, userId) => {
+  const updateOffline = async () => {
+    const current = await getLocalDeck(userId, deckId);
     const updated = normalizeDeck({ ...current, deck_id: deckId, deck_name: name });
-    await saveLocalDeck(userId, updated);
-    await queueChange(userId, 'update', deckId, { name });
-    return updated;
-  }
-};
+    await saveLocalDeck(userId, { ...updated, flashcards: undefined });
+    await queueDeckChange(userId, 'update', deckId, { name });
+    return { deck: updated, offline: true };
+  };
 
-export const deleteDeck = async (deckId, userId) => {
+  if (isTemporaryId(deckId) || !getNetworkState().deviceOnline) return updateOffline();
   try {
-    const response = await client.delete(`/decks?deckId=${deckId}&userId=${userId}`);
-    await removeLocalDeck(userId, deckId);
-    return response.data;
+    await flushQueue(userId);
+    const response = await client.patch(`/decks/${deckId}`, { name, userId });
+    const current = await getLocalDeck(userId, deckId);
+    const deck = normalizeDeck({ ...current, ...response.data, deck_id: deckId, deck_name: name });
+    await saveLocalDeck(userId, { ...deck, flashcards: undefined });
+    return { deck, offline: false };
   } catch (error) {
-    if (error.response) throw error;
-    await removeLocalDeck(userId, deckId);
-    await queueChange(userId, 'delete', deckId);
-    return { offline: true };
+    if (!isNetworkError(error)) throw error;
+    return updateOffline();
   }
 };
 
+/** @returns {Promise<{ offline: boolean }>} */
+export const deleteDeck = async (deckId, userId) => {
+  const deleteOffline = async () => {
+    await removeLocalDeck(userId, deckId);
+    await queueDeckChange(userId, 'delete', deckId);
+    return { offline: true };
+  };
+
+  if (isTemporaryId(deckId) || !getNetworkState().deviceOnline) return deleteOffline();
+  try {
+    await flushQueue(userId);
+    await client.delete(`/decks?deckId=${deckId}&userId=${userId}`);
+    await removeLocalDeck(userId, deckId);
+    return { offline: false };
+  } catch (error) {
+    if (!isNetworkError(error)) throw error;
+    return deleteOffline();
+  }
+};
+
+/** Tarjetas de un mazo, con respaldo en la caché local si no hay conexión. */
 export const getDeckFlashcards = async (deckId, userId) => {
+  if (isTemporaryId(deckId)) return userId ? getLocalDeckFlashcards(userId, deckId) : [];
   try {
     const response = await client.get(`/decks/${deckId}/flashcards`);
     const cards = Array.isArray(response.data) ? response.data : [];
-    if (userId) {
-      const decks = await getLocalDecks(userId);
-      const deck = decks.find((item) => String(item.deck_id) === String(deckId));
-      if (deck) await saveLocalDeck(userId, { ...deck, flashcards: cards, cardCount: cards.length });
-    }
-    return cards;
+    if (!userId) return cards;
+    await saveLocalDeckFlashcards(userId, deckId, cards);
+    // Devuelve también las tarjetas creadas offline que aún no se enviaron.
+    return getLocalDeckFlashcards(userId, deckId);
   } catch (error) {
-    const decks = userId ? await getLocalDecks(userId) : [];
-    const cachedCards = decks.find((item) => String(item.deck_id) === String(deckId))?.flashcards;
-    if (cachedCards) return cachedCards;
-    throw error;
+    if (!userId || !isNetworkError(error)) throw error;
+    return getLocalDeckFlashcards(userId, deckId);
   }
 };
 
 export const getDeckQuiz = (deckId) =>
   client.get(`/decks/${deckId}/quiz`).then((r) => r.data);
 
-export const syncPendingChanges = async (userId) => {
-  const changes = await getPendingChanges(userId);
-  for (const change of changes) {
-    try {
-      if (change.operation === 'create') {
-        await client.post('/decks', { ...change.payload, userId });
-      } else if (change.operation === 'update') {
-        await client.patch(`/decks/${change.entity_id}`, { ...change.payload, userId });
-      } else if (change.operation === 'delete') {
-        await client.delete(`/decks?deckId=${change.entity_id}&userId=${userId}`);
-      }
-      await removePendingChange(change.id);
-    } catch (error) {
-      break;
-    }
-  }
-};
+/** Compatibilidad: antes la sincronización vivía aquí. */
+export const syncPendingChanges = (userId) => syncAll(userId);

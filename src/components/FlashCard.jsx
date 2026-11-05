@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Pressable, StyleSheet, useWindowDimensions } from 'react-native';
 import * as Speech from 'expo-speech';
-import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import { Volume2, RotateCw } from 'lucide-react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, interpolate } from 'react-native-reanimated';
 import { Typography, Button } from 'heroui-native';
 import CachedImage from './CachedImage';
+import { useAppTheme } from '../context/ThemeContext';
+import { elevation } from '../theme/theme';
 
 // Códigos de idioma candidatos en orden de preferencia
 const SPANISH_LANG_CANDIDATES = ['es-419', 'es-ES', 'es-MX', 'es-US', 'es'];
@@ -20,7 +23,7 @@ async function findBestVoice(candidates) {
     if (!voices || voices.length === 0) return candidates[0];
     for (const lang of candidates) {
       const match = voices.find(
-        (v) => v.language && (v.language === lang || v.language.startsWith(lang.split('-')[0]))
+        (v) => v.language && (v.language === lang || v.language.startsWith(lang.split('-')[0])),
       );
       if (match) return match.language;
     }
@@ -29,6 +32,8 @@ async function findBestVoice(candidates) {
   }
   return candidates[0];
 }
+
+const FLIP_SPRING = { damping: 14, stiffness: 120 };
 
 export default function FlashCard({
   item,
@@ -42,21 +47,27 @@ export default function FlashCard({
   langFront = 'en-US',
   langBack = 'es-ES',
 }) {
-  if (!item) return null;
-
+  // Los hooks van siempre antes de cualquier return (reglas de hooks de React).
+  const { theme } = useAppTheme();
+  const { width: screenWidth } = useWindowDimensions();
   const flip = useSharedValue(0);
   const [isFlipped, setIsFlipped] = useState(false);
 
   const frontAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ rotateY: `${interpolate(flip.value, [0, 1], [0, 180])}deg` }],
+    transform: [{ perspective: 1200 }, { rotateY: `${interpolate(flip.value, [0, 1], [0, 180])}deg` }],
+  }));
+  const backAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ perspective: 1200 }, { rotateY: `${interpolate(flip.value, [0, 1], [180, 360])}deg` }],
   }));
 
-  const backAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ rotateY: `${interpolate(flip.value, [0, 1], [180, 360])}deg` }],
-  }));
+  if (!item) return null;
+
+  const cardWidth = Math.min(screenWidth - 48, 380);
+  const cardHeight = Math.round(cardWidth * 0.7);
 
   const handleFlip = () => {
-    flip.value = withSpring(isFlipped ? 0 : 1, { damping: 10, stiffness: 100 });
+    Haptics.selectionAsync().catch(() => {});
+    flip.value = withSpring(isFlipped ? 0 : 1, FLIP_SPRING);
     setIsFlipped(!isFlipped);
   };
 
@@ -67,66 +78,65 @@ export default function FlashCard({
     if (!text) return;
     try {
       Speech.stop();
-      // Seleccionar los candidatos correctos según el idioma solicitado
-      const isSpanish = requestedLang.startsWith('es');
-      const candidates = isSpanish ? SPANISH_LANG_CANDIDATES : ENGLISH_LANG_CANDIDATES;
+      const candidates = requestedLang.startsWith('es') ? SPANISH_LANG_CANDIDATES : ENGLISH_LANG_CANDIDATES;
       const bestLang = await findBestVoice(candidates);
       Speech.speak(text, { language: bestLang, pitch: 1.0, rate: 0.9 });
     } catch {
-      // Fallback sin opciones de idioma específicas
-      try { Speech.speak(text); } catch {}
+      try { Speech.speak(text); } catch { /* sin voz disponible */ }
     }
   };
 
   const imgUri = item?.[imageKey] || item?.image_url;
+  const imageStyle = { width: cardWidth * 0.55, height: cardHeight * 0.4, borderRadius: 12 };
+
+  const renderFace = (label, text, hint, style, background) => (
+    <Animated.View
+      style={[styles.card, { backgroundColor: background }, elevation(2, theme.mode), style]}
+    >
+      <View className="absolute left-4 top-4 rounded-full bg-white/20 px-2.5 py-1">
+        <Typography type="body-xs" weight="semibold" className="text-white">{label}</Typography>
+      </View>
+      <Typography type="h3" weight="bold" align="center" className="mb-3 px-4 text-white" numberOfLines={3}>
+        {text}
+      </Typography>
+      {imgUri ? <CachedImage uri={imgUri} style={imageStyle} contentFit="contain" /> : null}
+      <View className="absolute bottom-4 flex-row items-center gap-1.5">
+        <RotateCw color="rgba(255,255,255,0.75)" size={12} />
+        <Typography type="body-xs" className="text-white/75">{hint}</Typography>
+      </View>
+    </Animated.View>
+  );
 
   return (
     <View className="items-center">
-      <TouchableOpacity onPress={handleFlip} style={[styles.cardContainer, containerStyle]}>
-        {/* Front */}
-        <Animated.View style={[styles.card, styles.cardFront, frontAnimatedStyle]}>
-          <Typography type="body-xs" className="absolute top-3 left-3 text-white/80">{frontLabel}</Typography>
-          <Typography type="h4" weight="bold" className="text-white text-center mb-3">
-            {item?.[frontKey] || item.word}
-          </Typography>
-          {imgUri ? <CachedImage uri={imgUri} style={styles.cardImage} contentFit="contain" /> : null}
-          <Typography type="body-xs" className="text-white/70 mt-2">Toca para ver traducción</Typography>
-        </Animated.View>
+      <Pressable
+        onPress={handleFlip}
+        accessibilityRole="button"
+        accessibilityLabel={isFlipped ? `${backLabel}: ${item?.[backKey] || item.translation}` : `${frontLabel}: ${item?.[frontKey] || item.word}`}
+        accessibilityHint="Toca para voltear la tarjeta"
+        style={[{ width: cardWidth, height: cardHeight, marginVertical: 12 }, containerStyle]}
+      >
+        {renderFace(frontLabel, item?.[frontKey] || item.word, 'Toca para ver la traducción', frontAnimatedStyle, theme.colors.primary)}
+        {renderFace(backLabel, item?.[backKey] || item.translation, 'Toca para volver', backAnimatedStyle, theme.mode === 'dark' ? '#1E9590' : '#0B8C88')}
+      </Pressable>
 
-        {/* Back */}
-        <Animated.View style={[styles.card, styles.cardBack, backAnimatedStyle]}>
-          <Typography type="body-xs" className="absolute top-3 left-3 text-white/80">{backLabel}</Typography>
-          <Typography type="h4" weight="bold" className="text-white text-center mb-3">
-            {item?.[backKey] || item.translation}
-          </Typography>
-          {imgUri ? <CachedImage uri={imgUri} style={styles.cardImage} contentFit="contain" /> : null}
-          <Typography type="body-xs" className="text-white/70 mt-2">Toca para volver</Typography>
-        </Animated.View>
-      </TouchableOpacity>
-
-      {speakEnabled && (
-        <Button size="sm" className="mt-3 rounded-full" onPress={handleSpeak}>
-          <Ionicons name="volume-high" size={18} color="#fff" />
-          <Button.Label>Escuchar</Button.Label>
+      {speakEnabled ? (
+        <Button size="sm" variant="secondary" className="mt-2 px-4" onPress={handleSpeak}>
+          <Volume2 size={16} color={theme.colors.foreground} />
+          <Button.Label className="text-foreground">Escuchar</Button.Label>
         </Button>
-      )}
+      ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  cardContainer: { width: 300, height: 200, marginVertical: 12 },
   card: {
-    width: '100%',
-    height: '100%',
-    position: 'absolute',
+    ...StyleSheet.absoluteFillObject,
     backfaceVisibility: 'hidden',
-    borderRadius: 20,
+    borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
   },
-  cardFront: { backgroundColor: '#12B5B0' },
-  cardBack: { backgroundColor: '#0E9A96' },
-  cardImage: { width: 200, height: 100, resizeMode: 'contain', borderRadius: 8 },
 });

@@ -25,7 +25,8 @@ class SoundManager {
       const player = createAudioPlayer(source);
       player.play();
     } catch (error) {
-      console.log('Error playing sound:', error);
+      // Los sonidos remotos fallan sin conexión: no es un error para el usuario.
+      if (__DEV__) console.warn('No se pudo reproducir el sonido:', error?.message ?? error);
     }
   }
 }

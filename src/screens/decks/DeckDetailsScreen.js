@@ -1,14 +1,27 @@
-import React, { useState, useCallback } from 'react';
-import { View, FlatList, Image, Alert, Modal, Share } from 'react-native';
+import React, { useState, useCallback, useMemo } from 'react';
+import { View, FlatList, Share, RefreshControl } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, MoreVertical, Edit2, Volume2, ChevronRight, Plus, Image as ImageIcon, Search } from 'lucide-react-native';
+import {
+  ArrowLeft, MoreVertical, Pencil, Volume2, Plus, Image as ImageIcon, Share2, Trash2,
+  GraduationCap, AlertCircle, CloudOff, Layers,
+} from 'lucide-react-native';
 import * as Speech from 'expo-speech';
-import { Button, Input, Card, Spinner, Typography } from 'heroui-native';
+import { Button, Spinner, Typography } from 'heroui-native';
 import { useAppTheme } from '../../context/ThemeContext';
 import { useAuth, getUserId } from '../../context/AuthContext';
+import { useFeedback } from '../../components/feedback/FeedbackProvider';
+import TextPromptModal from '../../components/feedback/TextPromptModal';
 import { getDeckFlashcards, updateDeck, deleteDeck } from '../../services/decks.service';
+import { getErrorMessage } from '../../utils/errors';
 import CachedImage from '../../components/CachedImage';
+import ListCard from '../../components/ui/ListCard';
+import IconButton from '../../components/ui/IconButton';
+import SearchField from '../../components/ui/SearchField';
+import EmptyState from '../../components/ui/EmptyState';
+import PressableScale from '../../components/ui/PressableScale';
+
+const MIN_CARDS_FOR_QUIZ = 5;
 
 export default function DeckDetailsScreen({ route, navigation }) {
   const { deck } = route.params;
@@ -16,51 +29,86 @@ export default function DeckDetailsScreen({ route, navigation }) {
   const { user } = useAuth();
   const userId = getUserId(user);
   const insets = useSafeAreaInsets();
+  const { toast, confirm, actionSheet } = useFeedback();
 
   const [flashcards, setFlashcards] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
   const [deckName, setDeckName] = useState(deck.deck_name || 'Mazo');
   const [searchQuery, setSearchQuery] = useState('');
-  const [isEditModalVisible, setEditModalVisible] = useState(false);
-  const [editNameInput, setEditNameInput] = useState(deckName);
+  const [renameVisible, setRenameVisible] = useState(false);
 
-  const primaryColor = theme.colors.primaryLight || theme.colors.primary;
-
-  useFocusEffect(useCallback(() => { fetchFlashcards(); }, []));
-
-  const fetchFlashcards = async () => {
-    setLoading(true);
+  const fetchFlashcards = useCallback(async () => {
     setError(null);
     try {
       const data = await getDeckFlashcards(deck.deck_id, userId);
       setFlashcards(data);
     } catch (err) {
-      setError('No se pudieron cargar las flashcards.');
+      setError(getErrorMessage(err, 'No se pudieron cargar las flashcards.'));
     } finally {
       setLoading(false);
     }
+  }, [deck.deck_id, userId]);
+
+  useFocusEffect(useCallback(() => { fetchFlashcards(); }, [fetchFlashcards]));
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchFlashcards();
+    setRefreshing(false);
   };
 
   const handleShare = async () => {
     if (flashcards.length === 0) {
-      Alert.alert('Sin contenido', 'Agrega tarjetas al mazo antes de compartirlo.');
+      toast.info('Este mazo está vacío', { message: 'Agrega tarjetas antes de compartirlo.' });
       return;
     }
     const lines = flashcards.map((c) => `• ${c.word} → ${c.translation}`).join('\n');
     await Share.share({
       title: `Mazo: ${deckName}`,
       message: `📚 Mazo de vocabulario: ${deckName}\n\n${lines}\n\n(Compartido desde Engli-Cards)`,
-    });
+    }).catch(() => {});
   };
 
-  const handleOptionsMenu = () => {
-    Alert.alert(deckName, '¿Qué deseas hacer con este mazo?', [
-      { text: 'Renombrar', onPress: () => { setEditNameInput(deckName); setEditModalVisible(true); } },
-      { text: 'Compartir', onPress: handleShare },
-      { text: 'Eliminar mazo', style: 'destructive', onPress: handleDeleteDeck },
-      { text: 'Cancelar', style: 'cancel' },
-    ]);
+  const handleRename = async (name) => {
+    if (!userId) throw new Error('No se encontró tu sesión.');
+    const { offline } = await updateDeck(deck.deck_id, name, userId);
+    setDeckName(name);
+    setRenameVisible(false);
+    if (offline) toast.offline('Cambio guardado en el dispositivo', { message: 'Se sincronizará al volver la conexión.' });
+    else toast.success('Mazo renombrado');
+  };
+
+  const handleDeleteDeck = async () => {
+    const ok = await confirm({
+      title: '¿Eliminar este mazo?',
+      message: `Se eliminará “${deckName}” y sus ${flashcards.length} tarjetas. Esta acción no se puede deshacer.`,
+      confirmText: 'Eliminar mazo',
+      destructive: true,
+      icon: Trash2,
+    });
+    if (!ok) return;
+    if (!userId) { toast.error('No se encontró tu sesión'); return; }
+    try {
+      const { offline } = await deleteDeck(deck.deck_id, userId);
+      navigation.goBack();
+      if (offline) toast.offline('Mazo eliminado en el dispositivo', { message: 'Se eliminará del servidor al volver la conexión.' });
+      else toast.success('Mazo eliminado');
+    } catch (err) {
+      toast.error('No se pudo eliminar el mazo', { message: getErrorMessage(err) });
+    }
+  };
+
+  const openOptions = () => {
+    actionSheet({
+      title: deckName,
+      options: [
+        { label: 'Renombrar', icon: Pencil, onPress: () => setRenameVisible(true) },
+        { label: 'Compartir', icon: Share2, onPress: handleShare },
+        { label: 'Eliminar mazo', icon: Trash2, destructive: true, onPress: handleDeleteDeck },
+      ],
+    });
   };
 
   const handleSpeak = (word) => {
@@ -69,192 +117,158 @@ export default function DeckDetailsScreen({ route, navigation }) {
     Speech.speak(word, { language: 'en-US', pitch: 1.0, rate: 1.0 });
   };
 
-  const handleSaveDeckName = async () => {
-    if (!editNameInput.trim()) return;
-    if (!userId) { Alert.alert('Error', 'No se encontró tu ID de usuario.'); return; }
-    try {
-      await updateDeck(deck.deck_id, editNameInput, userId);
-      setDeckName(editNameInput);
-      setEditModalVisible(false);
-      Alert.alert('Éxito', 'Mazo actualizado correctamente');
-    } catch {
-      Alert.alert('Error', 'No se pudo actualizar el mazo');
-    }
+  const filteredCards = useMemo(() => {
+    const term = searchQuery.trim().toLowerCase();
+    if (!term) return flashcards;
+    return flashcards.filter((card) =>
+      card.word?.toLowerCase().includes(term) || card.translation?.toLowerCase().includes(term));
+  }, [flashcards, searchQuery]);
+
+  const cardCount = flashcards.length || (loading ? deck.cardCount || 0 : 0);
+  const canQuiz = flashcards.length >= MIN_CARDS_FOR_QUIZ;
+
+  const startQuiz = () => {
+    if (canQuiz) navigation.navigate('DeckQuiz', { deckId: deck.deck_id, deckName });
+    else toast.info(`Necesitas al menos ${MIN_CARDS_FOR_QUIZ} tarjetas`, { message: `Este mazo tiene ${flashcards.length}.` });
   };
 
-  const handleDeleteDeck = () => {
-    Alert.alert('Eliminar Mazo', '¿Estás seguro que deseas eliminar este mazo?', [
-      { text: 'Cancelar', style: 'cancel' },
-      {
-        text: 'Eliminar', style: 'destructive', onPress: async () => {
-          if (!userId) { Alert.alert('Error', 'No se encontró tu ID de usuario.'); return; }
-          try {
-            await deleteDeck(deck.deck_id, userId);
-            Alert.alert('Éxito', 'Mazo eliminado correctamente', [
-              { text: 'OK', onPress: () => { setEditModalVisible(false); navigation.goBack(); } },
-            ]);
-          } catch {
-            Alert.alert('Error', 'No se pudo eliminar el mazo');
-          }
-        },
-      },
-    ]);
-  };
-
-  const filteredCards = flashcards.filter((card) =>
-    card.word.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    card.translation.toLowerCase().includes(searchQuery.toLowerCase())
+  const renderCard = ({ item }) => (
+    <ListCard
+      className="mb-2.5"
+      title={item.word}
+      subtitle={item.translation}
+      onPress={() => navigation.navigate('UpdateFlashCard', { card: item, deckId: deck.deck_id })}
+      badge={item.pending ? <CloudOff color={theme.colors.warning} size={14} /> : null}
+      leading={(
+        <View className="h-12 w-12 items-center justify-center overflow-hidden rounded-xl bg-default">
+          {item.image_url
+            ? <CachedImage uri={item.image_url} style={{ width: '100%', height: '100%' }} contentFit="cover" />
+            : <ImageIcon color={theme.colors.subtle} size={20} />}
+        </View>
+      )}
+      trailing={(
+        <IconButton accessibilityLabel={`Escuchar ${item.word}`} onPress={() => handleSpeak(item.word)}>
+          <Volume2 color={theme.colors.muted} size={20} />
+        </IconButton>
+      )}
+    />
   );
 
   return (
     <View className="flex-1 bg-background">
-      {/* Edit Name Modal */}
-      <Modal transparent visible={isEditModalVisible} animationType="fade" onRequestClose={() => setEditModalVisible(false)}>
-        <View className="flex-1 bg-backdrop items-center justify-center px-5">
-          <Card className="w-full">
-            <Card.Body className="px-5 py-6">
-              <Typography type="h4" weight="bold" align="center" className="mb-4">Editar Mazo</Typography>
-              <Typography type="body-sm" color="muted" className="mb-2">Nuevo Nombre:</Typography>
-              <Input
-                className="mb-5"
-                value={editNameInput}
-                onChangeText={setEditNameInput}
-                placeholder="Ej. Frutas"
-              />
-              <Button size="lg" className="w-full mb-3" onPress={handleSaveDeckName}>
-                <Button.Label>Guardar</Button.Label>
-              </Button>
-              <Button variant="secondary" size="lg" className="w-full" onPress={() => setEditModalVisible(false)}>
-                <Button.Label>Cancelar</Button.Label>
-              </Button>
-            </Card.Body>
-          </Card>
-        </View>
-      </Modal>
+      <TextPromptModal
+        visible={renameVisible}
+        title="Renombrar mazo"
+        label="Nuevo nombre"
+        placeholder="Ej. Frutas"
+        initialValue={deckName}
+        onSubmit={handleRename}
+        onClose={() => setRenameVisible(false)}
+      />
 
-      {/* Header */}
-      <View className="bg-background-secondary px-5 pb-6" style={{ paddingTop: insets.top + 20 }}>
-        <View className="flex-row justify-between items-center mb-6">
-          <Button isIconOnly variant="ghost" onPress={() => navigation.goBack()}>
-            <ArrowLeft color={theme.colors.foreground} size={24} />
-          </Button>
-          <Typography type="h5" weight="bold">Mazo de Estudio</Typography>
-          <Button isIconOnly variant="ghost" onPress={handleOptionsMenu}>
-            <MoreVertical color={theme.colors.foreground} size={24} />
-          </Button>
+      {/* Cabecera */}
+      <View className="border-b border-border bg-surface px-5 pb-5" style={{ paddingTop: insets.top + 4 }}>
+        <View className="-mx-2 mb-3 h-14 flex-row items-center justify-between">
+          <IconButton accessibilityLabel="Volver" onPress={() => navigation.goBack()}>
+            <ArrowLeft color={theme.colors.foreground} size={22} />
+          </IconButton>
+          <IconButton accessibilityLabel="Opciones del mazo" onPress={openOptions}>
+            <MoreVertical color={theme.colors.foreground} size={22} />
+          </IconButton>
         </View>
 
-        {/* Info */}
-        <View className="bg-accent/10 px-3 py-1.5 rounded-full self-start mb-3">
-          <Typography type="body-xs" weight="bold" className="text-accent uppercase tracking-widest">
-            MAZO DE VOCABULARIO
+        <View className="mb-2 self-start rounded-full bg-accent/10 px-3 py-1">
+          <Typography type="body-xs" weight="bold" className="uppercase tracking-widest text-accent">
+            Mazo de vocabulario
           </Typography>
         </View>
-        <Typography type="h2" weight="bold" className="mb-1">{deckName}</Typography>
-        <Typography type="body-sm" color="muted" className="mb-4">
-          {flashcards.length || deck.cardCount || 0} Tarjetas en este mazo
+        <PressableScale
+          onPress={() => setRenameVisible(true)}
+          haptic={null}
+          scaleTo={0.99}
+          accessibilityLabel={`Renombrar ${deckName}`}
+          className="flex-row items-center gap-2 self-start"
+        >
+          <Typography type="h3" weight="bold" className="tracking-tight" numberOfLines={2}>{deckName}</Typography>
+          <Pencil color={theme.colors.subtle} size={16} />
+        </PressableScale>
+        <Typography type="body-sm" color="muted" className="mb-4 mt-1">
+          {cardCount} {cardCount === 1 ? 'tarjeta' : 'tarjetas'} en este mazo
         </Typography>
 
-        <View className="flex-row gap-3">
+        <View className="flex-row gap-2.5">
           <Button
-            isIconOnly
-            variant="secondary"
-            className="rounded-full"
-            onPress={() => { setEditNameInput(deckName); setEditModalVisible(true); }}
+            className="flex-1"
+            variant={canQuiz ? 'primary' : 'secondary'}
+            onPress={startQuiz}
           >
-            <Edit2 color={theme.colors.foreground} size={18} />
+            <GraduationCap color={canQuiz ? theme.colors.onPrimary : theme.colors.muted} size={18} />
+            <Button.Label className={canQuiz ? '' : 'text-muted'}>Practicar quiz</Button.Label>
           </Button>
-
-          {flashcards.length >= 5 && (
-            <Button
-              variant="primary"
-              className="rounded-xl px-4"
-              onPress={() => navigation.navigate('DeckQuiz', { deckId: deck.deck_id, deckName })}
-            >
-              <Button.Label>Practicar Quiz</Button.Label>
-              <ChevronRight color="#FFF" size={16} />
-            </Button>
-          )}
+          <Button
+            variant="secondary"
+            onPress={() => navigation.navigate('NewFlashCard', { deckId: deck.deck_id })}
+          >
+            <Plus color={theme.colors.foreground} size={18} />
+            <Button.Label className="text-foreground">Tarjeta</Button.Label>
+          </Button>
         </View>
       </View>
 
-      {/* List Area */}
-      <View className="flex-1 px-5 pt-4">
-        <View className="flex-row justify-between items-center mb-4">
-          <Typography type="h5" weight="bold">Lista de Flashcards</Typography>
-          <Typography type="body-xs" color="muted">Ordenar por: Recientes</Typography>
-        </View>
-
-        <View className="flex-row items-center bg-default rounded-xl px-4 mb-4 h-11 gap-2">
-          <Search color={theme.colors.mutedForeground} size={18} />
-          <Input
-            className="flex-1 bg-transparent"
-            placeholder="Buscar flashcard..."
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-        </View>
-
-        {loading ? (
-          <View className="mt-5 items-center">
-            <Spinner size="lg" />
+      {/* Lista */}
+      <FlatList
+        data={loading || error ? [] : filteredCards}
+        keyExtractor={(item, index) => (item.id ? String(item.id) : String(index))}
+        renderItem={renderCard}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: insets.bottom + 32, flexGrow: 1 }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={theme.colors.primary} colors={[theme.colors.primary]} />}
+        ListHeaderComponent={flashcards.length > 0 ? (
+          <View className="mb-4">
+            <View className="mb-3 flex-row items-baseline justify-between">
+              <Typography type="h6" weight="bold">Flashcards</Typography>
+              <Typography type="body-xs" color="muted">Toca una para editarla</Typography>
+            </View>
+            <SearchField value={searchQuery} onChangeText={setSearchQuery} placeholder="Buscar flashcard" />
           </View>
-        ) : error ? (
-          <Typography type="body-sm" className="text-danger text-center mt-5">{error}</Typography>
-        ) : (
-          <FlatList
-            data={filteredCards}
-            keyExtractor={(item, index) => item.id ? item.id.toString() : index.toString()}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 100 }}
-            renderItem={({ item }) => (
-              <Card className="mb-3" onPress={() => navigation.navigate('UpdateFlashCard', { card: item })}>
-                <Card.Body className="flex-row items-center px-4 py-3">
-                  <View className="w-12 h-12 rounded-full bg-default items-center justify-center mr-4 overflow-hidden">
-                    {item.image_url
-                      ? <CachedImage uri={item.image_url} style={{ width: '100%', height: '100%' }} contentFit="cover" />
-                      : <ImageIcon color="#A1CFC9" size={22} />
-                    }
-                  </View>
-                  <View className="flex-1">
-                    <Typography type="body" weight="semibold">{item.word}</Typography>
-                    <Typography type="body-sm" color="muted">{item.translation}</Typography>
-                  </View>
-                  <Button isIconOnly variant="ghost" size="sm" onPress={() => handleSpeak(item.word)}>
-                    <Volume2 color="#A1A1A1" size={20} />
-                  </Button>
-                  <ChevronRight color="#D1D1D1" size={20} />
-                </Card.Body>
-              </Card>
-            )}
-            ListEmptyComponent={() => (
-              <Typography type="body" color="muted" align="center" className="mt-5 italic">
-                No se encontraron resultados.
-              </Typography>
-            )}
-            ListFooterComponent={() => (
-              <Card className="mt-5 mb-12 border-2 border-dashed border-accent/30 bg-transparent">
-                <Card.Body className="items-center py-6">
-                  <View className="w-12 h-12 rounded-full bg-accent/10 items-center justify-center mb-3">
-                    <Plus color={primaryColor} size={24} />
-                  </View>
-                  <Typography type="body" weight="bold" className="mb-1">¿Quieres añadir más?</Typography>
-                  <Typography type="body-sm" color="muted" align="center" className="mb-4">
-                    Sigue ampliando tu vocabulario agregando nuevas tarjetas.
-                  </Typography>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onPress={() => navigation.navigate('NewFlashCard', { deckId: deck.deck_id })}
-                  >
-                    <Button.Label>Añadir tarjeta</Button.Label>
-                  </Button>
-                </Card.Body>
-              </Card>
-            )}
-          />
-        )}
-      </View>
+        ) : null}
+        ListEmptyComponent={() => {
+          if (loading) return <View className="items-center py-12"><Spinner size="lg" /></View>;
+          if (error) {
+            return (
+              <EmptyState
+                icon={AlertCircle}
+                tone="danger"
+                title="No pudimos cargar las tarjetas"
+                description={error}
+                actionLabel="Reintentar"
+                onAction={() => { setLoading(true); fetchFlashcards(); }}
+              />
+            );
+          }
+          if (searchQuery) return <EmptyState title="Sin resultados" description={`Nada coincide con “${searchQuery}”.`} />;
+          return (
+            <EmptyState
+              icon={Layers}
+              title="Este mazo está vacío"
+              description="Agrega tu primera tarjeta para empezar a estudiar."
+              actionLabel="Añadir tarjeta"
+              onAction={() => navigation.navigate('NewFlashCard', { deckId: deck.deck_id })}
+            />
+          );
+        }}
+        ListFooterComponent={!loading && !error && flashcards.length > 0 ? (
+          <PressableScale
+            onPress={() => navigation.navigate('NewFlashCard', { deckId: deck.deck_id })}
+            className="mt-3 flex-row items-center justify-center gap-2 rounded-2xl border border-dashed border-accent/40 py-4"
+            accessibilityLabel="Añadir tarjeta"
+          >
+            <Plus color={theme.colors.primary} size={18} />
+            <Typography type="body-sm" weight="semibold" className="text-accent">Añadir tarjeta</Typography>
+          </PressableScale>
+        ) : null}
+      />
     </View>
   );
 }
