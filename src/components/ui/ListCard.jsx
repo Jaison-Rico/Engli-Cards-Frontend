@@ -1,5 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
+import { FadeInDown } from 'react-native-reanimated';
 import { Typography } from 'heroui-native';
 import { ChevronRight } from 'lucide-react-native';
 import PressableScale from './PressableScale';
@@ -32,7 +33,8 @@ export default function ListCard({
       onPress={onPress}
       disabled={disabled || !onPress}
       accessibilityLabel={accessibilityLabel ?? title}
-      className={`flex-row items-center gap-3 rounded-2xl bg-surface px-4 py-3.5 border border-border ${className}`}
+      className={`flex-row items-center gap-3 rounded-[22px] bg-surface px-4 py-4 border border-border ${className}`}
+      entering={FadeInDown.springify().damping(38).stiffness(360)}
       style={elevation(1, theme.mode)}
     >
       {leading ? <View>{leading}</View> : null}

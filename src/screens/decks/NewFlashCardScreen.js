@@ -17,10 +17,34 @@ import ScreenHeader from '../../components/ui/ScreenHeader';
 import FormField from '../../components/ui/FormField';
 import PressableScale from '../../components/ui/PressableScale';
 import IconButton from '../../components/ui/IconButton';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import { elevation } from '../../theme/theme';
+
+/** Sección del formulario con número de paso, título y tarjeta. */
+function Section({ step, title, subtitle, index = 0, children, theme }) {
+  return (
+    <Animated.View
+      entering={FadeInDown.delay(index * 40).springify().damping(38).stiffness(360)}
+      className="mb-4 rounded-[24px] border border-border bg-surface p-5"
+      style={elevation(1, theme.mode)}
+    >
+      <View className="mb-4 flex-row items-center gap-3">
+        <View className="h-8 w-8 items-center justify-center rounded-full" style={{ backgroundColor: `${theme.colors.primary}1A` }}>
+          <Typography type="body-sm" weight="bold" style={{ color: theme.colors.primary }}>{step}</Typography>
+        </View>
+        <View className="flex-1">
+          <Typography type="body" weight="bold">{title}</Typography>
+          {subtitle ? <Typography type="body-xs" color="muted">{subtitle}</Typography> : null}
+        </View>
+      </View>
+      {children}
+    </Animated.View>
+  );
+}
 
 function SegmentedControl({ value, options, onChange }) {
   return (
-    <View className="mb-4 flex-row rounded-xl bg-default p-1">
+    <View className="mb-4 flex-row rounded-[16px] bg-default p-1">
       {options.map((option) => {
         const active = option.value === value;
         return (
@@ -29,7 +53,8 @@ function SegmentedControl({ value, options, onChange }) {
             onPress={() => onChange(option.value)}
             scaleTo={0.98}
             accessibilityState={{ selected: active }}
-            className={`flex-1 items-center rounded-lg py-2 ${active ? 'bg-surface' : ''}`}
+            className={`flex-1 items-center rounded-[12px] py-2.5 ${active ? 'bg-surface' : ''}`}
+            style={active ? elevation(1) : null}
           >
             <Typography type="body-sm" weight={active ? 'semibold' : 'medium'} className={active ? 'text-foreground' : 'text-muted'}>
               {option.label}
@@ -170,10 +195,30 @@ export default function NewFlashCard() {
       <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView
           className="flex-1"
-          contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 24 }}
+          contentContainerStyle={{ padding: 20, paddingBottom: 24 }}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
+          {/* Vista previa en vivo */}
+          <Animated.View
+            entering={FadeInDown.springify().damping(38).stiffness(360)}
+            className="mb-5 h-36 items-center justify-center overflow-hidden rounded-[28px] px-6"
+            style={[{ backgroundColor: theme.colors.primary }, elevation(2, theme.mode)]}
+          >
+            <View pointerEvents="none" style={{ position: 'absolute', right: -40, top: -50, width: 160, height: 160, borderRadius: 80, backgroundColor: 'rgba(255,255,255,0.1)' }} />
+            <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 28, borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)' }} />
+            <View className="absolute left-4 top-4 rounded-full px-2.5 py-1" style={{ backgroundColor: 'rgba(255,255,255,0.18)' }}>
+              <Typography type="body-xs" weight="semibold" style={{ color: '#fff' }}>Vista previa</Typography>
+            </View>
+            <Typography type="h3" weight="bold" align="center" numberOfLines={1} style={{ color: englishWord ? '#fff' : 'rgba(255,255,255,0.5)' }}>
+              {englishWord || 'Word'}
+            </Typography>
+            <Typography type="body" align="center" numberOfLines={1} className="mt-1" style={{ color: 'rgba(255,255,255,0.8)' }}>
+              {spanishTranslation || 'Traducción'}
+            </Typography>
+          </Animated.View>
+
+          <Section step="1" title="Palabra" subtitle="Lo que vas a aprender" index={1} theme={theme}>
           <FormField
             label="Palabra en inglés"
             required
@@ -192,21 +237,24 @@ export default function NewFlashCard() {
             value={spanishTranslation}
             onChangeText={(text) => { setSpanishTranslation(text); setFieldErrors((p) => ({ ...p, translation: null })); }}
             error={fieldErrors.translation}
+            className="mb-0"
           />
+          </Section>
+
+          <Section step="2" title="Mazo" subtitle="Dónde se guardará la tarjeta" index={2} theme={theme}>
 
           {/* Selector de mazo */}
-          <Typography type="body-sm" weight="semibold" className="mb-1.5">
-            Mazo<Typography type="body-sm" className="text-accent"> *</Typography>
-          </Typography>
           <PressableScale
             onPress={openDeckPicker}
             disabled={loadingDecks}
             scaleTo={0.99}
             accessibilityLabel="Elegir mazo"
-            className="mb-1 h-[52px] flex-row items-center gap-2.5 rounded-2xl bg-field px-4"
+            className="h-14 flex-row items-center gap-3 rounded-[18px] bg-field px-4"
             style={{ borderWidth: 1, borderColor: fieldErrors.deck ? theme.colors.danger : theme.colors.border }}
           >
-            <Layers color={theme.colors.subtle} size={18} />
+            <View className="h-8 w-8 items-center justify-center rounded-[10px]" style={{ backgroundColor: `${theme.colors.primary}1A` }}>
+              <Layers color={theme.colors.primary} size={16} />
+            </View>
             {loadingDecks ? (
               <View className="flex-1"><Spinner size="sm" /></View>
             ) : (
@@ -217,11 +265,12 @@ export default function NewFlashCard() {
             <ChevronDown color={theme.colors.subtle} size={18} />
           </PressableScale>
           {fieldErrors.deck ? (
-            <Typography type="body-xs" className="mb-3 mt-0.5 text-danger">{fieldErrors.deck}</Typography>
-          ) : <View className="mb-4" />}
+            <Typography type="body-xs" className="ml-1 mt-1.5 text-danger">{fieldErrors.deck}</Typography>
+          ) : null}
+          </Section>
 
           {/* Media */}
-          <Typography type="body-sm" weight="semibold" className="mb-2">Imagen (opcional)</Typography>
+          <Section step="3" title="Imagen" subtitle="Opcional · ayuda a memorizar" index={3} theme={theme}>
           <SegmentedControl
             value={mediaType}
             onChange={(next) => { setMediaType(next); if (next === 'gif') setImage(null); else setGifUrl(''); }}
@@ -233,7 +282,7 @@ export default function NewFlashCard() {
               onPress={pickImage}
               scaleTo={0.99}
               accessibilityLabel={image ? 'Cambiar imagen' : 'Elegir imagen'}
-              className="mb-5 h-44 items-center justify-center overflow-hidden rounded-2xl border border-dashed border-border bg-surface"
+              className="h-48 items-center justify-center overflow-hidden rounded-[20px] border-2 border-dashed border-border bg-default"
             >
               {image ? (
                 <>
@@ -246,7 +295,7 @@ export default function NewFlashCard() {
                 </>
               ) : (
                 <View className="items-center gap-2">
-                  <View className="h-12 w-12 items-center justify-center rounded-full bg-accent/10">
+                  <View className="mb-1 h-14 w-14 items-center justify-center rounded-[18px] bg-accent/10">
                     <ImagePlus color={theme.colors.primary} size={22} />
                   </View>
                   <Typography type="body-sm" weight="semibold">Añadir una referencia visual</Typography>
@@ -257,7 +306,7 @@ export default function NewFlashCard() {
               )}
             </PressableScale>
           ) : (
-            <View className="mb-5">
+            <View>
               <FormField
                 icon={Link2}
                 placeholder="https://ejemplo.com/animacion.gif"
@@ -268,15 +317,16 @@ export default function NewFlashCard() {
                 className="mb-3"
               />
               {gifUrl ? (
-                <View className="overflow-hidden rounded-2xl border border-border bg-default">
+                <View className="overflow-hidden rounded-[20px] border border-border bg-default">
                   <CachedImage uri={gifUrl} style={{ width: '100%', height: 160 }} contentFit="cover" />
                 </View>
               ) : null}
             </View>
           )}
+          </Section>
 
           {/* Consejo */}
-          <View className="mb-6 flex-row items-start gap-3 rounded-2xl bg-accent/5 px-4 py-4">
+          <View className="flex-row items-start gap-3 rounded-[20px] border border-accent/15 bg-accent/5 px-4 py-4">
             <Lightbulb color={theme.colors.primary} size={18} style={{ marginTop: 2 }} />
             <View className="flex-1">
               <Typography type="body-sm" weight="bold" className="mb-0.5">Consejo</Typography>
@@ -286,7 +336,14 @@ export default function NewFlashCard() {
             </View>
           </View>
 
-          <Button size="lg" className="w-full" onPress={handleSave} isDisabled={saving}>
+        </ScrollView>
+
+        {/* Botón fijo abajo, siempre visible */}
+        <View
+          className="border-t border-border bg-surface px-5 pt-3"
+          style={{ paddingBottom: insets.bottom + 12 }}
+        >
+          <Button size="lg" className="h-14 w-full rounded-[18px]" onPress={handleSave} isDisabled={saving}>
             {saving ? <Spinner color={theme.colors.onPrimary} size="sm" /> : (
               <>
                 <Save color={theme.colors.onPrimary} size={18} />
@@ -294,7 +351,7 @@ export default function NewFlashCard() {
               </>
             )}
           </Button>
-        </ScrollView>
+        </View>
       </KeyboardAvoidingView>
     </View>
   );

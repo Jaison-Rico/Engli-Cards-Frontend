@@ -34,7 +34,7 @@ export default function Toast({ toast, onDismiss }) {
     >
       <Animated.View
         key={toast.id}
-        entering={FadeInDown.springify().damping(18).stiffness(220)}
+        entering={FadeInDown.springify().damping(38).stiffness(360)}
         exiting={FadeOutDown.duration(180)}
         style={{ width: '100%', maxWidth: 480, paddingHorizontal: 16 }}
       >
@@ -44,7 +44,7 @@ export default function Toast({ toast, onDismiss }) {
           scaleTo={0.98}
           accessibilityRole="alert"
           accessibilityLabel={toast.message ? `${toast.title}. ${toast.message}` : toast.title}
-          className="flex-row items-center gap-3 rounded-2xl border border-border bg-overlay px-4 py-3"
+          className="flex-row items-center gap-3 rounded-[20px] border border-border bg-overlay px-4 py-3.5"
           style={elevation(3, theme.mode)}
         >
           <View className="h-8 w-8 items-center justify-center rounded-full" style={{ backgroundColor: `${accent}1F` }}>

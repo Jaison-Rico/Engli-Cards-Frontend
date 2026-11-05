@@ -3,7 +3,6 @@ import { View } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, CheckCircle2, XCircle } from 'lucide-react-native';
-import * as Speech from 'expo-speech';
 import * as Haptics from 'expo-haptics';
 import { Button, Typography } from 'heroui-native';
 import QuizResultModal from './QuizResultModal';
@@ -15,8 +14,8 @@ import { useAppTheme } from '../context/ThemeContext';
 import { useAuth, getUserId } from '../context/AuthContext';
 import { useFeedback } from './feedback/FeedbackProvider';
 import SoundManager from '../config/sounds';
-
-const shuffle = (items) => [...items].sort(() => Math.random() - 0.5);
+import { speak } from '../services/tts';
+import { recordAnswer, cardFromQuizQuestion, markPlayedToday, shuffle } from '../services/learning.service';
 
 function ProgressTrack({ progress }) {
   const value = useSharedValue(progress);
@@ -90,10 +89,8 @@ export default function Quiz({
 
   const handleOptionSelect = (option) => {
     if (isVerified) return;
-    try {
-      Speech.stop();
-      Speech.speak(option.text, { language: 'en-US', rate: 1.0, pitch: 1.0 });
-    } catch { /* la voz es opcional */ }
+    // El idioma se detecta del texto: las opciones pueden ser inglés o español.
+    speak(option.text, { rate: 1.0 });
     setSelectedOption(option.id);
   };
 
@@ -101,6 +98,9 @@ export default function Quiz({
     if (!selectedOption || !currentQuestion) return;
     const selected = currentQuestion.options.find((opt) => opt.id === selectedOption);
     const correct = Boolean(selected?.correct);
+    const answer = currentQuestion.options.find((opt) => opt.correct);
+    // Estadística por tarjeta (SQLite): alimenta el modo Supervivencia.
+    recordAnswer(userId, cardFromQuizQuestion(currentQuestion.question, answer?.text, deckId), correct);
     setIsCorrect(correct);
     setIsVerified(true);
     if (correct) {
@@ -119,6 +119,7 @@ export default function Quiz({
     let unlocked = null;
     try {
       if (userId) {
+        await markPlayedToday(userId);
         const result = await submitQuizProgress(userId, {
           deckId,
           totalQuestions: questions.length,

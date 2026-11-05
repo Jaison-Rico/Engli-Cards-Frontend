@@ -10,6 +10,11 @@ import { planQueueChange } from './queuePlanner';
  *  - pending_changes:       cola de operaciones hechas sin conexión.
  *  - pending_quiz_progress: resultados de quiz pendientes de enviar.
  *  - cached_user_data:      copia de estadísticas, logros y sesiones.
+ *  - card_stats:            aciertos/errores por tarjeta (minijuegos, Supervivencia).
+ *  - activity_days:         un registro por día jugado (racha local offline).
+ *  - curriculum_modules / curriculum_cards: plan de estudios sembrado localmente.
+ *  - node_progress:         resultado de cada nodo del mapa por usuario.
+ *  - app_meta:              claves internas (p. ej. versión de la semilla).
  *
  * El esquema se versiona con `PRAGMA user_version`; cada migración se aplica
  * una sola vez y dentro de una transacción.
@@ -98,6 +103,61 @@ const MIGRATIONS = [
         row.user_id, row.deck_id,
       );
     }
+  },
+  // v3: estadísticas por tarjeta y días de actividad (racha local).
+  async (db) => {
+    await db.execAsync(`
+      CREATE TABLE IF NOT EXISTS card_stats (
+        user_id TEXT NOT NULL,
+        card_key TEXT NOT NULL,
+        deck_id TEXT,
+        front TEXT NOT NULL,
+        back TEXT NOT NULL,
+        image TEXT,
+        attempts INTEGER NOT NULL DEFAULT 0,
+        errors INTEGER NOT NULL DEFAULT 0,
+        last_seen INTEGER NOT NULL,
+        PRIMARY KEY (user_id, card_key)
+      );
+      CREATE INDEX IF NOT EXISTS idx_card_stats_errors ON card_stats (user_id, errors DESC);
+      CREATE TABLE IF NOT EXISTS activity_days (
+        user_id TEXT NOT NULL,
+        day TEXT NOT NULL,
+        PRIMARY KEY (user_id, day)
+      );
+    `);
+  },
+  // v4: plan de estudios (semilla) y progreso por nodo del mapa.
+  async (db) => {
+    await db.execAsync(`
+      CREATE TABLE IF NOT EXISTS app_meta (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL
+      );
+      CREATE TABLE IF NOT EXISTS curriculum_modules (
+        module_id TEXT PRIMARY KEY,
+        position INTEGER NOT NULL,
+        level TEXT NOT NULL,
+        title TEXT NOT NULL,
+        subtitle TEXT
+      );
+      CREATE TABLE IF NOT EXISTS curriculum_cards (
+        module_id TEXT NOT NULL,
+        position INTEGER NOT NULL,
+        front TEXT NOT NULL,
+        back TEXT NOT NULL,
+        PRIMARY KEY (module_id, position)
+      );
+      CREATE TABLE IF NOT EXISTS node_progress (
+        user_id TEXT NOT NULL,
+        node_id TEXT NOT NULL,
+        best_accuracy REAL NOT NULL DEFAULT 0,
+        completed INTEGER NOT NULL DEFAULT 0,
+        attempts INTEGER NOT NULL DEFAULT 0,
+        updated_at INTEGER NOT NULL,
+        PRIMARY KEY (user_id, node_id)
+      );
+    `);
   },
 ];
 
@@ -623,4 +683,136 @@ export const getCachedUserData = async (userId, kind) => {
   if (!row) return null;
   const data = safeParse(row.payload);
   return data === null && row.payload !== 'null' ? null : { data, updatedAt: row.updated_at };
+};
+
+/* ------------------------------------------------------------------ */
+/* Estadísticas por tarjeta y actividad                                */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Registra una respuesta (acierto o error) de una tarjeta. UPSERT atómico:
+ * la fila se crea en el primer intento y luego solo incrementa contadores.
+ */
+export const recordCardAnswer = async (userId, card, correct) => {
+  await write(
+    `INSERT INTO card_stats (user_id, card_key, deck_id, front, back, image, attempts, errors, last_seen)
+     VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?)
+     ON CONFLICT (user_id, card_key) DO UPDATE SET
+       attempts = attempts + 1,
+       errors = errors + excluded.errors,
+       front = excluded.front,
+       back = excluded.back,
+       image = COALESCE(excluded.image, image),
+       last_seen = excluded.last_seen`,
+    userKey(userId), card.key, card.deckId ?? null, card.front, card.back, card.image ?? null,
+    correct ? 0 : 1, Date.now(),
+  );
+};
+
+/**
+ * Tarjetas con mayor tasa de error. Se usa un suavizado bayesiano
+ * (errores + 1) / (intentos + 2): una tarjeta con 1/1 errores no supera a
+ * otra con 8/10, y las nunca falladas quedan al final.
+ */
+export const getHardestCards = async (userId, limit = 20) => {
+  const db = await getDatabase();
+  return db.getAllAsync(
+    `SELECT card_key AS key, deck_id AS deckId, front, back, image, attempts, errors,
+            (errors + 1.0) / (attempts + 2.0) AS error_rate
+     FROM card_stats
+     WHERE user_id = ? AND errors > 0
+     ORDER BY error_rate DESC, errors DESC, last_seen DESC
+     LIMIT ?`,
+    userKey(userId), limit,
+  );
+};
+
+/** Marca un día (YYYY-MM-DD, hora local) como jugado. Idempotente. */
+export const markActivityDay = async (userId, day) => {
+  await write('INSERT OR IGNORE INTO activity_days (user_id, day) VALUES (?, ?)', userKey(userId), day);
+};
+
+/** Días jugados, del más reciente al más antiguo. */
+export const getActivityDays = async (userId, limit = 400) => {
+  const db = await getDatabase();
+  const rows = await db.getAllAsync(
+    'SELECT day FROM activity_days WHERE user_id = ? ORDER BY day DESC LIMIT ?',
+    userKey(userId), limit,
+  );
+  return rows.map((r) => r.day);
+};
+
+/* ------------------------------------------------------------------ */
+/* Plan de estudios (semilla) y progreso del mapa                      */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Siembra el plan de estudios si la versión guardada es distinta. Reemplaza
+ * módulos y tarjetas en una sola transacción; el progreso (node_progress)
+ * no se toca porque los IDs de nodo son estables.
+ * @returns {Promise<boolean>} true si sembró.
+ */
+export const seedCurriculum = async (version, modules) => {
+  const db = await getDatabase();
+  const row = await db.getFirstAsync("SELECT value FROM app_meta WHERE key = 'curriculum_version'");
+  if (row && Number(row.value) === version) return false;
+  await transaction(async (tx) => {
+    await tx.runAsync('DELETE FROM curriculum_cards');
+    await tx.runAsync('DELETE FROM curriculum_modules');
+    for (let i = 0; i < modules.length; i += 1) {
+      const mod = modules[i];
+      await tx.runAsync(
+        'INSERT INTO curriculum_modules (module_id, position, level, title, subtitle) VALUES (?, ?, ?, ?, ?)',
+        mod.id, i, mod.level, mod.title, mod.subtitle ?? null,
+      );
+      for (let j = 0; j < mod.words.length; j += 1) {
+        const [front, back] = mod.words[j];
+        await tx.runAsync(
+          'INSERT INTO curriculum_cards (module_id, position, front, back) VALUES (?, ?, ?, ?)',
+          mod.id, j, front, back,
+        );
+      }
+    }
+    await tx.runAsync(
+      "INSERT OR REPLACE INTO app_meta (key, value) VALUES ('curriculum_version', ?)",
+      String(version),
+    );
+  });
+  return true;
+};
+
+/** Módulos con sus tarjetas ordenadas. */
+export const getCurriculum = async () => {
+  const db = await getDatabase();
+  const modules = await db.getAllAsync(
+    'SELECT module_id AS id, level, title, subtitle FROM curriculum_modules ORDER BY position',
+  );
+  const cards = await db.getAllAsync(
+    'SELECT module_id, front, back FROM curriculum_cards ORDER BY module_id, position',
+  );
+  const byModule = new Map(modules.map((mod) => [mod.id, { ...mod, words: [] }]));
+  cards.forEach((c) => byModule.get(c.module_id)?.words.push([c.front, c.back]));
+  return [...byModule.values()];
+};
+
+export const getNodeProgress = async (userId) => {
+  const db = await getDatabase();
+  return db.getAllAsync(
+    'SELECT node_id, best_accuracy, completed, attempts FROM node_progress WHERE user_id = ?',
+    userKey(userId),
+  );
+};
+
+/** Guarda un intento: conserva la mejor precisión y nunca "descompleta". */
+export const saveNodeResult = async (userId, nodeId, accuracy, completed) => {
+  await write(
+    `INSERT INTO node_progress (user_id, node_id, best_accuracy, completed, attempts, updated_at)
+     VALUES (?, ?, ?, ?, 1, ?)
+     ON CONFLICT (user_id, node_id) DO UPDATE SET
+       best_accuracy = MAX(best_accuracy, excluded.best_accuracy),
+       completed = MAX(completed, excluded.completed),
+       attempts = attempts + 1,
+       updated_at = excluded.updated_at`,
+    userKey(userId), nodeId, accuracy, completed ? 1 : 0, Date.now(),
+  );
 };

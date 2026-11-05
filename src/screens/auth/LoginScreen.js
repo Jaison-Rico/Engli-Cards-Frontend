@@ -57,8 +57,9 @@ export default function LoginScreen() {
 
   return (
     <AuthScaffold showLogo title="Engli-Cards" subtitle="Eleva tu inglés con cada tarjeta.">
-      <View className="mb-6 rounded-3xl border border-border bg-surface px-5 py-6" style={elevation(1, theme.mode)}>
-        <Typography type="h5" weight="bold" className="mb-5">Bienvenido de nuevo</Typography>
+      <View className="mb-7 rounded-[28px] border border-border bg-surface px-5 pb-6 pt-7" style={elevation(2, theme.mode)}>
+        <Typography type="h4" weight="bold">Bienvenido de nuevo 👋</Typography>
+        <Typography type="body-sm" color="muted" className="mb-6 mt-1">Inicia sesión para continuar aprendiendo.</Typography>
 
         <FormField
           label="Correo electrónico"
@@ -111,7 +112,7 @@ export default function LoginScreen() {
 
         <InlineAlert message={error} className="mb-4" />
 
-        <Button onPress={handleLogin} isDisabled={loading} size="lg" className="w-full">
+        <Button onPress={handleLogin} isDisabled={loading} size="lg" className="h-14 w-full rounded-[18px]" style={elevation(2, theme.mode)}>
           {loading ? <Spinner color={theme.colors.onPrimary} size="sm" /> : (
             <>
               <Button.Label>Iniciar sesión</Button.Label>
@@ -121,7 +122,7 @@ export default function LoginScreen() {
         </Button>
       </View>
 
-      <View className="flex-row items-center justify-center">
+      <View className="flex-row items-center justify-center rounded-2xl border border-border bg-surface/60 py-4">
         <Typography type="body-sm" color="muted">¿No tienes cuenta? </Typography>
         <PressableScale onPress={() => navigation.navigate('Register')} haptic={null} hitSlop={8}>
           <Typography type="body-sm" weight="bold" className="text-accent">Crear cuenta</Typography>

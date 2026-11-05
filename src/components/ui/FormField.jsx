@@ -20,16 +20,20 @@ const FormField = forwardRef(function FormField(
   return (
     <View className={`mb-4 ${className}`}>
       {label ? (
-        <Typography type="body-sm" weight="semibold" className="mb-1.5">
+        <Typography type="body-sm" weight="semibold" className="mb-2 ml-1">
           {label}
           {required ? <Typography type="body-sm" className="text-accent"> *</Typography> : null}
         </Typography>
       ) : null}
       <View
-        className={`h-[52px] flex-row items-center gap-2.5 rounded-2xl bg-field px-4 ${editable ? '' : 'opacity-60'}`}
-        style={{ borderWidth: focused || error ? 1.5 : 1, borderColor }}
+        className={`h-14 flex-row items-center gap-3 rounded-[18px] bg-field px-4 ${editable ? '' : 'opacity-60'}`}
+        style={{
+          borderWidth: focused || error ? 1.5 : 1,
+          borderColor,
+          ...(focused ? { backgroundColor: `${theme.colors.primary}0D`, shadowColor: theme.colors.primary, shadowOpacity: 0.15, shadowRadius: 8, shadowOffset: { width: 0, height: 2 } } : null),
+        }}
       >
-        {Icon ? <Icon color={focused ? theme.colors.primary : theme.colors.subtle} size={18} /> : null}
+        {Icon ? <Icon color={focused ? theme.colors.primary : theme.colors.subtle} size={19} /> : null}
         <TextInput
           ref={ref}
           {...inputProps}
@@ -44,9 +48,9 @@ const FormField = forwardRef(function FormField(
         {trailing}
       </View>
       {error ? (
-        <Typography type="body-xs" className="mt-1.5 text-danger">{error}</Typography>
+        <Typography type="body-xs" className="ml-1 mt-1.5 text-danger">{error}</Typography>
       ) : hint ? (
-        <Typography type="body-xs" color="muted" className="mt-1.5">{hint}</Typography>
+        <Typography type="body-xs" color="muted" className="ml-1 mt-1.5">{hint}</Typography>
       ) : null}
     </View>
   );

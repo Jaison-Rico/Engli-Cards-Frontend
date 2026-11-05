@@ -174,7 +174,7 @@ export default function AdminSettingsScreen() {
         >
           <Pressable style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }} onPress={() => !saving && setModalVisible(false)} />
           <Animated.View
-            entering={SlideInDown.springify().damping(22).stiffness(240)}
+            entering={SlideInDown.springify().damping(38).stiffness(360)}
             className="rounded-t-3xl border-t border-border bg-overlay px-5 pt-2"
             style={{ paddingBottom: insets.bottom + 16 }}
           >

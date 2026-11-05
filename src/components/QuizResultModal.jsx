@@ -23,6 +23,7 @@ export default function QuizResultModal({
   onRequestClose,
   achievement = null,
   savedOffline = false,
+  secondaryText,
 }) {
   const { theme } = useAppTheme();
   const { isOnline } = useNetwork();
@@ -52,8 +53,8 @@ export default function QuizResultModal({
         ) : null}
 
         <Animated.View
-          entering={ZoomIn.springify().damping(18).stiffness(220)}
-          className="w-full max-w-[400px] items-center rounded-3xl border border-border bg-overlay px-6 pb-6 pt-8"
+          entering={ZoomIn.springify().damping(38).stiffness(360)}
+          className="w-full max-w-[400px] items-center rounded-[28px] border border-border bg-overlay px-6 pb-7 pt-9"
           style={elevation(3, theme.mode)}
         >
           <View className={`mb-4 h-20 w-20 items-center justify-center rounded-full ${isPerfect ? 'bg-[#FFF5D6] dark:bg-[#3A3014]' : 'bg-accent/10'}`}>
@@ -71,8 +72,8 @@ export default function QuizResultModal({
 
           {achievement ? (
             <Animated.View
-              entering={FadeInUp.delay(320).springify()}
-              className="mb-5 w-full flex-row items-center gap-3 rounded-2xl border border-[#F5D97A] bg-[#FFF9E6] px-4 py-3 dark:border-[#5A4A1A] dark:bg-[#2E2610]"
+              entering={FadeInUp.delay(160).springify().damping(38).stiffness(360)}
+              className="mb-5 w-full flex-row items-center gap-3 rounded-[18px] border border-[#F5D97A] bg-[#FFF9E6] px-4 py-3 dark:border-[#5A4A1A] dark:bg-[#2E2610]"
               accessibilityLabel={`Nuevo logro desbloqueado: ${achievement.title}`}
             >
               <View className="h-10 w-10 items-center justify-center rounded-full bg-[#FDE9A8] dark:bg-[#4A3D14]">
@@ -91,7 +92,7 @@ export default function QuizResultModal({
           ) : null}
 
           {savedOffline ? (
-            <View className="mb-5 w-full flex-row items-center gap-2.5 rounded-2xl px-4 py-3" style={{ backgroundColor: theme.colors.warningSoft }}>
+            <View className="mb-5 w-full flex-row items-center gap-2.5 rounded-[18px] px-4 py-3" style={{ backgroundColor: theme.colors.warningSoft }}>
               <CloudOff color={theme.colors.warning} size={16} />
               <Typography type="body-xs" weight="medium" className="flex-1" style={{ color: theme.colors.warning }}>
                 Sin conexión: tu resultado se guardó y se enviará al volver Internet.
@@ -103,9 +104,9 @@ export default function QuizResultModal({
             <Button size="lg" className="w-full" onPress={onOk}>
               <Button.Label>{okText}</Button.Label>
             </Button>
-            {!isPerfect && hasFailed ? (
+            {onReview && (secondaryText || (!isPerfect && hasFailed)) ? (
               <Button variant="secondary" size="lg" className="w-full" onPress={onReview}>
-                <Button.Label className="text-foreground">Repasar errores</Button.Label>
+                <Button.Label className="text-foreground">{secondaryText ?? 'Repasar errores'}</Button.Label>
               </Button>
             ) : null}
           </View>

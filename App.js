@@ -10,6 +10,8 @@ import { NetworkProvider } from './src/context/NetworkContext';
 import { FeedbackProvider } from './src/components/feedback/FeedbackProvider';
 import ConnectionStrip from './src/components/feedback/ConnectionStrip';
 import { enableStudyReminders } from './src/config/notifications';
+import { warmUpVoices } from './src/services/tts';
+import { ensureCurriculumSeeded } from './src/services/curriculum.service';
 
 function StudyReminderManager() {
   const { user } = useAuth();
@@ -19,6 +21,10 @@ function StudyReminderManager() {
     // El permiso de notificaciones se pide solo cuando ya hay una sesión
     // iniciada, para no interrumpir el primer arranque de la app.
     if (!userId) return undefined;
+    // Precarga las voces es/en del TTS para que el primer "Escuchar" sea inmediato.
+    warmUpVoices();
+    // Siembra el plan de estudios en SQLite en segundo plano (idempotente).
+    ensureCurriculumSeeded().catch((error) => console.warn('No se pudo sembrar el plan de estudios:', error));
 
     enableStudyReminders().catch((error) => {
       console.warn('No se pudieron activar los recordatorios de estudio:', error);

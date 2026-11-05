@@ -236,3 +236,66 @@ export const saveCachedUserData = async (userId, kind, data) => {
 
 export const getCachedUserData = async (userId, kind) =>
   cachedUserData.get(`${String(userId)}:${kind}`) ?? null;
+
+/* Estadísticas por tarjeta y actividad (en memoria). */
+const cardStats = new Map(); // `${userId}:${cardKey}` -> stats
+const activityDays = new Map(); // userId -> Set(day)
+
+export const recordCardAnswer = async (userId, card, correct) => {
+  const k = key(userId, card.key);
+  const prev = cardStats.get(k) ?? { key: card.key, attempts: 0, errors: 0 };
+  cardStats.set(k, {
+    ...prev,
+    deckId: card.deckId ?? null,
+    front: card.front,
+    back: card.back,
+    image: card.image ?? prev.image ?? null,
+    attempts: prev.attempts + 1,
+    errors: prev.errors + (correct ? 0 : 1),
+    last_seen: Date.now(),
+  });
+};
+
+export const getHardestCards = async (userId, limit = 20) =>
+  [...cardStats.entries()]
+    .filter(([k, v]) => belongsTo(userId)(k) && v.errors > 0)
+    .map(([, v]) => ({ ...v, error_rate: (v.errors + 1) / (v.attempts + 2) }))
+    .sort((a, b) => b.error_rate - a.error_rate || b.errors - a.errors || b.last_seen - a.last_seen)
+    .slice(0, limit);
+
+export const markActivityDay = async (userId, day) => {
+  const id = String(userId);
+  if (!activityDays.has(id)) activityDays.set(id, new Set());
+  activityDays.get(id).add(day);
+};
+
+export const getActivityDays = async (userId, limit = 400) =>
+  [...(activityDays.get(String(userId)) ?? [])].sort().reverse().slice(0, limit);
+
+/* Plan de estudios y progreso del mapa (en memoria). */
+let curriculum = [];
+let curriculumVersion = null;
+const nodeProgress = new Map(); // `${userId}:${nodeId}` -> row
+
+export const seedCurriculum = async (version, modules) => {
+  if (curriculumVersion === version) return false;
+  curriculum = modules.map((mod) => ({ id: mod.id, level: mod.level, title: mod.title, subtitle: mod.subtitle ?? null, words: mod.words.map((w) => [...w]) }));
+  curriculumVersion = version;
+  return true;
+};
+
+export const getCurriculum = async () => curriculum.map((mod) => ({ ...mod, words: [...mod.words] }));
+
+export const getNodeProgress = async (userId) =>
+  [...nodeProgress.entries()].filter(([k]) => belongsTo(userId)(k)).map(([, v]) => ({ ...v }));
+
+export const saveNodeResult = async (userId, nodeId, accuracy, completed) => {
+  const k = key(userId, nodeId);
+  const prev = nodeProgress.get(k);
+  nodeProgress.set(k, {
+    node_id: nodeId,
+    best_accuracy: Math.max(prev?.best_accuracy ?? 0, accuracy),
+    completed: Math.max(prev?.completed ?? 0, completed ? 1 : 0),
+    attempts: (prev?.attempts ?? 0) + 1,
+  });
+};

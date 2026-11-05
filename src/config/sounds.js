@@ -1,10 +1,12 @@
 import { createAudioPlayer } from 'expo-audio';
 
+// Todos los sonidos son locales: funcionan sin conexión y suenan al instante.
+// correct/success/pop son campanillas sintetizadas, cortas y suaves.
 const SOUNDS = {
-  correct: 'https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3',
-  wrong: require('../../assets/sounds/u_31vnwfmzt6-error-126627.mp3'),
-  click: 'https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3',
-  success: 'https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3',
+  correct: { source: require('../../assets/sounds/correct.wav'), volume: 0.55 },
+  wrong: { source: require('../../assets/sounds/u_31vnwfmzt6-error-126627.mp3'), volume: 0.5 },
+  click: { source: require('../../assets/sounds/pop.wav'), volume: 0.4 },
+  success: { source: require('../../assets/sounds/success.wav'), volume: 0.6 },
 };
 
 class SoundManager {
@@ -17,15 +19,28 @@ class SoundManager {
     return SoundManager.instance;
   }
 
+  // Un reproductor reutilizable por sonido (antes se creaba uno nuevo en cada
+  // toque y nunca se liberaba).
+  players = {};
+
+  getPlayer(soundName) {
+    if (!this.players[soundName]) {
+      const config = SOUNDS[soundName];
+      if (!config) return null;
+      const player = createAudioPlayer(config.source);
+      player.volume = config.volume;
+      this.players[soundName] = player;
+    }
+    return this.players[soundName];
+  }
+
   async play(soundName) {
     try {
-      const soundSource = SOUNDS[soundName];
-      if (!soundSource) return;
-      const source = typeof soundSource === 'string' ? { uri: soundSource } : soundSource;
-      const player = createAudioPlayer(source);
+      const player = this.getPlayer(soundName);
+      if (!player) return;
+      await player.seekTo(0);
       player.play();
     } catch (error) {
-      // Los sonidos remotos fallan sin conexión: no es un error para el usuario.
       if (__DEV__) console.warn('No se pudo reproducir el sonido:', error?.message ?? error);
     }
   }

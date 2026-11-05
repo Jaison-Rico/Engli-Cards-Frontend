@@ -18,6 +18,7 @@ import IconButton from '../components/ui/IconButton';
 import SearchField from '../components/ui/SearchField';
 import EmptyState from '../components/ui/EmptyState';
 import { elevation } from '../theme/theme';
+import TopFade from '../components/ui/TopFade';
 
 function QuickAction({ icon: Icon, label, onPress }) {
   const { theme } = useAppTheme();
@@ -25,10 +26,10 @@ function QuickAction({ icon: Icon, label, onPress }) {
     <PressableScale
       onPress={onPress}
       haptic="light"
-      className="flex-1 flex-row items-center gap-3 rounded-2xl border border-border bg-surface px-4 py-3.5"
+      className="flex-1 flex-row items-center gap-3 rounded-[20px] border border-border bg-surface px-4 py-4"
       style={elevation(1, theme.mode)}
     >
-      <View className="h-10 w-10 items-center justify-center rounded-xl bg-accent/10">
+      <View className="h-10 w-10 items-center justify-center rounded-[14px] bg-accent/10">
         <Icon color={theme.colors.primary} size={20} strokeWidth={2.3} />
       </View>
       <Typography type="body-sm" weight="semibold" className="flex-1" numberOfLines={2}>{label}</Typography>
@@ -121,7 +122,7 @@ export default function MainScreen() {
         showChevron={false}
         badge={item.pending ? <CloudOff color={theme.colors.warning} size={14} /> : null}
         leading={(
-          <View className="h-11 w-11 items-center justify-center rounded-xl bg-accent/10">
+          <View className="h-11 w-11 items-center justify-center rounded-[14px] bg-accent/10">
             <Layers color={theme.colors.primary} size={20} />
           </View>
         )}
@@ -172,11 +173,14 @@ export default function MainScreen() {
       <StatusBar barStyle={theme.mode === 'dark' ? 'light-content' : 'dark-content'} backgroundColor="transparent" translucent />
 
       {/* Cabecera */}
-      <View className="border-b border-border bg-surface px-5 pb-4" style={{ paddingTop: insets.top + 12 }}>
+      <View
+        className="rounded-b-[28px] bg-surface px-5 pb-5"
+        style={[{ paddingTop: insets.top + 14, zIndex: 1 }, elevation(1, theme.mode)]}
+      >
         <View className="mb-4 flex-row items-center justify-between">
           <View className="flex-1 pr-3">
-            <Typography type="body-sm" color="muted">¡Hola, {firstName}!</Typography>
-            <Typography type="h3" weight="bold" className="tracking-tight">Engli Cards</Typography>
+            <Typography type="body-sm" color="muted" numberOfLines={1}>¡Hola, {firstName}!</Typography>
+            <Typography type="h3" weight="bold" className="tracking-tight" numberOfLines={1}>Engli Cards</Typography>
           </View>
 
           <View className="flex-row items-center gap-2">
@@ -196,13 +200,14 @@ export default function MainScreen() {
         <SearchField value={search} onChangeText={setSearch} placeholder="Buscar mazo" />
       </View>
 
+      <View className="flex-1">
       <FlatList
         data={visibleDecks}
         keyExtractor={(item, index) => (item.deck_id ? String(item.deck_id) : `deck-${index}`)}
         renderItem={renderDeck}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 32, flexGrow: 1 }}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 20, paddingBottom: 32, flexGrow: 1 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={theme.colors.primary} colors={[theme.colors.primary]} />}
         ListHeaderComponent={(
           <>
@@ -229,6 +234,9 @@ export default function MainScreen() {
         )}
         ListEmptyComponent={renderEmpty}
       />
+      {/* Las tarjetas se desvanecen al pasar bajo la cabecera */}
+      <TopFade safeArea={false} fade={22} />
+      </View>
 
       <CreateDeck
         visible={modalVisible}

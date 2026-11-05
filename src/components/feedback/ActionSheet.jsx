@@ -33,8 +33,8 @@ export default function ActionSheet({ sheet, onClose }) {
       <View className="flex-1 justify-end" style={{ backgroundColor: theme.colors.backdrop }}>
         <Pressable style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }} onPress={onClose} accessibilityLabel="Cerrar" />
         <Animated.View
-          entering={SlideInDown.springify().damping(22).stiffness(240)}
-          className="rounded-t-3xl border-t border-border bg-overlay px-4 pt-2"
+          entering={SlideInDown.springify().damping(38).stiffness(360)}
+          className="rounded-t-[32px] border-t border-border bg-overlay px-4 pt-3"
           style={{ paddingBottom: insets.bottom + 12 }}
         >
           <View className="mb-3 mt-1 h-1 w-10 self-center rounded-full bg-border" />
@@ -46,7 +46,7 @@ export default function ActionSheet({ sheet, onClose }) {
           ) : null}
 
           <ScrollView
-            className="mt-4 rounded-2xl border border-border bg-surface"
+            className="mt-4 overflow-hidden rounded-[22px] border border-border bg-surface"
             style={{ maxHeight: 380 }}
             bounces={false}
             showsVerticalScrollIndicator={data.options.length > 6}
@@ -74,7 +74,7 @@ export default function ActionSheet({ sheet, onClose }) {
           <PressableScale
             onPress={onClose}
             scaleTo={0.99}
-            className="mt-3 items-center rounded-2xl border border-border bg-surface py-4"
+            className="mt-3 items-center rounded-[22px] border border-border bg-surface py-4"
           >
             <Typography type="body" weight="semibold" color="muted">Cancelar</Typography>
           </PressableScale>

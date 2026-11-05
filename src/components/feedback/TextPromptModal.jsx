@@ -57,8 +57,8 @@ export default function TextPromptModal({
       >
         <Pressable style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }} onPress={handleClose} accessibilityLabel="Cerrar" />
         <Animated.View
-          entering={ZoomIn.springify().damping(20).stiffness(260).mass(0.7)}
-          className="w-full max-w-[420px] rounded-3xl border border-border bg-overlay px-6 pb-5 pt-7"
+          entering={ZoomIn.springify().damping(38).stiffness(360)}
+          className="w-full max-w-[420px] rounded-[28px] border border-border bg-overlay px-6 pb-6 pt-8"
           style={elevation(3, theme.mode)}
         >
           <View className="mb-4 h-14 w-14 items-center justify-center self-center rounded-full bg-accent/10">

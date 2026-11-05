@@ -3,10 +3,11 @@ import { View, ScrollView } from 'react-native';
 import { CommonActions, useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
-  LogOut, Pencil, Check, X, Trash2, Settings, BookOpen, GraduationCap, Target, Flame, Calendar,
+  LogOut, Pencil, Check, X, Trash2, Settings, GraduationCap, Target, Flame, Calendar,
   Trophy, Zap, Lock, Moon, Star, Award, Sun, Camera,
 } from 'lucide-react-native';
-import { Button, Input, Spinner, Typography } from 'heroui-native';
+import { Input, Spinner, Typography } from 'heroui-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useAuth, getUserId } from '../context/AuthContext';
 import { useAppTheme } from '../context/ThemeContext';
 import { useNetwork } from '../context/NetworkContext';
@@ -18,28 +19,12 @@ import CachedImage from '../components/CachedImage';
 import IconButton from '../components/ui/IconButton';
 import PressableScale from '../components/ui/PressableScale';
 import { elevation } from '../theme/theme';
+import GradientFill from '../components/ui/GradientFill';
+import { GlassBorder } from '../components/FlipCard';
+import TopFade from '../components/ui/TopFade';
 
 const ACHIEVEMENT_ICONS = { Trophy, Zap, Moon, Star, Flame, Award, Sun, GraduationCap };
 
-function StatTile({ icon: Icon, iconColor, label, value, highlighted = false }) {
-  const { theme } = useAppTheme();
-  return (
-    <View
-      className={`min-w-[44%] flex-1 items-center rounded-2xl border py-4 ${highlighted ? 'border-transparent bg-accent' : 'border-border bg-surface'}`}
-      style={elevation(1, theme.mode)}
-    >
-      <Icon color={highlighted ? theme.colors.onPrimary : iconColor} size={26} />
-      <Typography
-        type="body-xs"
-        weight="bold"
-        className={`mb-0.5 mt-2 uppercase tracking-wider ${highlighted ? 'text-accent-foreground' : 'text-muted'}`}
-      >
-        {label}
-      </Typography>
-      <Typography type="h4" weight="bold" className={highlighted ? 'text-accent-foreground' : ''}>{value}</Typography>
-    </View>
-  );
-}
 
 export default function ProfileScreen() {
   const { theme, toggleTheme } = useAppTheme();
@@ -209,21 +194,29 @@ export default function ProfileScreen() {
   };
   const levelProgress = Math.max(0, Math.min(100, 100 - displayStats.nextLevelPoints));
   const visibleAchievements = showAllAchievements ? userAchievements : userAchievements.slice(0, 3);
+  const enter = (i) => FadeInDown.delay(i * 40).springify().damping(38).stiffness(360);
+  const cardClass = 'rounded-[24px] border border-border bg-surface';
+  const shadow = elevation(1, theme.mode);
+  const flame = theme.colors.flame || '#F97316';
+
+  const stats = [
+    { icon: GraduationCap, color: theme.colors.primary, label: 'Nivel', value: displayStats.nivel },
+    { icon: Target, color: '#6366F1', label: 'Precisión', value: `${displayStats.precision}%` },
+    { icon: Flame, color: flame, label: 'Racha', value: displayStats.racha, unit: displayStats.racha === 1 ? 'día' : 'días' },
+    { icon: Calendar, color: '#F5B301', label: 'Quizzes', value: displayStats.quizzes },
+  ];
 
   return (
     <View className="flex-1 bg-background">
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ paddingTop: insets.top + 8, paddingBottom: insets.bottom + 24 }}
+        contentContainerStyle={{ paddingTop: insets.top + 8, paddingBottom: insets.bottom + 32 }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
         {/* Barra superior */}
-        <View className="mb-4 h-14 flex-row items-center justify-between px-5">
-          <View className="flex-row items-center gap-2">
-            <BookOpen color={theme.colors.primary} size={22} />
-            <Typography type="body" weight="bold">Engli-Cards</Typography>
-          </View>
+        <View className="mb-2 h-14 flex-row items-center justify-between px-5">
+          <Typography type="h3" weight="bold" className="tracking-tight">Perfil</Typography>
           <View className="flex-row items-center gap-2">
             <IconButton
               variant="soft"
@@ -242,166 +235,232 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* Cabecera de perfil */}
-        <View className="mb-6 items-center px-5">
-          <View className="relative mb-3">
-            <PressableScale
-              onPress={handleChangeAvatar}
-              accessibilityLabel="Cambiar foto de perfil"
-              className="h-24 w-24 overflow-hidden rounded-full"
-            >
-              {userData?.avatar_url ? (
-                <CachedImage uri={userData.avatar_url} style={{ width: 96, height: 96 }} contentFit="cover" />
-              ) : (
-                <View className="h-24 w-24 items-center justify-center bg-accent">
-                  <Typography type="h2" weight="bold" className="text-accent-foreground">
-                    {userData?.name ? userData.name.charAt(0).toUpperCase() : 'U'}
-                  </Typography>
-                </View>
-              )}
-              {uploadingAvatar ? (
-                <View className="absolute inset-0 items-center justify-center bg-black/40">
-                  <Spinner color="#fff" size="sm" />
-                </View>
-              ) : null}
-            </PressableScale>
-            <View
-              pointerEvents="none"
-              className="absolute bottom-0 right-0 h-8 w-8 items-center justify-center rounded-full border-2 border-background bg-accent"
-            >
-              <Camera color={theme.colors.onPrimary} size={14} />
-            </View>
-          </View>
+        {/* Tarjeta de identidad */}
+        <Animated.View
+          entering={enter(0)}
+          className="mx-4 mb-4 overflow-hidden rounded-[28px] px-5 pb-5 pt-6"
+          style={[{ backgroundColor: theme.colors.primary }, elevation(2, theme.mode)]}
+        >
+          {/* Degradado + borde glass: el texto queda directamente sobre el fondo, sin formas detrás. */}
+          <GradientFill colors={['#17B3AD', theme.colors.primary, '#07726E']} radius={28} sheen />
+          <GlassBorder radius={28} color="rgba(255,255,255,0.22)" />
 
-          {isEditingName ? (
-            <View className="items-center">
-              <Input
-                className="min-w-[220px] text-center text-lg font-semibold"
-                value={newName}
-                onChangeText={(text) => { setNewName(text); setNameError(null); }}
-                autoFocus
-                editable={!savingName}
-                placeholder="Tu nombre"
-                returnKeyType="done"
-                onSubmitEditing={handleSaveName}
-                maxLength={40}
-              />
-              {nameError ? <Typography type="body-xs" className="mt-1.5 text-danger">{nameError}</Typography> : null}
-              <View className="mt-2 flex-row gap-3">
-                <IconButton variant="soft" accessibilityLabel="Guardar nombre" onPress={handleSaveName} disabled={savingName}>
-                  {savingName ? <Spinner size="sm" /> : <Check color={theme.colors.primary} size={20} />}
-                </IconButton>
-                <IconButton variant="soft" accessibilityLabel="Cancelar edición" onPress={() => setIsEditingName(false)} disabled={savingName}>
-                  <X color={theme.colors.danger} size={20} />
-                </IconButton>
+          <View className="flex-row items-center">
+            <View className="relative mr-4">
+              <PressableScale
+                onPress={handleChangeAvatar}
+                accessibilityLabel="Cambiar foto de perfil"
+                className="h-20 w-20 overflow-hidden rounded-full"
+                style={{ borderWidth: 3, borderColor: 'rgba(255,255,255,0.45)' }}
+              >
+                {userData?.avatar_url ? (
+                  <CachedImage uri={userData.avatar_url} style={{ width: '100%', height: '100%' }} contentFit="cover" />
+                ) : (
+                  <View className="h-full w-full items-center justify-center" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
+                    <Typography type="h2" weight="bold" style={{ color: '#fff' }}>
+                      {userData?.name?.trim() ? userData.name.trim().charAt(0).toUpperCase() : 'U'}
+                    </Typography>
+                  </View>
+                )}
+                {uploadingAvatar ? (
+                  <View className="absolute inset-0 items-center justify-center bg-black/40">
+                    <Spinner color="#fff" size="sm" />
+                  </View>
+                ) : null}
+              </PressableScale>
+              <View
+                pointerEvents="none"
+                className="absolute bottom-0 right-0 h-7 w-7 items-center justify-center rounded-full bg-white"
+                style={elevation(1)}
+              >
+                <Camera color={theme.colors.primary} size={13} />
               </View>
             </View>
-          ) : (
-            <PressableScale
-              onPress={startEditingName}
-              haptic={null}
-              scaleTo={0.98}
-              accessibilityLabel="Editar nombre"
-              className="flex-row items-center gap-1.5 px-2 py-1"
-            >
-              <Typography type="h4" weight="bold">{userData?.name || 'Usuario'}</Typography>
-              <Pencil color={theme.colors.subtle} size={15} />
-            </PressableScale>
-          )}
 
-          <View className="mt-2 flex-row items-center gap-2 rounded-full bg-default px-3 py-1.5">
-            <View className="rounded-md bg-accent p-0.5">
-              <Trophy color={theme.colors.onPrimary} size={12} />
+            <View className="flex-1">
+              {isEditingName ? (
+                <View>
+                  <Input
+                    className="text-base font-semibold"
+                    value={newName}
+                    onChangeText={(text) => { setNewName(text); setNameError(null); }}
+                    autoFocus
+                    editable={!savingName}
+                    placeholder="Tu nombre"
+                    returnKeyType="done"
+                    onSubmitEditing={handleSaveName}
+                    maxLength={40}
+                  />
+                  {nameError ? (
+                    <Typography type="body-xs" weight="semibold" className="mt-1.5" style={{ color: '#FFE1E1' }}>{nameError}</Typography>
+                  ) : null}
+                  <View className="mt-2 flex-row gap-2">
+                    <IconButton variant="soft" accessibilityLabel="Guardar nombre" onPress={handleSaveName} disabled={savingName} className="h-9 w-9 bg-white">
+                      {savingName ? <Spinner size="sm" /> : <Check color={theme.colors.primary} size={18} />}
+                    </IconButton>
+                    <IconButton
+                      variant="soft"
+                      accessibilityLabel="Cancelar edición"
+                      onPress={() => { setIsEditingName(false); setNameError(null); }}
+                      disabled={savingName}
+                      className="h-9 w-9 bg-white"
+                    >
+                      <X color={theme.colors.danger} size={18} />
+                    </IconButton>
+                  </View>
+                </View>
+              ) : (
+                <PressableScale
+                  onPress={startEditingName}
+                  haptic={null}
+                  scaleTo={0.98}
+                  accessibilityLabel="Editar nombre"
+                  className="flex-row items-center gap-2 self-start"
+                >
+                  <Typography type="h4" weight="bold" numberOfLines={1} className="shrink" style={{ color: '#fff' }}>
+                    {userData?.name || 'Usuario'}
+                  </Typography>
+                  <Pencil color="rgba(255,255,255,0.8)" size={14} />
+                </PressableScale>
+              )}
+              {!isEditingName && userData?.email ? (
+                <Typography type="body-sm" numberOfLines={1} style={{ color: 'rgba(255,255,255,0.8)' }}>{userData.email}</Typography>
+              ) : null}
+              {!isEditingName ? (
+                <View className="mt-2 flex-row items-center gap-1.5 self-start rounded-full px-2.5 py-1" style={{ backgroundColor: 'rgba(255,255,255,0.18)' }}>
+                  <Trophy color="#FFD27A" size={12} />
+                  <Typography type="body-xs" weight="semibold" style={{ color: '#fff' }}>
+                    {Number(displayStats.puntos).toLocaleString('es')} pts
+                  </Typography>
+                </View>
+              ) : null}
             </View>
-            <Typography type="body-sm" weight="medium">{displayStats.puntos.toLocaleString()} puntos totales</Typography>
           </View>
-        </View>
+
+          {/* Progreso de nivel */}
+          {!isLoadingStats ? (
+            <View className="mt-5">
+              <View className="mb-2 flex-row items-center justify-between">
+                <Typography type="body-xs" weight="semibold" style={{ color: 'rgba(255,255,255,0.85)' }}>
+                  Nivel {displayStats.nivel} → {displayStats.nivel + 1}
+                </Typography>
+                <Typography type="body-xs" weight="semibold" style={{ color: 'rgba(255,255,255,0.85)' }}>
+                  {levelProgress} / 100 XP
+                </Typography>
+              </View>
+              <View className="h-2 overflow-hidden rounded-full" style={{ backgroundColor: 'rgba(255,255,255,0.22)' }}>
+                <View className="h-full rounded-full bg-white" style={{ width: `${levelProgress}%` }} />
+              </View>
+            </View>
+          ) : null}
+        </Animated.View>
 
         {/* Estadísticas */}
-        {isLoadingStats ? (
+        {isLoadingStats && !userStats ? (
           <View className="my-6 items-center"><Spinner size="lg" /></View>
         ) : (
-          <View className="mb-6 flex-row flex-wrap gap-3 px-4">
-            <StatTile icon={GraduationCap} iconColor={theme.colors.primary} label="Nivel actual" value={displayStats.nivel} />
-            <StatTile icon={Target} iconColor={theme.colors.warning} label="Precisión" value={`${displayStats.precision}%`} />
-            <StatTile icon={Flame} label="Racha" value={`${displayStats.racha} días`} highlighted />
-            <StatTile icon={Calendar} iconColor={theme.colors.muted} label="Quizzes hechos" value={displayStats.quizzes} />
-          </View>
+          <Animated.View entering={enter(1)} className="mb-6 flex-row flex-wrap gap-3 px-4">
+            {stats.map((s) => (
+              <View key={s.label} className={`min-w-[44%] flex-1 p-4 ${cardClass}`} style={shadow}>
+                <View className="mb-3 h-10 w-10 items-center justify-center rounded-[14px]" style={{ backgroundColor: `${s.color}1A` }}>
+                  <s.icon color={s.color} size={20} />
+                </View>
+                <Typography type="h3" weight="bold" numberOfLines={1}>
+                  {s.value}
+                  {s.unit ? <Typography type="body-sm" color="muted"> {s.unit}</Typography> : null}
+                </Typography>
+                <Typography type="body-xs" weight="semibold" color="muted" className="uppercase tracking-wider">{s.label}</Typography>
+              </View>
+            ))}
+          </Animated.View>
         )}
 
         {/* Logros */}
-        <View className="mb-3 flex-row items-center justify-between px-5">
-          <Typography type="h6" weight="bold">Logros</Typography>
-          {userAchievements.length > 3 ? (
-            <PressableScale onPress={() => setShowAllAchievements(!showAllAchievements)} haptic={null} hitSlop={8}>
-              <Typography type="body-sm" weight="semibold" className="text-accent">
-                {showAllAchievements ? 'Ver menos' : 'Ver todos'}
-              </Typography>
-            </PressableScale>
-          ) : null}
-        </View>
+        <Animated.View entering={enter(2)}>
+          <View className="mb-3 flex-row items-center justify-between px-5">
+            <View>
+              <Typography type="h5" weight="bold">Logros</Typography>
+              {userAchievements.length > 0 ? (
+                <Typography type="body-xs" color="muted">
+                  {userAchievements.filter((a) => a.is_completed).length} de {userAchievements.length} desbloqueados
+                </Typography>
+              ) : null}
+            </View>
+            {userAchievements.length > 3 ? (
+              <PressableScale onPress={() => setShowAllAchievements(!showAllAchievements)} haptic={null} hitSlop={8}>
+                <Typography type="body-sm" weight="semibold" className="text-accent">
+                  {showAllAchievements ? 'Ver menos' : 'Ver todos'}
+                </Typography>
+              </PressableScale>
+            ) : null}
+          </View>
 
-        <View className="mb-6 gap-2.5 px-4">
-          {visibleAchievements.map((ach) => {
-            const isLocked = !ach.is_completed;
-            const progressPercent = Math.min((ach.current_value / ach.target_value) * 100, 100) || 0;
-            const Icon = ACHIEVEMENT_ICONS[ach.icon_type] || Trophy;
-            return (
-              <View
-                key={ach.achievement_id}
-                className={`flex-row items-center rounded-2xl border border-border bg-surface px-4 py-3.5 ${isLocked ? 'opacity-70' : ''}`}
-              >
-                <View className={`mr-3 h-11 w-11 items-center justify-center rounded-full ${isLocked ? 'bg-default' : 'bg-accent/10'}`}>
-                  {isLocked
-                    ? <Lock color={theme.colors.subtle} size={18} />
-                    : <Icon color={theme.colors.primary} size={20} />}
-                </View>
-                <View className="flex-1">
-                  <Typography type="body" weight="semibold">{ach.title}</Typography>
-                  <Typography type="body-xs" color="muted" className="mt-0.5">{ach.description}</Typography>
-                  <View className="mt-2 h-1.5 overflow-hidden rounded-full bg-default">
-                    <View
-                      className="h-full rounded-full"
-                      style={{ width: `${progressPercent}%`, backgroundColor: isLocked ? theme.colors.subtle : theme.colors.primary }}
-                    />
+          <View className={`mx-4 mb-6 overflow-hidden ${cardClass}`} style={shadow}>
+            {visibleAchievements.map((ach, i) => {
+              const isLocked = !ach.is_completed;
+              const target = Number(ach.target_value) || 0;
+              const progressPercent = target > 0 ? Math.min((Number(ach.current_value) / target) * 100, 100) || 0 : 0;
+              const Icon = ACHIEVEMENT_ICONS[ach.icon_type] || Trophy;
+              return (
+                <View
+                  key={ach.achievement_id}
+                  className={`flex-row items-center px-4 py-4 ${i > 0 ? 'border-t border-border' : ''}`}
+                >
+                  <View
+                    className={`mr-3 h-12 w-12 items-center justify-center rounded-[16px] ${isLocked ? "bg-default" : ""}`}
+                    style={isLocked ? null : { backgroundColor: `${theme.colors.primary}1A` }}
+                  >
+                    {isLocked
+                      ? <Lock color={theme.colors.subtle} size={18} />
+                      : <Icon color={theme.colors.primary} size={20} />}
+                  </View>
+                  <View className="flex-1">
+                    <View className="flex-row items-center justify-between gap-2">
+                      <Typography type="body" weight="semibold" numberOfLines={1} className={`shrink ${isLocked ? 'text-muted' : ''}`}>
+                        {ach.title}
+                      </Typography>
+                      <Typography type="body-xs" weight="bold" style={{ color: isLocked ? theme.colors.subtle : theme.colors.primary }}>
+                        {isLocked ? `${Math.round(progressPercent)}%` : '✓'}
+                      </Typography>
+                    </View>
+                    <Typography type="body-xs" color="muted" numberOfLines={2} className="mt-0.5">{ach.description}</Typography>
+                    <View className="mt-2 h-1.5 overflow-hidden rounded-full bg-default">
+                      <View
+                        className="h-full rounded-full"
+                        style={{ width: `${progressPercent}%`, backgroundColor: isLocked ? theme.colors.subtle : theme.colors.primary }}
+                      />
+                    </View>
                   </View>
                 </View>
-              </View>
-            );
-          })}
-          {userAchievements.length === 0 && !isLoadingStats ? (
-            <Typography type="body-sm" color="muted" align="center" className="my-4">Aún no hay logros disponibles.</Typography>
-          ) : null}
-        </View>
-
-        {/* Próximo nivel */}
-        {!isLoadingStats ? (
-          <View className="mx-4 mb-6 rounded-2xl border border-border bg-surface px-4 py-4" style={elevation(1, theme.mode)}>
-            <View className="mb-2 flex-row items-center justify-between">
-              <Typography type="body" weight="semibold">Próximo nivel: {displayStats.nivel + 1}</Typography>
-              <Typography type="body-sm" color="muted">{levelProgress} / 100 XP</Typography>
-            </View>
-            <View className="mb-2 h-2 overflow-hidden rounded-full bg-default">
-              <View className="h-full rounded-full bg-accent" style={{ width: `${levelProgress}%` }} />
-            </View>
-            <Typography type="body-xs" color="muted">
-              ¡Te faltan {displayStats.nextLevelPoints} XP para subir de nivel!
-            </Typography>
+              );
+            })}
+            {userAchievements.length === 0 && !isLoadingStats ? (
+              <Typography type="body-sm" color="muted" align="center" className="my-6">Aún no hay logros disponibles.</Typography>
+            ) : null}
           </View>
-        ) : null}
+        </Animated.View>
 
-        {/* Acciones */}
-        <View className="gap-2 px-4">
-          <Button variant="secondary" size="lg" className="w-full" onPress={handleLogout}>
-            <LogOut size={18} color={theme.colors.foreground} />
-            <Button.Label className="text-foreground">Cerrar sesión</Button.Label>
-          </Button>
-          <Button variant="ghost" size="sm" className="w-full" onPress={handleDeleteProfile}>
-            <Trash2 size={15} color={theme.colors.danger} />
-            <Button.Label className="text-danger">Eliminar cuenta</Button.Label>
-          </Button>
-        </View>
+        {/* Cuenta */}
+        <Animated.View entering={enter(3)} className="px-4">
+          <Typography type="body-xs" weight="bold" color="muted" className="mb-2 ml-1 uppercase tracking-widest">Cuenta</Typography>
+          <View className={`overflow-hidden ${cardClass}`} style={shadow}>
+            <PressableScale onPress={handleLogout} scaleTo={0.99} accessibilityLabel="Cerrar sesión" className="flex-row items-center gap-3 px-4 py-4">
+              <View className="h-9 w-9 items-center justify-center rounded-[12px] bg-default">
+                <LogOut size={17} color={theme.colors.foreground} />
+              </View>
+              <Typography type="body" weight="semibold" className="flex-1">Cerrar sesión</Typography>
+            </PressableScale>
+            <View className="h-px bg-border" />
+            <PressableScale onPress={handleDeleteProfile} scaleTo={0.99} accessibilityLabel="Eliminar cuenta" className="flex-row items-center gap-3 px-4 py-4">
+              <View className="h-9 w-9 items-center justify-center rounded-[12px]" style={{ backgroundColor: `${theme.colors.danger}1A` }}>
+                <Trash2 size={17} color={theme.colors.danger} />
+              </View>
+              <Typography type="body" weight="semibold" className="flex-1 text-danger">Eliminar cuenta</Typography>
+            </PressableScale>
+          </View>
+        </Animated.View>
       </ScrollView>
+      <TopFade />
     </View>
   );
 }

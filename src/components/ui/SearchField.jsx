@@ -9,7 +9,7 @@ export default function SearchField({ value, onChangeText, placeholder = 'Buscar
   const { theme } = useAppTheme();
 
   return (
-    <View className={`h-11 flex-row items-center gap-2 rounded-xl border border-border bg-default px-3.5 ${className}`}>
+    <View className={`h-12 flex-row items-center gap-2 rounded-2xl border border-border bg-default px-3.5 ${className}`}>
       <Search color={theme.colors.muted} size={18} />
       <TextInput
         value={value}

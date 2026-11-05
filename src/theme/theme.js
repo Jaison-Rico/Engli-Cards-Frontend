@@ -53,23 +53,23 @@ const withAliases = (palette) => ({
 });
 
 export const tokens = {
-  radius: { sm: 8, md: 12, lg: 16, xl: 20, xxl: 24, full: 999 },
+  radius: { sm: 10, md: 14, lg: 18, xl: 22, xxl: 28, full: 999 },
   spacing: { xs: 4, sm: 8, md: 12, lg: 16, xl: 20, xxl: 24, xxxl: 32 },
   hairline: StyleSheet.hairlineWidth,
 };
 
 /** Sombra suave y uniforme: en iOS sombra difusa, en Android elevación baja. */
 export const elevation = (level = 1, mode = 'light') => {
-  const opacity = mode === 'dark' ? 0.4 : [0, 0.06, 0.1, 0.16][level] ?? 0.1;
+  const opacity = mode === 'dark' ? 0.4 : [0, 0.05, 0.08, 0.12][level] ?? 0.08;
   return Platform.select({
     ios: {
       shadowColor: '#08302E',
-      shadowOffset: { width: 0, height: level * 2 },
+      shadowOffset: { width: 0, height: level * 3 },
       shadowOpacity: opacity,
-      shadowRadius: level * 6,
+      shadowRadius: level * 10,
     },
-    android: { elevation: level * 2 },
-    default: {},
+    android: { elevation: level * 2, shadowColor: '#08302E' },
+    default: { boxShadow: `0 ${level * 3}px ${level * 12}px rgba(8,48,46,${opacity})` },
   });
 };
 

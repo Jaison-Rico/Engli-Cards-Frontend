@@ -27,6 +27,9 @@ import UpdateFlashCardScreen from '../screens/decks/UpdateFlashCardScreen';
 // Juegos
 import GameFlashCardScreen from '../screens/games/GameFlashCardScreen';
 import CategoryQuizScreen from '../screens/games/CategoryQuizScreen';
+import SwipeModeScreen from '../screens/games/SwipeModeScreen';
+import MemoryModeScreen from '../screens/games/MemoryModeScreen';
+import SurvivalModeScreen from '../screens/games/SurvivalModeScreen';
 import { CATEGORY_QUIZZES } from '../data/quizzes';
 
 const Stack = createNativeStackNavigator();
@@ -76,6 +79,10 @@ export default function AppNavigator() {
         <Stack.Screen name="DeckQuiz" component={DeckQuizScreen} />
 
         <Stack.Screen name="GameFlashCard" component={GameFlashCardScreen} />
+        {/* Minijuegos: sin gesto de volver para no interferir con el arrastre */}
+        <Stack.Screen name="SwipeMode" component={SwipeModeScreen} options={{ gestureEnabled: false }} />
+        <Stack.Screen name="MemoryMode" component={MemoryModeScreen} />
+        <Stack.Screen name="SurvivalMode" component={SurvivalModeScreen} options={{ gestureEnabled: false }} />
         {/* Una sola pantalla de quiz registrada con el nombre de cada lección */}
         {Object.keys(CATEGORY_QUIZZES).map((name) => (
           <Stack.Screen key={name} name={name} component={CategoryQuizScreen} />

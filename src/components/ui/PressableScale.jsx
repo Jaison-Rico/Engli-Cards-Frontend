@@ -5,7 +5,7 @@ import * as Haptics from 'expo-haptics';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-const SPRING = { damping: 18, stiffness: 320, mass: 0.6 };
+const SPRING = { damping: 28, stiffness: 400, mass: 0.5 };
 
 /**
  * Pressable con feedback táctil: escala ligeramente al presionar y emite un
@@ -19,7 +19,7 @@ export default function PressableScale({
   onLongPress,
   disabled = false,
   haptic = 'selection',
-  scaleTo = 0.97,
+  scaleTo = 0.96,
   style,
   className,
   accessibilityLabel,
@@ -31,7 +31,7 @@ export default function PressableScale({
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: 1 - pressed.value * (1 - scaleTo) }],
-    opacity: 1 - pressed.value * 0.08,
+    opacity: 1 - pressed.value * 0.12,
   }));
 
   const triggerHaptic = () => {
