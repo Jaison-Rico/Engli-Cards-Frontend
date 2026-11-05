@@ -1,13 +1,53 @@
 import client from './client';
+import { saveCachedUserData, getCachedUserData } from './localDatabase';
 
-export const getUserStats = (userId) =>
-  client.get(`/users/${userId}/stats`).then((r) => r.data);
+const CACHE_KIND = {
+  stats: 'stats',
+  achievements: 'achievements',
+  sessions: 'sessions',
+};
 
-export const getQuizSessions = (userId, days = 7) =>
-  client.get(`/users/${userId}/quiz-sessions?days=${days}`).then((r) => r.data);
+/**
+ * Ejecuta la petición y, si tiene éxito, guarda una copia local.
+ * Si la API no responde (sin conexión / backend caído) devuelve la copia local
+ * marcada con `offline: true` para que la UI pueda avisar al usuario.
+ */
+const fetchWithCache = async (userId, kind, request) => {
+  try {
+    const data = await request();
+    await saveCachedUserData(userId, kind, data).catch(() => {});
+    return { data, offline: false };
+  } catch (error) {
+    if (error.response) throw error;
 
-export const getUserAchievements = (userId) =>
-  client.get(`/users/${userId}/achievements`).then((r) => r.data);
+    const cached = await getCachedUserData(userId, kind).catch(() => null);
+    if (cached) {
+      return { data: cached.data, offline: true, updatedAt: cached.updatedAt };
+    }
+    throw error;
+  }
+};
+
+export const getUserStats = async (userId) => {
+  const { data, offline, updatedAt } = await fetchWithCache(userId, CACHE_KIND.stats, () =>
+    client.get(`/users/${userId}/stats`).then((r) => r.data)
+  );
+  return { data, offline, updatedAt };
+};
+
+export const getQuizSessions = async (userId, days = 7) => {
+  const { data, offline, updatedAt } = await fetchWithCache(userId, CACHE_KIND.sessions, () =>
+    client.get(`/users/${userId}/quiz-sessions?days=${days}`).then((r) => r.data)
+  );
+  return { data, offline, updatedAt };
+};
+
+export const getUserAchievements = async (userId) => {
+  const { data, offline, updatedAt } = await fetchWithCache(userId, CACHE_KIND.achievements, () =>
+    client.get(`/users/${userId}/achievements`).then((r) => r.data)
+  );
+  return { data, offline, updatedAt };
+};
 
 export const updateUserName = (userId, name) =>
   client.patch(`/users/${userId}`, { name }).then((r) => r.data);

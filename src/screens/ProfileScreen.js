@@ -4,7 +4,7 @@ import { CommonActions, useNavigation, useFocusEffect } from '@react-navigation/
 import { useAuth, getUserId } from '../context/AuthContext';
 import { getUserStats, getUserAchievements, updateUserName, uploadProfileImage, deleteUser } from '../services/users.service';
 import CachedImage from '../components/CachedImage';
-import { LogOut, Pencil, Check, X, Trash2, Settings, BookOpen, GraduationCap, Target, Flame, Calendar, Trophy, Zap, Lock, ChevronRight, Moon, Star, Award, Sun } from 'lucide-react-native';
+import { LogOut, Pencil, Check, X, Trash2, Settings, BookOpen, GraduationCap, Target, Flame, Calendar, Trophy, Zap, Lock, ChevronRight, Moon, Star, Award, Sun, WifiOff } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, Input, Card, Spinner, Typography } from 'heroui-native';
@@ -25,6 +25,7 @@ export default function ProfileScreen() {
   const [newName, setNewName] = useState('');
   const [showAllAchievements, setShowAllAchievements] = useState(false);
   const [showBetaModal, setShowBetaModal] = useState(false);
+  const [isOfflineData, setIsOfflineData] = useState(false);
 
   const handleThemeToggle = () => {
     if (theme.mode === 'light') setShowBetaModal(true);
@@ -39,16 +40,17 @@ export default function ProfileScreen() {
         if (isActive) setUserData(authUser);
         try {
           setIsLoadingStats(true);
-          const [statsData, achData] = await Promise.all([
+          const [statsResult, achResult] = await Promise.all([
             getUserStats(userId),
             getUserAchievements(userId),
           ]);
           if (isActive) {
-            setUserStats(statsData);
-            setUserAchievements(achData);
+            setUserStats(statsResult.data);
+            setUserAchievements(achResult.data ?? []);
+            setIsOfflineData(Boolean(statsResult.offline || achResult.offline));
           }
         } catch (e) {
-          console.error('Error fetching stats:', e);
+          console.warn('No se pudieron cargar las estadísticas:', e?.message ?? e);
         } finally {
           if (isActive) setIsLoadingStats(false);
         }
@@ -246,6 +248,14 @@ export default function ProfileScreen() {
         </View>
 
         {/* Stats Grid */}
+        {isOfflineData && (
+          <View className="mx-4 mb-4 flex-row items-center gap-2 rounded-2xl bg-warning/10 px-4 py-3">
+            <WifiOff size={16} color="#B45309" />
+            <Typography type="body-xs" className="flex-1 text-warning">
+              Sin conexión: mostrando los últimos datos guardados en este dispositivo.
+            </Typography>
+          </View>
+        )}
         {isLoadingStats ? (
           <View className="my-5 items-center">
             <Spinner size="lg" />

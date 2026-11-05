@@ -10,6 +10,7 @@ import { AuthProvider } from './src/context/AuthContext';
 import { enableStudyReminders } from './src/config/notifications';
 import { useAuth, getUserId } from './src/context/AuthContext';
 import { syncPendingChanges } from './src/services/decks.service';
+import { syncPendingQuizProgress } from './src/services/progress.service';
 
 function OfflineSyncManager() {
   const { user } = useAuth();
@@ -21,6 +22,9 @@ function OfflineSyncManager() {
     const sync = () => {
       syncPendingChanges(userId).catch((error) => {
         console.warn('No se pudieron sincronizar los cambios offline:', error);
+      });
+      syncPendingQuizProgress(userId).catch((error) => {
+        console.warn('No se pudieron sincronizar los quizzes pendientes:', error);
       });
     };
 

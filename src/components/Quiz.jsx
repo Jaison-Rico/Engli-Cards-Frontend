@@ -7,7 +7,7 @@ import { ArrowLeft, CheckCircle2, XCircle } from 'lucide-react-native';
 import * as Speech from 'expo-speech';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as SecureStore from 'expo-secure-store';
-import { config } from '../config/api';
+import { submitQuizProgress } from '../services/progress.service';
 import { useAppTheme } from '../context/ThemeContext';
 import * as Haptics from 'expo-haptics';
 import SoundManager from '../config/sounds';
@@ -85,34 +85,28 @@ export default function Quiz({
           const user = JSON.parse(storedUser);
           const userId = user?.user_id ?? user?._id ?? user?.id ?? user?.userId;
           if (userId) {
-            const res = await fetch(`${config.BASE_URL}/progress/quiz-complete`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-              body: JSON.stringify({
-                userId: Number(userId),
-                deckId: deckId ? Number(deckId) : null,
-                totalQuestions: questions.length,
-                correctAnswers: score,
-                timeSpentSeconds: startTime ? Math.floor((Date.now() - startTime) / 1000) : 0,
-              }),
+            const result = await submitQuizProgress(userId, {
+              deckId,
+              totalQuestions: questions.length,
+              correctAnswers: score,
+              timeSpentSeconds: startTime ? Math.floor((Date.now() - startTime) / 1000) : 0,
             });
-            if (res.ok) {
-              const data = await res.json();
-              if (data.unlockedAchievements?.length > 0) {
-                const ach = data.unlockedAchievements[0];
-                setTimeout(() => {
-                  Alert.alert(
-                    '🏆 ¡Nuevo Logro Desbloqueado!',
-                    `¡Has completado: ${ach.title}!\n\n${ach.description}`,
-                    [{ text: '¡Genial!' }]
-                  );
-                }, 500);
-              }
+
+            if (result.ok && result.data?.unlockedAchievements?.length > 0) {
+              const ach = result.data.unlockedAchievements[0];
+              setTimeout(() => {
+                Alert.alert(
+                  '🏆 ¡Nuevo Logro Desbloqueado!',
+                  `¡Has completado: ${ach.title}!\n\n${ach.description}`,
+                  [{ text: '¡Genial!' }]
+                );
+              }, 500);
             }
           }
         }
       } catch (e) {
-        console.error('Error al guardar progreso del quiz:', e);
+        // Fallo inesperado al guardar el progreso; no debe romper el quiz.
+        console.warn('No se pudo registrar el progreso del quiz:', e?.message ?? e);
       }
       onFinish(score, questions.length);
       setResultModalVisible(true);

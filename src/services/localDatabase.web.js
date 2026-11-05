@@ -65,3 +65,13 @@ export const removePendingQuizProgress = async (id) => {
   const index = pendingQuizProgress.findIndex((entry) => entry.id === id);
   if (index >= 0) pendingQuizProgress.splice(index, 1);
 };
+
+const cachedUserData = new Map();
+
+export const saveCachedUserData = async (userId, kind, data) => {
+  cachedUserData.set(`${String(userId)}:${kind}`, { data, updatedAt: Date.now() });
+};
+
+export const getCachedUserData = async (userId, kind) => {
+  return cachedUserData.get(`${String(userId)}:${kind}`) ?? null;
+};

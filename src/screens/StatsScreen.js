@@ -6,7 +6,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useAuth, getUserId } from '../context/AuthContext';
 import { getUserStats, getQuizSessions } from '../services/users.service';
 import { getDecks } from '../services/decks.service';
-import { Layers, Layout, Clock, TrendingUp } from 'lucide-react-native';
+import { Layers, Layout, Clock, TrendingUp, WifiOff } from 'lucide-react-native';
 import { Card, Spinner, Typography } from 'heroui-native';
 import { useAppTheme } from '../context/ThemeContext';
 
@@ -22,6 +22,7 @@ export default function StatsScreen() {
   const [sessions, setSessions] = useState([]);
   const [totalDecks, setTotalDecks] = useState(0);
   const [totalCards, setTotalCards] = useState(0);
+  const [isOfflineData, setIsOfflineData] = useState(false);
 
   const primaryColor = theme.colors.primaryLight || theme.colors.primary;
   const cardColor = theme.colors.card;
@@ -34,20 +35,21 @@ export default function StatsScreen() {
         if (!userId) return;
         try {
           setIsLoading(true);
-          const [statsData, sessionsData, decksData] = await Promise.all([
+          const [statsResult, sessionsResult, decksData] = await Promise.all([
             getUserStats(userId),
             getQuizSessions(userId, 7),
             getDecks(userId, false),
           ]);
           if (isActive) {
-            setStats(statsData);
-            setSessions(sessionsData);
+            setStats(statsResult.data);
+            setSessions(sessionsResult.data ?? []);
             const personalDecks = decksData.filter((d) => !d.is_system);
             setTotalDecks(personalDecks.length);
             setTotalCards(personalDecks.reduce((acc, deck) => acc + (deck.flashcards?.length || 0), 0));
+            setIsOfflineData(Boolean(statsResult.offline || sessionsResult.offline || decksData.isOffline));
           }
         } catch (error) {
-          console.error('Error fetching stats:', error);
+          console.warn('No se pudieron cargar las estadísticas:', error?.message ?? error);
         } finally {
           if (isActive) setIsLoading(false);
         }
@@ -99,6 +101,15 @@ export default function StatsScreen() {
         showsVerticalScrollIndicator={false}
       >
         <Typography type="h3" weight="bold" align="center" className="mb-8">Estadísticas</Typography>
+
+        {isOfflineData && (
+          <View className="mb-5 flex-row items-center gap-2 rounded-2xl bg-warning/10 px-4 py-3">
+            <WifiOff size={16} color="#B45309" />
+            <Typography type="body-xs" className="flex-1 text-warning">
+              Sin conexión: mostrando los últimos datos guardados en este dispositivo.
+            </Typography>
+          </View>
+        )}
 
         {/* Circular Progress */}
         <View className="items-center justify-center h-[220px] mb-8">

@@ -32,6 +32,13 @@ const getDatabase = () => {
           time_spent_seconds INTEGER NOT NULL,
           created_at INTEGER NOT NULL
         );
+        CREATE TABLE IF NOT EXISTS cached_user_data (
+          user_id TEXT NOT NULL,
+          kind TEXT NOT NULL,
+          payload TEXT NOT NULL,
+          updated_at INTEGER NOT NULL,
+          PRIMARY KEY (user_id, kind)
+        );
       `);
       return db;
     });
@@ -163,4 +170,36 @@ export const getPendingQuizProgress = async (userId) => {
 export const removePendingQuizProgress = async (id) => {
   const db = await getDatabase();
   await db.runAsync('DELETE FROM pending_quiz_progress WHERE id = ?', id);
+};
+
+/**
+ * Guarda una copia local de datos del usuario (estadísticas, logros, sesiones)
+ * para poder mostrarlos cuando la API no está disponible.
+ */
+export const saveCachedUserData = async (userId, kind, data) => {
+  const db = await getDatabase();
+  await db.runAsync(
+    `INSERT OR REPLACE INTO cached_user_data (user_id, kind, payload, updated_at)
+     VALUES (?, ?, ?, ?)`,
+    userKey(userId),
+    kind,
+    JSON.stringify(data ?? null),
+    Date.now(),
+  );
+};
+
+export const getCachedUserData = async (userId, kind) => {
+  const db = await getDatabase();
+  const row = await db.getFirstAsync(
+    'SELECT payload, updated_at FROM cached_user_data WHERE user_id = ? AND kind = ?',
+    userKey(userId),
+    kind,
+  );
+  if (!row) return null;
+  try {
+    return { data: JSON.parse(row.payload), updatedAt: row.updated_at };
+  } catch (error) {
+    console.warn('No se pudo leer la caché local del usuario:', error);
+    return null;
+  }
 };

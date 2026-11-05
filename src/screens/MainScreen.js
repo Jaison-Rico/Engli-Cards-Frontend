@@ -41,14 +41,14 @@ export default function MainScreen() {
         setLoading(true);
         setError(null);
         try {
-          const [deckData, stats] = await Promise.all([
+          const [deckData, statsResult] = await Promise.all([
             getDecks(userId, false),
             getUserStats(userId).catch(() => null),
           ]);
           if (isActive) {
             setDecks(deckData);
-            setIsOffline(Boolean(deckData.isOffline));
-            if (stats) setStreak(stats.streak_current || 0);
+            setIsOffline(Boolean(deckData.isOffline || statsResult?.offline));
+            if (statsResult?.data) setStreak(statsResult.data.streak_current || 0);
           }
         } catch (err) {
           if (isActive) {
