@@ -40,7 +40,9 @@
           "microphonePermission": "La app accede al micrófono al grabar videos."
         }
       ],
-      "expo-status-bar"
+      "expo-status-bar",
+      "expo-sqlite",
+      "expo-image"
     ],
     "extra": {
       "eas": {

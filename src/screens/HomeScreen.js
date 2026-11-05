@@ -1,15 +1,22 @@
 import React, { useEffect, useRef } from 'react';
 import { View } from 'react-native';
 import LottieView from 'lottie-react-native';
+import { useAuth } from '../context/AuthContext';
 
 export default function HomeScreen({ navigation }) {
   const animation = useRef(null);
+  const { user, isLoaded } = useAuth();
 
   useEffect(() => {
     animation.current?.play?.();
-    const timer = setTimeout(() => { navigation.replace('Login'); }, 4000);
+    if (!isLoaded) return undefined;
+    const timer = setTimeout(() => {
+      navigation.replace(user
+        ? (user.onboarding_completed ? 'BottomTabs' : 'Onboarding')
+        : 'Login');
+    }, 4000);
     return () => clearTimeout(timer);
-  }, [navigation]);
+  }, [isLoaded, navigation, user]);
 
   return (
     <View className="flex-1 items-center justify-center bg-background">

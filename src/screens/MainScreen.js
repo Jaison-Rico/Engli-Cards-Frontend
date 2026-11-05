@@ -47,7 +47,7 @@ export default function MainScreen() {
           ]);
           if (isActive) {
             setDecks(deckData);
-            setIsOffline(false);
+            setIsOffline(Boolean(deckData.isOffline));
             if (stats) setStreak(stats.streak_current || 0);
           }
         } catch (err) {

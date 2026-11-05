@@ -32,7 +32,7 @@ export default function DeckDetailsScreen({ route, navigation }) {
     setLoading(true);
     setError(null);
     try {
-      const data = await getDeckFlashcards(deck.deck_id);
+      const data = await getDeckFlashcards(deck.deck_id, userId);
       setFlashcards(data);
     } catch (err) {
       setError('No se pudieron cargar las flashcards.');

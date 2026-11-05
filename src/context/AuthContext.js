@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import { setAuthToken, clearAuthToken } from '../services/client';
+import { initializeLocalDatabase } from '../services/localDatabase';
 
 export const getUserId = (user) =>
   user?.user_id ?? user?._id ?? user?.id ?? user?.userId ?? null;
@@ -24,12 +25,20 @@ export const AuthProvider = ({ children }) => {
           setAuthToken(storedToken);
         }
         if (storedUser) setUser(JSON.parse(storedUser));
-      } catch {}
+      } catch (error) {
+        console.warn('No se pudo restaurar la sesión guardada:', error);
+      }
       finally {
         setIsLoaded(true);
       }
     };
     load();
+  }, []);
+
+  useEffect(() => {
+    initializeLocalDatabase().catch((error) => {
+      console.warn('No se pudo inicializar la base de datos local:', error);
+    });
   }, []);
 
   const login = async (newToken, newUser) => {
@@ -57,7 +66,7 @@ export const AuthProvider = ({ children }) => {
   if (!isLoaded) return null;
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, token, isLoaded, login, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

@@ -63,12 +63,14 @@ Una aplicación móvil de React Native desarrollada con Expo para el aprendizaje
 - ✅ **Pantallas de autenticación** (Login, Register, Reset Password)
 - ✅ **Pantalla principal** (MainScreen) con interfaz moderna
 - ✅ **Creación de tarjetas** (NewFlashCard) con formularios
+- ✅ **Sesión persistente** mediante `expo-secure-store`
+- ✅ **Modo offline** para mazos y flashcards mediante `expo-sqlite`
 - ✅ **Componentes UI** con React Native Elements
 - ✅ **Estilos organizados** por pantallas
 
 ## 🔧 Próximas Funcionalidades
 
-- 🔲 Base de datos local para tarjetas de estudio
+- ✅ Base de datos local para mazos y tarjetas de estudio
 - 🔲 Sistema de mazos y categorías
 - 🔲 Progreso del usuario y estadísticas
 - 🔲 Modo de estudio con flashcards interactivas
@@ -76,6 +78,14 @@ Una aplicación móvil de React Native desarrollada con Expo para el aprendizaje
 - 🔲 Exportar/Importar mazos de tarjetas
 
 ## 📁 Estructura del Proyecto
+
+### Persistencia y modo offline
+
+La sesión se restaura desde el almacenamiento seguro al abrir la aplicación. Los
+mazos y las flashcards consultados se guardan en SQLite por usuario. Si no hay
+conexión, la aplicación muestra la última copia local disponible y las acciones
+de crear, editar o eliminar mazos quedan en una cola para sincronizarse cuando
+vuelva la conexión.
 
 ```
 engli-cards/

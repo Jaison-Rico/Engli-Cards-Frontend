@@ -39,7 +39,12 @@ export default function CreateDeck({ visible, onClose, onCreateDeck }) {
     setLoading(true);
     try {
       const response = await createDeck(deckName.trim(), userId);
-      showToast(`¡Mazo "${deckName}" creado exitosamente!`, 'success');
+      showToast(
+        String(response.deck_id).startsWith('offline-')
+          ? 'Mazo guardado localmente; se sincronizará al volver Internet.'
+          : `¡Mazo "${deckName}" creado exitosamente!`,
+        'success',
+      );
       setTimeout(() => {
         if (onCreateDeck) onCreateDeck(response);
         setDeckName('');
