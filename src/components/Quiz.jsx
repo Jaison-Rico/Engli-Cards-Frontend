@@ -16,9 +16,9 @@ import { Button, Card, Typography } from 'heroui-native';
 export default function Quiz({
   questions = [],
   heading = '',
-  onBack = () => {},
+  onBack = () => { },
   instructionText = 'Selecciona la traducción correcta',
-  onFinish = () => {},
+  onFinish = () => { },
   deckId = null,
 }) {
   const { theme } = useAppTheme();
@@ -181,7 +181,7 @@ export default function Quiz({
                   try {
                     Speech.stop();
                     Speech.speak(option.text, { language: 'en-US', rate: 1.0, pitch: 1.0 });
-                  } catch {}
+                  } catch { }
                   handleOptionSelect(option.id);
                 }}
                 isDisabled={isVerified}
@@ -189,8 +189,8 @@ export default function Quiz({
                 <Button.Label
                   className={
                     showCorrect ? 'text-success font-semibold' :
-                    showIncorrect ? 'text-danger font-semibold' :
-                    isSelected ? 'text-white' : 'text-foreground'
+                      showIncorrect ? 'text-danger font-semibold' :
+                        isSelected ? 'text-white' : 'text-foreground'
                   }
                 >
                   {option.text}
@@ -205,13 +205,12 @@ export default function Quiz({
         {/* Verify / Next */}
         <Button
           size="lg"
-          className={`w-full ${
-            isVerified
+          className={`w-full ${isVerified
               ? isCorrect
                 ? 'bg-success'
                 : 'bg-danger'
               : ''
-          }`}
+            }`}
           onPress={isVerified ? handleNext : handleVerify}
           isDisabled={!selectedOption}
         >
