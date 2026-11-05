@@ -3,7 +3,6 @@ import { View, ScrollView, Alert, Modal } from 'react-native';
 import { CommonActions, useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useAuth, getUserId } from '../context/AuthContext';
 import { getUserStats, getUserAchievements, updateUserName, uploadProfileImage, deleteUser } from '../services/users.service';
-import { Image } from 'react-native';
 import CachedImage from '../components/CachedImage';
 import { LogOut, Pencil, Check, X, Trash2, Settings, BookOpen, GraduationCap, Target, Flame, Calendar, Trophy, Zap, Lock, ChevronRight, Moon, Star, Award, Sun } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';

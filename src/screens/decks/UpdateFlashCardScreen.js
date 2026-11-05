@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { View, ScrollView, Modal, Image, Alert, StatusBar } from 'react-native';
+import { View, ScrollView, Modal, Alert, StatusBar } from 'react-native';
 import { Trash2, Save, ArrowLeft, Type, Globe, Aperture, CheckCircle } from 'lucide-react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import * as SecureStore from 'expo-secure-store';
 import axios from 'axios';
 import { config } from '../../config/api';
 import * as ImagePicker from 'expo-image-picker';
+import CachedImage from '../../components/CachedImage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, Input, Card, Spinner, Typography } from 'heroui-native';
 import { useAppTheme } from '../../context/ThemeContext';
@@ -119,7 +120,7 @@ export default function UpdateFlashCard() {
           >
             {image ? (
               <View className="w-full h-full">
-                <Image source={{ uri: image }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
+                <CachedImage uri={image} style={{ width: '100%', height: '100%' }} contentFit="cover" />
                 <View className="absolute bottom-4 right-4 bg-white/90 px-3 py-1.5 rounded-full flex-row items-center gap-1">
                   <Aperture size={14} color="#086B67" />
                   <Typography type="body-xs" weight="semibold" className="text-[#086B67]">Cambiar Imagen</Typography>

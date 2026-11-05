@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, ScrollView, Modal, Platform, Image, Alert } from 'react-native';
+import { View, ScrollView, Modal, Platform, Alert } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { Camera, Save, ArrowLeft, ChevronDown, CheckCircle, Type, Globe, Lightbulb, Aperture, User } from 'lucide-react-native';
 import { CommonActions, useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -7,6 +7,7 @@ import { useAuth, getUserId } from '../../context/AuthContext';
 import { Button, Input, Card, Spinner, Typography } from 'heroui-native';
 import client from '../../services/client';
 import * as ImagePicker from 'expo-image-picker';
+import CachedImage from '../../components/CachedImage';
 import { useAppTheme } from '../../context/ThemeContext';
 
 export default function NewFlashCard() {
@@ -248,7 +249,7 @@ export default function NewFlashCard() {
             onPress={pickImage}
           >
             {image ? (
-              <Image source={{ uri: image }} style={{ width: '100%', height: '100%', borderRadius: 16 }} resizeMode="cover" />
+              <CachedImage uri={image} style={{ width: '100%', height: '100%', borderRadius: 16 }} contentFit="cover" />
             ) : (
               <View className="items-center gap-2">
                 <View className="w-12 h-12 rounded-full bg-accent/10 items-center justify-center">
@@ -275,11 +276,10 @@ export default function NewFlashCard() {
             </View>
             {gifUrl ? (
               <View className="mt-3 rounded-xl overflow-hidden bg-default p-2">
-                <Image
-                  source={{ uri: gifUrl }}
+                <CachedImage
+                  uri={gifUrl}
                   style={{ width: '100%', height: 160, borderRadius: 8 }}
-                  resizeMode="cover"
-                  onError={() => Alert.alert('Error', 'No se pudo cargar el GIF. Verifica la URL.')}
+                  contentFit="cover"
                 />
               </View>
             ) : null}
