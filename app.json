@@ -44,16 +44,14 @@
       "expo-sqlite",
       "expo-image"
     ],
-    "extra": {
-      "eas": {
-        "projectId": "2f25fe9f-5763-4056-a19a-ad75df8436c2"
-      }
-    },
     "runtimeVersion": {
       "policy": "appVersion"
     },
-    "updates": {
-      "url": "https://u.expo.dev/2f25fe9f-5763-4056-a19a-ad75df8436c2"
-    }
+    "extra": {
+      "eas": {
+        "projectId": "8269d921-ae54-428b-9ed0-0b04412f0b75"
+      }
+    },
+    "owner": "jaisonstv"
   }
 }
