@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { View, TouchableOpacity, Image, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import * as Speech from 'expo-speech';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, interpolate } from 'react-native-reanimated';
 import { Typography, Button } from 'heroui-native';
+import CachedImage from './CachedImage';
 
 // Códigos de idioma candidatos en orden de preferencia
 const SPANISH_LANG_CANDIDATES = ['es-419', 'es-ES', 'es-MX', 'es-US', 'es'];
@@ -88,7 +89,7 @@ export default function FlashCard({
           <Typography type="h4" weight="bold" className="text-white text-center mb-3">
             {item?.[frontKey] || item.word}
           </Typography>
-          {imgUri ? <Image source={{ uri: imgUri }} style={styles.cardImage} /> : null}
+          {imgUri ? <CachedImage uri={imgUri} style={styles.cardImage} contentFit="contain" /> : null}
           <Typography type="body-xs" className="text-white/70 mt-2">Toca para ver traducción</Typography>
         </Animated.View>
 
@@ -98,7 +99,7 @@ export default function FlashCard({
           <Typography type="h4" weight="bold" className="text-white text-center mb-3">
             {item?.[backKey] || item.translation}
           </Typography>
-          {imgUri ? <Image source={{ uri: imgUri }} style={styles.cardImage} /> : null}
+          {imgUri ? <CachedImage uri={imgUri} style={styles.cardImage} contentFit="contain" /> : null}
           <Typography type="body-xs" className="text-white/70 mt-2">Toca para volver</Typography>
         </Animated.View>
       </TouchableOpacity>

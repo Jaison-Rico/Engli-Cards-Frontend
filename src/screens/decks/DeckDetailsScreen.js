@@ -8,6 +8,7 @@ import { Button, Input, Card, Spinner, Typography } from 'heroui-native';
 import { useAppTheme } from '../../context/ThemeContext';
 import { useAuth, getUserId } from '../../context/AuthContext';
 import { getDeckFlashcards, updateDeck, deleteDeck } from '../../services/decks.service';
+import CachedImage from '../../components/CachedImage';
 
 export default function DeckDetailsScreen({ route, navigation }) {
   const { deck } = route.params;
@@ -211,7 +212,7 @@ export default function DeckDetailsScreen({ route, navigation }) {
                 <Card.Body className="flex-row items-center px-4 py-3">
                   <View className="w-12 h-12 rounded-full bg-default items-center justify-center mr-4 overflow-hidden">
                     {item.image_url
-                      ? <Image source={{ uri: item.image_url }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
+                      ? <CachedImage uri={item.image_url} style={{ width: '100%', height: '100%' }} contentFit="cover" />
                       : <ImageIcon color="#A1CFC9" size={22} />
                     }
                   </View>

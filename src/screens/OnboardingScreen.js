@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, FlatList, StatusBar, Image, Text, TouchableOpacity } from 'react-native';
+import { View, FlatList, StatusBar, Text, TouchableOpacity } from 'react-native';
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CheckCircle2 } from 'lucide-react-native';
@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import { useAppTheme } from '../context/ThemeContext';
 import { getCategories, completeOnboarding } from '../services/onboarding.service';
 import { Button, Card, Spinner, Typography } from 'heroui-native';
+import CachedImage from '../components/CachedImage';
 
 const CATEGORY_GIFS = {
   saludos: 'https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExcjR3aG9oZzNqZnluNjBteGplaWxkb3hxamN6bGdvd2o1dHk0dzNmZSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/IThjAlJnD9WNO/giphy.gif',
@@ -91,10 +92,10 @@ export default function OnboardingScreen() {
             {/* Contenedor de icono/GIF con altura fija para alineación perfecta */}
             <View style={{ height: 56, justifyContent: 'center' }}>
               {CATEGORY_GIFS[item.key] ? (
-                <Image
-                  source={{ uri: CATEGORY_GIFS[item.key] }}
+                <CachedImage
+                  uri={CATEGORY_GIFS[item.key]}
                   style={{ width: 50, height: 50, borderRadius: 10 }}
-                  resizeMode="cover"
+                  contentFit="cover"
                 />
               ) : (
                 <Text style={{ fontSize: 38 }}>{item.emoji}</Text>

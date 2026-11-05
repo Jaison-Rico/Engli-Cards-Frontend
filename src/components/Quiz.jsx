@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Alert, Image } from 'react-native';
+import { View, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ProgressBar } from 'react-native-paper';
 import QuizResultModal from './QuizResultModal';
@@ -12,6 +12,7 @@ import { useAppTheme } from '../context/ThemeContext';
 import * as Haptics from 'expo-haptics';
 import SoundManager from '../config/sounds';
 import { Button, Card, Typography } from 'heroui-native';
+import CachedImage from './CachedImage';
 
 export default function Quiz({
   questions = [],
@@ -147,10 +148,10 @@ export default function Quiz({
         {/* Question */}
         <View className="items-center py-8">
           {currentQuestion?.image && (
-            <Image
-              source={{ uri: currentQuestion.image }}
+            <CachedImage
+              uri={currentQuestion.image}
               style={{ width: 120, height: 120, marginBottom: 16, borderRadius: 16 }}
-              resizeMode="contain"
+              contentFit="contain"
             />
           )}
           <Typography type="h4" weight="bold" align="center" className="mb-2">

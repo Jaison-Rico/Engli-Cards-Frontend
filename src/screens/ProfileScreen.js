@@ -4,6 +4,7 @@ import { CommonActions, useNavigation, useFocusEffect } from '@react-navigation/
 import { useAuth, getUserId } from '../context/AuthContext';
 import { getUserStats, getUserAchievements, updateUserName, uploadProfileImage, deleteUser } from '../services/users.service';
 import { Image } from 'react-native';
+import CachedImage from '../components/CachedImage';
 import { LogOut, Pencil, Check, X, Trash2, Settings, BookOpen, GraduationCap, Target, Flame, Calendar, Trophy, Zap, Lock, ChevronRight, Moon, Star, Award, Sun } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -193,7 +194,7 @@ export default function ProfileScreen() {
           <View className="relative mb-3">
             <Button isIconOnly variant="ghost" onPress={handleEditProfile} className="w-24 h-24 rounded-full overflow-hidden">
               {userData?.avatar_url
-                ? <Image source={{ uri: userData.avatar_url }} style={{ width: 96, height: 96, borderRadius: 48 }} />
+                ? <CachedImage uri={userData.avatar_url} style={{ width: 96, height: 96, borderRadius: 48 }} contentFit="cover" />
                 : (
                   <View style={{ width: 96, height: 96, borderRadius: 48, backgroundColor: primaryColor, alignItems: 'center', justifyContent: 'center' }}>
                     <Typography type="h2" weight="bold" className="text-white">
