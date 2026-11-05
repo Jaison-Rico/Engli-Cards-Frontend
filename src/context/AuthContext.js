@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import * as SecureStore from 'expo-secure-store';
+import * as SecureStore from '../services/secureStorage';
 import { setAuthToken, clearAuthToken } from '../services/client';
 import { initializeLocalDatabase } from '../services/localDatabase';
 
@@ -14,25 +14,30 @@ export const AuthProvider = ({ children }) => {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
+    // Igual que con el tema, la sesión nunca debe bloquear el arranque: si
+    // no se puede leer, se entra sin sesión en vez de dejar la app en negro.
+    let cancelled = false;
+
     const load = async () => {
       try {
         const [storedToken, storedUser] = await Promise.all([
           SecureStore.getItemAsync('token'),
           SecureStore.getItemAsync('userInfo'),
         ]);
+        if (cancelled) return;
         if (storedToken) {
           setToken(storedToken);
           setAuthToken(storedToken);
         }
         if (storedUser) setUser(JSON.parse(storedUser));
       } catch (error) {
-        console.warn('No se pudo restaurar la sesión guardada:', error);
-      }
-      finally {
-        setIsLoaded(true);
+        console.warn('No se pudo restaurar la sesión guardada:', error?.message ?? error);
+      } finally {
+        if (!cancelled) setIsLoaded(true);
       }
     };
     load();
+    return () => { cancelled = true; };
   }, []);
 
   useEffect(() => {

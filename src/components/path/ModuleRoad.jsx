@@ -1,8 +1,9 @@
 import React, { memo, useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Path, Defs, ClipPath, Rect, G } from 'react-native-svg';
 import { Typography } from 'heroui-native';
 import PathNode from './PathNode';
+import { labelBands } from './pathGeometry';
 import { elevation } from '../../theme/theme';
 
 /* ----------------------------- Geometría ----------------------------- */
@@ -10,7 +11,15 @@ import { elevation } from '../../theme/theme';
 const BANNER_H = 84;
 const FIRST_NODE = BANNER_H + 78;
 const STEP = 114;
-const END_PAD = 70;
+const END_PAD = 78;
+
+/**
+ * Y por debajo de la cual el camino es visible. Todo lo que queda por encima
+ * (y <= BANNER_H) lo tapa el cartel del módulo, que es opaco y va dibujado
+ * después. El camino se recorta con un <Rect> para que ni su extremo
+ * redondeado asome por encima del módulo.
+ */
+const ROAD_TOP = BANNER_H;
 
 export const sectionHeight = (nodeCount) => FIRST_NODE + (nodeCount - 1) * STEP + END_PAD;
 export const nodeLocalY = (i) => FIRST_NODE + i * STEP;
@@ -35,6 +44,36 @@ const roadPath = (fromY, toY, offsetY, width) => {
   return `${d} L ${roadX(offsetY + toY, width).toFixed(1)} ${toY}`;
 };
 
+/**
+ * Camino troceado: devuelve un array de tramos, cada uno con su `d`. Los
+ * tramos excluyen las bandas de etiqueta, de forma que la línea entra y sale
+ * de cada palabra en vez de tacharla.
+ */
+export const roadSegments = (nodeCount, nodeSizes, offsetY, width, fromY, toY) => {
+  const bands = labelBands(nodeLocalY, nodeSizes);
+
+  const segments = [];
+  let cursor = fromY;
+
+  for (const band of bands) {
+    // La banda cae fuera del tramo que estamos pintando.
+    if (band.y0 >= toY) break;
+    if (band.y1 <= fromY) continue;
+
+    // Tramo anterior a la banda: el camino baja hasta la palabra.
+    const head = roadPath(cursor, Math.max(cursor, band.y0), offsetY, width);
+    if (head) segments.push({ d: head, y0: cursor, y1: band.y0 });
+
+    // La banda se salta: aquí va la palabra.
+    cursor = Math.max(cursor, band.y1);
+  }
+
+  // Tramo final, desde la última etiqueta hasta el final de la sección.
+  const tail = roadPath(cursor, toY, offsetY, width);
+  if (tail) segments.push({ d: tail, y0: cursor, y1: toY });
+  return segments;
+};
+
 /* ------------------------------ Sección ------------------------------ */
 
 /**
@@ -48,28 +87,57 @@ function ModuleRoad({ module, width, offsetY, progressY, palette, onPressNode })
   const height = sectionHeight(module.nodes.length);
   const localProgress = Math.max(0, Math.min(height, progressY - offsetY));
 
-  const { road, done, nodes } = useMemo(() => ({
-    road: roadPath(0, height, offsetY, width),
-    done: roadPath(0, localProgress, offsetY, width),
-    nodes: module.nodes.map((node, i) => ({ node, x: roadX(offsetY + nodeLocalY(i), width), y: nodeLocalY(i) })),
-  }), [module.nodes, height, offsetY, width, localProgress]);
+  const { done, nodes, segments, doneSegments } = useMemo(() => {
+    const sizes = module.nodes.map((n) => (n.type === 'boss' ? 76 : n.status === 'current' ? 72 : 64));
+    return {
+      done: localProgress > ROAD_TOP,
+      doneSegments: localProgress > ROAD_TOP
+        ? roadSegments(module.nodes.length, sizes, offsetY, width, ROAD_TOP, localProgress)
+        : [],
+      segments: roadSegments(module.nodes.length, sizes, offsetY, width, ROAD_TOP, height),
+      nodes: module.nodes.map((node, i) => ({ node, x: roadX(offsetY + nodeLocalY(i), width), y: nodeLocalY(i) })),
+    };
+  }, [module.nodes, height, offsetY, width, localProgress]);
+
+  // Id único por sección: se renderizan varias en la misma lista y un id
+  // repetido haría que el clip se resolviera contra el <ClipPath> equivocado.
+  const clipId = `roadClip-${module.id}`;
 
   const pct = module.completed / module.nodes.length;
 
   return (
     <View style={{ width, height }}>
       <Svg width={width} height={height} style={StyleSheet.absoluteFill} pointerEvents="none">
-        {/* Grosor (sombra del borde inferior), borde y calzada */}
-        <Path d={road} stroke={palette.roadDepth} strokeWidth={30} strokeLinecap="round" strokeLinejoin="round" fill="none" transform="translate(0,5)" />
-        <Path d={road} stroke={palette.roadEdge} strokeWidth={30} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-        <Path d={road} stroke={palette.road} strokeWidth={24} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-        {/* Tramo recorrido */}
-        {done ? (
-          <>
-            <Path d={done} stroke={palette.primarySoft} strokeWidth={24} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-            <Path d={done} stroke={palette.primary} strokeWidth={6} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-          </>
-        ) : null}
+        {/* Recorta el camino para que no asome por encima del cartel */}
+        <Defs>
+          <ClipPath id={clipId}>
+            <Rect x={0} y={ROAD_TOP} width={width} height={height - ROAD_TOP} />
+          </ClipPath>
+        </Defs>
+        <G clipPath={`url(#${clipId})`}>
+          {/* Camino troceado: cada tramo se detiene en la banda de una
+              etiqueta y continúa después, de modo que la palabra queda
+              enhebrada en el camino. Los topes de los tramos son rectos
+              (butt) para que no sobresalgan bajo la palabra. */}
+          {segments.map((seg, i) => (
+            <G key={`seg-${i}`}>
+              <Path d={seg.d} stroke={palette.roadDepth} strokeWidth={30} strokeLinecap="butt" strokeLinejoin="round" fill="none" transform="translate(0,5)" />
+              <Path d={seg.d} stroke={palette.roadEdge} strokeWidth={30} strokeLinecap="butt" strokeLinejoin="round" fill="none" />
+              <Path d={seg.d} stroke={palette.road} strokeWidth={24} strokeLinecap="butt" strokeLinejoin="round" fill="none" />
+            </G>
+          ))}
+          {/* Tramo recorrido (también troceado para no tachar las palabras) */}
+          {done ? (
+            <>
+              {doneSegments.map((seg, i) => (
+                <Path key={`done-${i}`} d={seg.d} stroke={palette.primarySoft} strokeWidth={24} strokeLinecap="butt" strokeLinejoin="round" fill="none" />
+              ))}
+              {doneSegments.map((seg, i) => (
+                <Path key={`done-c-${i}`} d={seg.d} stroke={palette.primary} strokeWidth={6} strokeLinecap="butt" strokeLinejoin="round" fill="none" />
+              ))}
+            </>
+          ) : null}
+        </G>
       </Svg>
 
       {/* Cartel del módulo: el camino pasa por debajo */}
@@ -107,10 +175,13 @@ function ModuleRoad({ module, width, offsetY, progressY, palette, onPressNode })
 const styles = StyleSheet.create({
   banner: {
     position: 'absolute',
-    top: 8,
+    // El cartel arranca en 0 y cubre toda la altura de BANNER_H: así tapa
+    // por completo el arranque del camino de esta seccion (que se dibuja
+    // desde y=0) y el tramo no asoma por encima del modulo.
+    top: 0,
     left: 0,
     right: 0,
-    height: BANNER_H - 8,
+    height: BANNER_H,
     borderRadius: 22,
     borderWidth: 1,
     paddingHorizontal: 16,

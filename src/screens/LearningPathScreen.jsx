@@ -14,9 +14,10 @@ import { getErrorMessage } from '../utils/errors';
 import EmptyState from '../components/ui/EmptyState';
 import PressableScale from '../components/ui/PressableScale';
 import ModuleRoad, { sectionHeight, nodeLocalY } from '../components/path/ModuleRoad';
+import PlanProgress from '../components/path/PlanProgress';
+import PlanSheet from '../components/path/PlanSheet';
 import TopFade from '../components/ui/TopFade';
 import { PLAYABLE_LESSONS } from '../data/lessons';
-import { TOTAL_WORDS } from '../data/curriculum';
 import { elevation, shade } from '../theme/theme';
 import { enterStagger } from '../theme/motion';
 
@@ -48,43 +49,6 @@ const MinigameCard = memo(function MinigameCard({ game, onPress, theme }) {
   );
 });
 
-/** Progreso global: nodos completados y avance por nivel MCER. */
-function OverallProgress({ map, theme }) {
-  const levels = ['A1', 'A2', 'B1', 'B2'].map((level) => {
-    const mods = map.modules.filter((m) => m.level === level);
-    const total = mods.reduce((n, m) => n + m.nodes.length, 0);
-    const done = mods.reduce((n, m) => n + m.completed, 0);
-    return { level, ratio: total ? done / total : 0 };
-  });
-  const pct = map.totalNodes ? Math.round((map.doneNodes / map.totalNodes) * 100) : 0;
-  return (
-    <View className="mb-6 rounded-[24px] border border-border bg-surface p-5" style={elevation(1, theme.mode)}>
-      <View className="flex-row items-center justify-between">
-        <View className="flex-1">
-          <Typography type="body-xs" weight="bold" color="muted" className="uppercase tracking-wider">Plan de estudios A1 → B2</Typography>
-          <Typography weight="bold" style={{ color: theme.colors.foreground, fontSize: 32, lineHeight: 38 }}>{pct}%</Typography>
-          <Typography type="body-xs" color="muted">
-            {map.doneNodes}/{map.totalNodes} nodos · {map.modules.length} módulos · {TOTAL_WORDS} palabras
-          </Typography>
-        </View>
-        <View className="h-12 w-12 items-center justify-center rounded-[16px]" style={{ backgroundColor: `${theme.colors.primary}1A` }}>
-          <GraduationCap color={theme.colors.primary} size={24} />
-        </View>
-      </View>
-      <View className="mt-4 flex-row gap-2">
-        {levels.map(({ level, ratio }) => (
-          <View key={level} className="flex-1">
-            <View style={{ height: 6, borderRadius: 6, backgroundColor: `${theme.colors.primary}1F`, overflow: 'hidden' }}>
-              <View style={{ height: 6, width: `${ratio * 100}%`, backgroundColor: theme.colors.primary, borderRadius: 6 }} />
-            </View>
-            <Typography type="body-xs" weight="semibold" align="center" color="muted" className="mt-1">{level}</Typography>
-          </View>
-        ))}
-      </View>
-    </View>
-  );
-}
-
 export default function LearningPath() {
   const { theme } = useAppTheme();
   const { user } = useAuth();
@@ -101,6 +65,7 @@ export default function LearningPath() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
+  const [planOpen, setPlanOpen] = useState(false);
 
   const load = useCallback(async (isActive = () => true) => {
     setError(null);
@@ -163,8 +128,10 @@ export default function LearningPath() {
       primary: c.primary,
       primaryDeep: shade(c.primary, -0.3),
       primarySoft: dark ? 'rgba(44,196,190,0.18)' : (c.primarySoft ?? '#E2F4F2'),
+      onPrimary: c.onPrimary,
       ring: dark ? c.surface : '#FFFFFF',
       surface: c.surface,
+      background: c.background,
       border: c.border,
       foreground: c.foreground,
       muted: c.muted,
@@ -272,7 +239,7 @@ export default function LearningPath() {
         {MINIGAMES.map((game) => <MinigameCard key={game.route} game={game} theme={theme} onPress={openMinigame} />)}
       </View>
 
-      {map ? <OverallProgress map={map} theme={theme} /> : null}
+      {map ? <PlanProgress map={map} onPressInfo={() => setPlanOpen(true)} /> : null}
     </View>
   );
 
@@ -302,6 +269,7 @@ export default function LearningPath() {
         }}
       />
       <TopFade />
+      <PlanSheet visible={planOpen} onClose={() => setPlanOpen(false)} map={map} />
     </View>
   );
 }

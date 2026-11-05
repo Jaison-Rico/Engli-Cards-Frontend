@@ -12,10 +12,11 @@ import Animated, {
 import * as Haptics from 'expo-haptics';
 import { BookOpen, Layers2, Grid3x3, Trophy, Lock, Check } from 'lucide-react-native';
 import { Typography } from 'heroui-native';
+import { LABEL, NODE_DEPTH } from './pathGeometry';
 import { SPRING } from '../../theme/motion';
 
 const TYPE_ICON = { flashcards: BookOpen, swipe: Layers2, memory: Grid3x3, boss: Trophy };
-const DEPTH = 7;
+const DEPTH = NODE_DEPTH;
 
 /**
  * Nodo del camino: una ficha sólida con grosor (base más oscura debajo) que
@@ -54,13 +55,6 @@ function PathNode({ node, x, y, palette, onPress }) {
 
   return (
     <View style={[styles.wrap, { left: x - 70, top: y - size / 2 }]} pointerEvents="box-none">
-      {current ? (
-        <View style={[styles.chip, { backgroundColor: palette.primary, top: -34 }]} pointerEvents="none">
-          <Typography type="body-xs" weight="bold" style={{ color: '#fff', letterSpacing: 0.4 }}>Continuar</Typography>
-          <View style={[styles.chipArrow, { backgroundColor: palette.primary }]} />
-        </View>
-      ) : null}
-
       <Pressable
         onPress={() => onPress(node)}
         onPressIn={() => {
@@ -69,7 +63,7 @@ function PathNode({ node, x, y, palette, onPress }) {
         }}
         onPressOut={() => { press.value = withSpring(0, SPRING.snappy); }}
         accessibilityRole="button"
-        accessibilityLabel={`${node.title}${locked ? ', bloqueado' : node.status === 'done' ? ', completado' : current ? ', siguiente paso' : ''}`}
+        accessibilityLabel={`${current ? 'Continuar. ' : ''}${node.title}${locked ? ', bloqueado' : node.status === 'done' ? ', completado' : current ? ', siguiente paso' : ''}`}
         hitSlop={8}
         style={{ width: size, height: size + DEPTH }}
       >
@@ -102,15 +96,28 @@ function PathNode({ node, x, y, palette, onPress }) {
         </Animated.View>
       </Pressable>
 
-      <Typography
-        type="body-xs"
-        weight="semibold"
-        align="center"
-        numberOfLines={1}
-        style={{ marginTop: 8, color: locked ? palette.subtle : palette.foreground, width: 140 }}
-      >
-        {node.title}
-      </Typography>
+      {/* Etiqueta del nodo. En el nodo actual el espacio del título lo ocupa
+          la pastilla "Continuar": así no flota sobre la etiqueta del nodo
+          anterior, que es justo lo que se solapaba. */}
+      {current ? (
+        <View style={[styles.badge, { backgroundColor: palette.primary }]} pointerEvents="none">
+          <Typography type="body-xs" weight="bold" style={{ color: palette.onPrimary, fontSize: 12, letterSpacing: 0.3 }}>
+            Continuar
+          </Typography>
+        </View>
+      ) : (
+        <View style={[styles.label, { height: LABEL.height, backgroundColor: palette.background }]} pointerEvents="none">
+          <Typography
+            type="body-xs"
+            weight="semibold"
+            align="center"
+            numberOfLines={1}
+            style={{ color: locked ? palette.subtle : palette.foreground, fontSize: 13, lineHeight: LABEL.height }}
+          >
+            {node.title}
+          </Typography>
+        </View>
+      )}
     </View>
   );
 }
@@ -123,15 +130,26 @@ const styles = StyleSheet.create({
     position: 'absolute', top: 0, left: 0, right: 0, height: '50%',
     backgroundColor: 'rgba(255,255,255,0.12)',
   },
-  chip: {
-    position: 'absolute',
+  // Etiqueta del nodo: ocupa la banda reservada en el camino. El fondo es el
+  // color de la pantalla, así la línea del camino queda interrumpida y la
+  // palabra parece enhebrada entre el nodo de arriba y el de abajo.
+  label: {
+    marginTop: LABEL.gap,
+    width: 140,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  // Pastilla "Continuar": ocupa el hueco de la etiqueta del nodo, con el
+  // mismo margen superior, para no sumar altura ni pisar nada.
+  badge: {
+    marginTop: LABEL.gap,
+    height: LABEL.height,
     paddingHorizontal: 12,
-    paddingVertical: 5,
     borderRadius: 10,
     alignItems: 'center',
-    zIndex: 2,
+    justifyContent: 'center',
   },
-  chipArrow: { position: 'absolute', bottom: -4, width: 9, height: 9, transform: [{ rotate: '45deg' }] },
 });
 
 export default memo(PathNode);
