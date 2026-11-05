@@ -39,3 +39,7 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Impeccable (config local por desarrollador, no se versiona)
+.impeccable/config.local.json
+.impeccable/hook.cache.json
