@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Appearance } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
-import { getTheme } from '../styles/theme';
+import { getTheme } from '../theme/theme';
 
 export const ThemeContext = createContext();
 

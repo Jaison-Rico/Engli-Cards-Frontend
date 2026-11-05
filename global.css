@@ -5,22 +5,73 @@
 /* Scan heroui-native component classes */
 @source './node_modules/heroui-native/lib';
 
-/* Override accent/primary with Engli-Cards teal palette */
+/*
+ * Sistema de diseño Engli-Cards.
+ * Fuente única de color para las clases de uniwind/heroui. Los valores que
+ * deben pasarse como prop (iconos, gráficas) viven en src/theme/theme.js con
+ * los mismos tonos.
+ */
+@theme {
+  /* Inputs con borde fino visible (heroui lo trae a 0 por defecto) */
+  --field-border-width: 1px;
+}
+
 @layer theme {
   :root {
     @variant light {
-      --accent: oklch(0.67 0.10 192);
-      --accent-foreground: oklch(0.98 0 0);
-      --focus: oklch(0.67 0.10 192);
-      --link: oklch(0.67 0.10 192);
-      --background: oklch(0.985 0.005 210);
+      --accent: oklch(0.66 0.11 190);
+      --accent-foreground: oklch(0.99 0 0);
+      --focus: oklch(0.66 0.11 190);
+      --link: oklch(0.6 0.1 190);
+
+      --background: oklch(0.982 0.005 195);
+      --foreground: oklch(0.27 0.035 195);
       --surface: oklch(1 0 0);
+      --surface-secondary: oklch(0.965 0.008 195);
+      --surface-tertiary: oklch(0.95 0.01 195);
+      --overlay: oklch(1 0 0);
+      --default: oklch(0.955 0.009 195);
+      --default-foreground: oklch(0.27 0.035 195);
+      --muted: oklch(0.55 0.03 195);
+
+      --border: oklch(0.93 0.01 195);
+      --separator: oklch(0.9 0.01 195);
+      --field-background: oklch(1 0 0);
+      --field-border: oklch(0.91 0.012 195);
+      --backdrop: oklch(0.2 0.02 195 / 45%);
+
+      /* Sombras suaves con tinte del color de marca */
+      --surface-shadow:
+        0 1px 2px 0 rgba(8, 48, 46, 0.05), 0 4px 12px -4px rgba(8, 48, 46, 0.08);
+      --overlay-shadow:
+        0 8px 24px -6px rgba(8, 48, 46, 0.16), 0 2px 6px 0 rgba(8, 48, 46, 0.05);
+      --field-shadow: 0 1px 2px 0 rgba(8, 48, 46, 0.04);
     }
     @variant dark {
-      --accent: oklch(0.63 0.09 192);
-      --accent-foreground: oklch(0.98 0 0);
-      --focus: oklch(0.63 0.09 192);
-      --link: oklch(0.63 0.09 192);
+      --accent: oklch(0.73 0.11 190);
+      --accent-foreground: oklch(0.2 0.03 195);
+      --focus: oklch(0.73 0.11 190);
+      --link: oklch(0.73 0.11 190);
+
+      --background: oklch(0.17 0.01 200);
+      --foreground: oklch(0.95 0.01 195);
+      --surface: oklch(0.215 0.012 200);
+      --surface-secondary: oklch(0.245 0.012 200);
+      --surface-tertiary: oklch(0.27 0.012 200);
+      --overlay: oklch(0.235 0.012 200);
+      --default: oklch(0.27 0.012 200);
+      --default-foreground: oklch(0.95 0.01 195);
+      --muted: oklch(0.72 0.02 195);
+
+      --border: oklch(1 0 0 / 8%);
+      --separator: oklch(1 0 0 / 10%);
+      --field-background: oklch(0.215 0.012 200);
+      --field-border: oklch(1 0 0 / 10%);
+      --backdrop: oklch(0 0 0 / 60%);
+
+      --surface-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+      --overlay-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.6);
+      --field-shadow: none;
     }
   }
 }

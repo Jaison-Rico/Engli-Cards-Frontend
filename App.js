@@ -1,42 +1,15 @@
 import './global.css';
 import React, { useEffect } from 'react';
-import { AppState } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { HeroUINativeProvider } from 'heroui-native';
 import AppNavigator from './src/navigation/AppNavigator';
 import { ThemeProvider } from './src/context/ThemeContext';
-import { AuthProvider } from './src/context/AuthContext';
+import { AuthProvider, useAuth, getUserId } from './src/context/AuthContext';
+import { NetworkProvider } from './src/context/NetworkContext';
+import { FeedbackProvider } from './src/components/feedback/FeedbackProvider';
+import ConnectionStrip from './src/components/feedback/ConnectionStrip';
 import { enableStudyReminders } from './src/config/notifications';
-import { useAuth, getUserId } from './src/context/AuthContext';
-import { syncPendingChanges } from './src/services/decks.service';
-import { syncPendingQuizProgress } from './src/services/progress.service';
-
-function OfflineSyncManager() {
-  const { user } = useAuth();
-  const userId = getUserId(user);
-
-  useEffect(() => {
-    if (!userId) return undefined;
-
-    const sync = () => {
-      syncPendingChanges(userId).catch((error) => {
-        console.warn('No se pudieron sincronizar los cambios offline:', error);
-      });
-      syncPendingQuizProgress(userId).catch((error) => {
-        console.warn('No se pudieron sincronizar los quizzes pendientes:', error);
-      });
-    };
-
-    sync();
-    const subscription = AppState.addEventListener('change', (state) => {
-      if (state === 'active') sync();
-    });
-    return () => subscription.remove();
-  }, [userId]);
-
-  return null;
-}
 
 function StudyReminderManager() {
   const { user } = useAuth();
@@ -57,6 +30,11 @@ function StudyReminderManager() {
   return null;
 }
 
+/**
+ * Orden de proveedores:
+ *  Theme → Auth → Network (conexión + sincronización offline) → Feedback
+ *  (toasts, diálogos, hojas de acciones) → franja de conexión → navegación.
+ */
 export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -64,9 +42,14 @@ export default function App() {
         <SafeAreaProvider>
           <ThemeProvider>
             <AuthProvider>
-              <OfflineSyncManager />
-              <StudyReminderManager />
-              <AppNavigator />
+              <NetworkProvider>
+                <FeedbackProvider>
+                  <StudyReminderManager />
+                  <ConnectionStrip>
+                    <AppNavigator />
+                  </ConnectionStrip>
+                </FeedbackProvider>
+              </NetworkProvider>
             </AuthProvider>
           </ThemeProvider>
         </SafeAreaProvider>
