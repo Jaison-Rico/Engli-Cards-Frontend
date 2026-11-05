@@ -1,12 +1,18 @@
 import axios from 'axios';
 import { config } from '../config/api';
+import { setServerReachable } from './networkStatus';
+import { isNetworkError } from '../utils/errors';
 
 let _token = null;
 
 export const setAuthToken = (token) => { _token = token; };
 export const clearAuthToken = () => { _token = null; };
 
-const client = axios.create({ baseURL: config.BASE_URL });
+// Sin timeout una petición con mala señal puede quedarse colgada indefinidamente.
+export const DEFAULT_TIMEOUT_MS = 15000;
+export const UPLOAD_TIMEOUT_MS = 30000;
+
+const client = axios.create({ baseURL: config.BASE_URL, timeout: DEFAULT_TIMEOUT_MS });
 
 client.interceptors.request.use((req) => {
   if (_token) {
@@ -19,5 +25,18 @@ client.interceptors.request.use((req) => {
   }
   return req;
 });
+
+// Cada respuesta (o su ausencia) actualiza el indicador global de conexión.
+client.interceptors.response.use(
+  (response) => {
+    setServerReachable(true);
+    return response;
+  },
+  (error) => {
+    if (axios.isCancel(error)) return Promise.reject(error);
+    setServerReachable(!isNetworkError(error));
+    return Promise.reject(error);
+  },
+);
 
 export default client;
